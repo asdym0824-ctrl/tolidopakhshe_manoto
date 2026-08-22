@@ -2,6 +2,7 @@ export type ModuleTab =
   | 'dashboard'
   | 'inventory'
   | 'crm'
+  | 'retail_customers'
   | 'sales'
   | 'finance'
   | 'marketing'

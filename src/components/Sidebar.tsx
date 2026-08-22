@@ -3,6 +3,7 @@ import {
   LayoutDashboard, 
   Package, 
   Users, 
+  ShoppingBasket,
   Receipt, 
   CreditCard, 
   Share2, 
@@ -63,6 +64,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-[#D4AF37] text-[#18181B]',
     },
     {
+      id: 'retail_customers',
+      label: 'مشتریان تکی و سایت',
+      description: 'خریداران تکی، آدرس، باشگاه و پیامک',
+      icon: ShoppingBasket,
+    },
+    {
       id: 'sales',
       label: 'فروش و فاکتورها',
       description: 'فاکتور بازار، قیمت‌گذاری چندسطحی، تسویه',
@@ -78,9 +85,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'marketing',
-      label: 'هوش مصنوعی و کانال‌ها',
-      description: 'کپشن‌نویسی Gemini، ارسال به تلگرام/ایتا/روبیکا',
-      icon: Share2,
+      label: 'دستیار سئو و هوش مصنوعی',
+      description: 'استراتژی رتبه ۱ گوگل، کپشن‌نویسی و کانال‌ها',
+      icon: Sparkles,
+      badgeColor: 'bg-[#8C6D37] text-white',
     },
     {
       id: 'storefront',

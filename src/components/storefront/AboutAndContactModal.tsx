@@ -19,11 +19,13 @@ import { BRAND_INFO } from '../../data/brandInfo';
 interface AboutAndContactModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenRoutingModal?: () => void;
 }
 
 export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  onOpenRoutingModal
 }) => {
   if (!isOpen) return null;
 
@@ -99,9 +101,25 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
 
           {/* Official Location Addresses */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 font-black text-stone-900 text-sm">
-              <MapPin className="w-4 h-4 text-[#8C6D37]" />
-              <span>نشانی شعب و دفاتر در بازار بزرگ تهران:</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-black text-stone-900 text-sm">
+                <MapPin className="w-4 h-4 text-[#8C6D37]" />
+                <span>نشانی شعب و دفاتر در بازار بزرگ تهران:</span>
+              </div>
+
+              {onOpenRoutingModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenRoutingModal();
+                  }}
+                  className="bg-[#18181B] hover:bg-[#27272A] text-[#FAF7F2] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs self-start sm:self-auto"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>باز کردن نقشه تعاملی و مسیریاب‌ها</span>
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

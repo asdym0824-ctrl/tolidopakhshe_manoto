@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, ShoppingBag, Send, Phone, MapPin, ArrowDown, ShieldCheck, Sparkles } from 'lucide-react';
+import { Package, ShoppingBag, Send, Phone, MapPin, ArrowDown, ShieldCheck, Sparkles, Navigation } from 'lucide-react';
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
 
@@ -7,6 +7,7 @@ interface StorefrontHeroProps {
   onScrollToCatalog: () => void;
   onFilterRetailOnly: () => void;
   onFilterWholesalePacks: () => void;
+  onOpenRoutingModal?: () => void;
   totalProductsCount: number;
 }
 
@@ -14,6 +15,7 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
   onScrollToCatalog,
   onFilterRetailOnly,
   onFilterWholesalePacks,
+  onOpenRoutingModal,
   totalProductsCount
 }) => {
   return (
@@ -36,10 +38,26 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
             <div className="mt-3 text-xs sm:text-sm font-bold text-stone-800">
               تولید و پخش عمده و تک پوشاک زنانه <span className="text-[#8C6D37] font-black">«اسدی»</span>
             </div>
-            <div className="text-[11px] text-stone-600 mt-1 flex items-center justify-center gap-1.5 font-medium">
-              <MapPin className="w-3.5 h-3.5 text-[#8C6D37] inline" />
-              <span>بازار بزرگ تهران • بازار عباس‌آباد • پاساژ المهدی ۴، پلاک ۲۴۲</span>
-            </div>
+            
+            {onOpenRoutingModal ? (
+              <button
+                type="button"
+                onClick={onOpenRoutingModal}
+                className="mt-2 text-[11px] text-stone-700 bg-white hover:bg-[#F4ECE1] border border-[#DDD5C0] px-3 py-1 rounded-full inline-flex items-center justify-center gap-1.5 font-bold transition-all shadow-2xs group cursor-pointer"
+                title="کلیک برای مشاهده نقشه، لوکیشن و مسیریابی در بازار تهران"
+              >
+                <MapPin className="w-3.5 h-3.5 text-[#8C6D37] group-hover:scale-110 transition-transform" />
+                <span>بازار بزرگ تهران • بازار عباس‌آباد • پاساژ المهدی ۴، پلاک ۲۴۲</span>
+                <span className="bg-[#18181B] text-[#D4AF37] text-[9px] font-black px-1.5 py-0.2 rounded-full">
+                  نقشه و مسیریابی
+                </span>
+              </button>
+            ) : (
+              <div className="text-[11px] text-stone-600 mt-1 flex items-center justify-center gap-1.5 font-medium">
+                <MapPin className="w-3.5 h-3.5 text-[#8C6D37] inline" />
+                <span>بازار بزرگ تهران • بازار عباس‌آباد • پاساژ المهدی ۴، پلاک ۲۴۲</span>
+              </div>
+            )}
           </div>
 
           {/* Headline & Description */}

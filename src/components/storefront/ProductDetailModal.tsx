@@ -50,9 +50,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [selectedSize, setSelectedSize] = useState<string>(product.sizes.split(' ')[0] || 'فری‌سایز');
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
 
-  const images = product.galleryImages && product.galleryImages.length > 0 
-    ? product.galleryImages 
-    : [product.image];
+  const images = Array.from(new Set([
+    product.image,
+    ...(product.galleryImages || [])
+  ])).filter(Boolean);
 
   // Pricing calculations
   const wholesaleUnitPrice = isPartnerLoggedIn ? product.colleaguePricePerUnit : product.baseWholesalePricePerUnit;

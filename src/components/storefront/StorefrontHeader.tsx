@@ -9,7 +9,9 @@ import {
   Lock, 
   UserCheck,
   MapPin,
-  User
+  User,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
@@ -21,6 +23,8 @@ interface StorefrontHeaderProps {
   onOpenTracking: () => void;
   onOpenPartnerModal: () => void;
   onOpenAboutModal: () => void;
+  onOpenRoutingModal: () => void;
+  onOpenAiAssistant: () => void;
   onSwitchToAdmin: () => void;
   isPartnerLoggedIn: boolean;
   searchQuery: string;
@@ -35,6 +39,8 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   onOpenTracking,
   onOpenPartnerModal,
   onOpenAboutModal,
+  onOpenRoutingModal,
+  onOpenAiAssistant,
   onSwitchToAdmin,
   isPartnerLoggedIn,
   searchQuery,
@@ -46,18 +52,18 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
     <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E6DEC8] shadow-xs" dir="rtl">
       
       {/* Top Announcement & Quick Contact Bar */}
-      <div className="bg-[#18181B] text-[#FAF7F2] text-[11px] py-1.5 px-4 overflow-hidden border-b border-stone-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 truncate">
-            <span className="bg-[#B89B58] text-[#18181B] font-black px-2.5 py-0.5 rounded-full text-[10px] tracking-wide">
+      <div className="bg-[#18181B] text-[#FAF7F2] text-[11px] py-1.5 px-3 sm:px-4 border-b border-stone-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <span className="bg-[#B89B58] text-[#18181B] font-black px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] tracking-wide whitespace-nowrap flex-shrink-0">
               تولید و پخش مستقیم
             </span>
-            <span className="text-[#E6DEC8] truncate hidden sm:inline">
-              پاساژ المهدی ۴، پلاک ۲۴۲ • ارسال روزانه عمده و تک به سراسر ایران
+            <span className="text-[#E6DEC8] truncate text-[10px] sm:text-[11px]">
+              پاساژ المهدی ۴، پلاک ۲۴۲ • ارسال عمده و تک به سراسر ایران
             </span>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4 text-stone-300 text-[11px] flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 text-stone-300 text-[10px] sm:text-[11px] flex-shrink-0">
             {/* Quick Telegram */}
             <a
               href={BRAND_INFO.telegramUrl}
@@ -82,7 +88,20 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               <span>{BRAND_INFO.primaryPhoneDisplay}</span>
             </a>
 
-            <span className="text-stone-700">|</span>
+            <span className="text-stone-700 hidden sm:inline">|</span>
+
+            {/* Quick Location & Routing Link */}
+            <button
+              type="button"
+              onClick={onOpenRoutingModal}
+              className="text-[#D4AF37] hover:text-white font-bold flex items-center gap-1 transition-colors"
+              title="مشاهده لوکیشن در نقشه بازار و مسیریابی"
+            >
+              <MapPin className="w-3 h-3 text-[#D4AF37]" />
+              <span className="hidden md:inline">لوکیشن در بازار</span>
+            </button>
+
+            <span className="text-stone-700 hidden xs:inline">|</span>
 
             <button
               type="button"
@@ -98,16 +117,16 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-        <div className="flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Logo & Brand Identity */}
           <div 
-            className="cursor-pointer group flex items-center gap-3"
+            className="cursor-pointer group flex items-center gap-2 sm:gap-3 flex-shrink-0"
             onClick={onOpenAboutModal}
             title="اطلاعات موسسه تولید و پخش من و تو (اسدی)"
           >
-            <div className="bg-[#FAF7F2] border border-[#E6DEC8] p-1.5 sm:p-2 rounded-2xl shadow-xs group-hover:border-[#18181B] transition-all">
+            <div className="bg-[#FAF7F2] border border-[#E6DEC8] p-1 sm:p-2 rounded-2xl shadow-xs group-hover:border-[#18181B] transition-all">
               <ManotoLogo size="md" showPersianSub={false} />
             </div>
 
@@ -121,7 +140,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
             </div>
           </div>
 
-          {/* Search Input Bar (Desktop) */}
+          {/* Search Input Bar (Desktop & Tablet) */}
           <div className="hidden md:flex flex-1 max-w-md mx-4">
             <div className="relative w-full">
               <input
@@ -136,14 +155,31 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
             
+            {/* AI Assistant Button */}
+            <button
+              type="button"
+              id="btn-header-ai-assistant"
+              onClick={onOpenAiAssistant}
+              className="flex items-center gap-1 sm:gap-1.5 py-2 px-2.5 sm:px-3 bg-gradient-to-r from-amber-50 to-[#FAF7F2] hover:from-amber-100 hover:to-amber-50 text-[#18181B] border border-[#D4AF37]/50 rounded-xl text-xs font-bold transition-all shadow-xs group"
+              title="دستیار هوشمند و پاسخ به سوالات پر تکرار"
+            >
+              <div className="w-4 h-4 rounded-full bg-[#18181B] text-[#D4AF37] flex items-center justify-center text-[10px]">
+                <Bot className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+              </div>
+              <span className="font-bold hidden xs:inline">دستیار هوشمند</span>
+              <span className="bg-[#D4AF37] text-[#18181B] text-[9px] font-black px-1.5 py-0.2 rounded-full">
+                AI
+              </span>
+            </button>
+
             {/* Customer Account / Login / Portal Button */}
             <button
               type="button"
               id="btn-customer-account"
               onClick={onOpenCustomerAuthOrPortal}
-              className={`flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-xs ${
+              className={`flex items-center gap-1.5 py-2 px-2.5 sm:px-3 rounded-xl text-xs font-bold transition-all shadow-xs ${
                 loggedInCustomer
                   ? 'bg-[#18181B] text-[#FAF7F2] border border-[#3F3F46]'
                   : 'bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0]'
@@ -161,11 +197,23 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-header-contact"
               onClick={onOpenAboutModal}
-              className="hidden sm:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0] rounded-xl text-xs font-bold transition-colors shadow-xs"
+              className="hidden xl:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0] rounded-xl text-xs font-bold transition-colors shadow-xs"
               title="آدرس دقیق و تلفن‌های کارگاه"
             >
-              <MapPin className="w-4 h-4 text-[#8C6D37]" />
-              <span>تماس و آدرس بازار</span>
+              <Building2 className="w-4 h-4 text-[#8C6D37]" />
+              <span>شناسنامه کارگاه</span>
+            </button>
+
+            {/* Location & Routing Button */}
+            <button
+              type="button"
+              id="btn-header-routing"
+              onClick={onOpenRoutingModal}
+              className="hidden lg:flex items-center gap-1.5 py-2 px-3 bg-[#FAF7F2] hover:bg-white text-stone-900 border border-[#DDD5C0] rounded-xl text-xs font-bold transition-colors shadow-xs"
+              title="مشاهده موقعیت روی نقشه و باز کردن در گوگل مپ، نشان و بلد"
+            >
+              <Navigation className="w-4 h-4 text-[#D4AF37]" />
+              <span>مسیریابی بازار</span>
             </button>
 
             {/* VIP Partner Wholesale Button */}
@@ -173,7 +221,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-header-partner"
               onClick={onOpenPartnerModal}
-              className={`hidden sm:flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-xs ${
+              className={`hidden md:flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-xs ${
                 isPartnerLoggedIn
                   ? 'bg-emerald-50 text-emerald-900 border border-emerald-300'
                   : 'bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0]'
@@ -197,7 +245,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-header-tracking"
               onClick={onOpenTracking}
-              className="flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0] rounded-xl text-xs font-bold transition-colors shadow-xs"
+              className="hidden sm:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0] rounded-xl text-xs font-bold transition-colors shadow-xs"
               title="پیگیری بارنامه و بیجک باربری"
             >
               <Truck className="w-4 h-4 text-[#8C6D37]" />
@@ -209,7 +257,8 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-header-cart"
               onClick={onOpenCart}
-              className="relative py-2.5 px-4 bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2] rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
+              className="relative py-2 sm:py-2.5 px-3 sm:px-4 bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2] rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 sm:gap-2 flex-shrink-0"
+              aria-label={`سبد خرید با ${cartItemsCount} کالا`}
             >
               <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
               <span className="hidden xs:inline">سبد خرید</span>

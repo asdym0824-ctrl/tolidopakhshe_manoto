@@ -15,6 +15,7 @@ import { BRAND_INFO } from '../../data/brandInfo';
 
 interface StorefrontFooterProps {
   onOpenAboutModal: () => void;
+  onOpenRoutingModal: () => void;
   onOpenTracking: () => void;
   onOpenPartnerModal: () => void;
   onSwitchToAdmin: () => void;
@@ -22,6 +23,7 @@ interface StorefrontFooterProps {
 
 export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
   onOpenAboutModal,
+  onOpenRoutingModal,
   onOpenTracking,
   onOpenPartnerModal,
   onSwitchToAdmin
@@ -81,6 +83,16 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
                 >
                   <Building2 className="w-3.5 h-3.5 text-[#B89B58]" />
                   <span>ورود همکاران و خریداران عمده</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={onOpenRoutingModal}
+                  className="hover:text-[#D4AF37] transition-colors flex items-center gap-1.5 font-bold text-stone-300 hover:text-white"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>نقشه، لوکیشن و مسیریابی در بازار</span>
                 </button>
               </li>
               <li>

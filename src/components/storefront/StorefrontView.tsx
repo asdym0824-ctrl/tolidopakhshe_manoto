@@ -11,6 +11,12 @@ import { WholesalePartnerModal } from './WholesalePartnerModal';
 import { AboutAndContactModal } from './AboutAndContactModal';
 import { CustomerAuthModal } from './CustomerAuthModal';
 import { CustomerPortalModal } from './CustomerPortalModal';
+import { StorefrontAiAssistantModal } from './StorefrontAiAssistantModal';
+import { StorefrontFloatingAiWidget } from './StorefrontFloatingAiWidget';
+import { MobileCategoryStories } from './MobileCategoryStories';
+import { InteractiveCategoryExplorer } from './InteractiveCategoryExplorer';
+import { HorizontalProductShelf } from './HorizontalProductShelf';
+import { MobileBottomNavBar } from './MobileBottomNavBar';
 import { StorefrontFooter } from './StorefrontFooter';
 import { 
   Filter, 
@@ -22,7 +28,13 @@ import {
   Flame, 
   ArrowUpDown,
   Search,
-  Check
+  Check,
+  LayoutGrid,
+  Rows3,
+  Layers,
+  Sparkle,
+  TrendingUp,
+  Compass
 } from 'lucide-react';
 
 interface StorefrontViewProps {
@@ -58,18 +70,41 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isCustomerAuthOpen, setIsCustomerAuthOpen] = useState(false);
   const [isCustomerPortalOpen, setIsCustomerPortalOpen] = useState(false);
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
 
-  // Filters & Search
+  // Filters, Search & Display Mode
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('همه');
   const [salesModeFilter, setSalesModeFilter] = useState<'all' | 'retail_only' | 'wholesale_only'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'bestseller' | 'price_asc' | 'price_desc'>('newest');
+  const [layoutMode, setLayoutMode] = useState<'horizontal_shelves' | 'grid' | 'compact_list'>('horizontal_shelves');
 
   const catalogRef = useRef<HTMLDivElement>(null);
 
   const categories = useMemo(() => {
     const list = Array.from(new Set(products.map(p => p.category)));
     return ['همه', ...list];
+  }, [products]);
+
+  // Curated Subsets for Horizontal Shelves
+  const bestsellerProducts = useMemo(() => {
+    return products.filter(p => p.isBestSeller || (p.rating && p.rating >= 4.8));
+  }, [products]);
+
+  const newArrivalProducts = useMemo(() => {
+    return products.filter(p => p.isNewArrival);
+  }, [products]);
+
+  const retailReadyProducts = useMemo(() => {
+    return products.filter(p => p.allowRetailSale && (p.singleStock > 0 || p.packStock > 0));
+  }, [products]);
+
+  const categoryGroups = useMemo(() => {
+    const uniqueCats = Array.from(new Set(products.map(p => p.category)));
+    return uniqueCats.map(cat => ({
+      category: cat,
+      items: products.filter(p => p.category === cat)
+    })).filter(group => group.items.length > 0);
   }, [products]);
 
   // Filtered & Sorted Products
@@ -200,6 +235,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
         onOpenTracking={() => setIsTrackingOpen(true)}
         onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
         onOpenAboutModal={() => setIsAboutModalOpen(true)}
+        onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
         onSwitchToAdmin={onSwitchToAdmin}
         isPartnerLoggedIn={isPartnerLoggedIn}
         searchQuery={searchQuery}
@@ -214,8 +250,64 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
         }}
       />
 
+      {/* Structured Data JSON-LD Schema for Google Rich Snippets & Local SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "ClothingStore",
+                "@id": "https://manoto-dress.ir/#store",
+                "name": "پوشاک من و تو (اسدی) - MANOTO DRESS",
+                "description": "تولید و پخش مستقیم پوشاک و شلوار زنانه عمده در بازار بزرگ تهران، پاساژ المهدی ۴، پلاک ۲۴۲",
+                "url": "https://manoto-dress.ir",
+                "telephone": "09121234567",
+                "priceRange": "$$",
+                "address": {
+                  "@type": "PostalAddress",
+                  "streetAddress": "بازار بزرگ تهران، سرای ملی، پاساژ المهدی ۴، پلاک ۲۴۲",
+                  "addressLocality": "تهران",
+                  "addressRegion": "تهران",
+                  "postalCode": "11918",
+                  "addressCountry": "IR"
+                },
+                "geo": {
+                  "@type": "GeoCoordinates",
+                  "latitude": "35.6720",
+                  "longitude": "51.4190"
+                }
+              },
+              {
+                "@type": "FAQPage",
+                "@id": "https://manoto-dress.ir/#faq",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "نحوه ثبت سفارش عمده و ارسال به شهرستان چگونه است؟",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "کلیه سفارشات عمده در قالب پک‌های جور ۶، ۸ و ۱۲ تایی از طریق باربری‌های معتبر میدان شوش (وطن، پیام‌گیر) و تیپاکس با ارائه بیجک رسمی ۲۴ ساعته ارسال می‌شوند."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "آدرس خرید حضوری در بازار بزرگ تهران کجاست؟",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "تهران، بازار بزرگ تهران، سرای ملی، پاساژ المهدی ۴، پلاک ۲۴۲ (نزدیک ایستگاه مترو خیام و ۱۵ خرداد)."
+                    }
+                  }
+                ]
+              }
+            ]
+          })
+        }}
+      />
+
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 pb-16 md:pb-0">
         {currentView === 'checkout' ? (
           <CheckoutView
             cartItems={cartItems}
@@ -260,34 +352,33 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
             />
 
             {/* Catalog & Filter Section */}
-            <div ref={catalogRef} className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+            <div ref={catalogRef} className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
               
-              {/* Category Pills Bar */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`py-2 px-4 rounded-2xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${
-                      selectedCategory === cat
-                        ? 'bg-[#18181B] text-[#FAF7F2] shadow-md border border-[#18181B]'
-                        : 'bg-white text-stone-700 hover:bg-[#FAF7F2] hover:text-stone-900 border border-[#DDD5C0]'
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    {cat === 'همه' && (
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        selectedCategory === cat ? 'bg-[#FAF7F2]/20 text-[#FAF7F2]' : 'bg-[#F4ECE1] text-stone-700'
-                      }`}>
-                        {products.length}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
+              {/* Mobile Stories & Horizontal Category Carousel */}
+              <MobileCategoryStories
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={(cat) => {
+                  setSelectedCategory(cat);
+                  scrollToCatalog();
+                }}
+                products={products}
+                salesModeFilter={salesModeFilter}
+                onSetSalesModeFilter={setSalesModeFilter}
+              />
 
-              {/* Toolbar: Sales Mode Switch & Sorting */}
+              {/* Interactive Category Explorer Cards */}
+              <InteractiveCategoryExplorer
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={(cat) => {
+                  setSelectedCategory(cat);
+                  scrollToCatalog();
+                }}
+                products={products}
+              />
+
+              {/* Toolbar: Layout Mode, Sales Mode Switch & Sorting */}
               <div className="bg-white p-3.5 sm:p-4 rounded-3xl border border-[#E6DEC8] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 
                 {/* Sales Mode Filter Tabs */}
@@ -295,55 +386,87 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSalesModeFilter('all')}
-                    className={`flex-1 py-1.5 px-3 rounded-xl transition-all ${
+                    className={`flex-1 py-1.5 px-3 rounded-xl transition-all text-center ${
                       salesModeFilter === 'all' ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs' : 'text-stone-700 hover:text-stone-900'
                     }`}
                   >
-                    همه محصولات ({products.length})
+                    همه ({products.length})
                   </button>
                   <button
                     type="button"
                     onClick={() => setSalesModeFilter('retail_only')}
-                    className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1 ${
+                    className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1 text-center ${
                       salesModeFilter === 'retail_only' ? 'bg-[#8C6D37] text-white shadow-xs' : 'text-stone-700 hover:text-stone-900'
                     }`}
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
-                    <span>دارای خرید تکی</span>
+                    <span>خرید تکی</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSalesModeFilter('wholesale_only')}
-                    className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1 ${
+                    className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1 text-center ${
                       salesModeFilter === 'wholesale_only' ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs' : 'text-stone-700 hover:text-stone-900'
                     }`}
                   >
                     <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>فقط پک عمده</span>
+                    <span>پک عمده</span>
                   </button>
                 </div>
 
-                {/* Sort dropdown */}
-                <div className="flex items-center gap-2 justify-end">
-                  <span className="text-xs text-stone-500 font-medium whitespace-nowrap flex items-center gap-1">
-                    <ArrowUpDown className="w-3.5 h-3.5 text-[#8C6D37]" />
-                    <span>مرتب‌سازی:</span>
-                  </span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl px-3 py-1.5 text-xs text-stone-900 font-bold focus:outline-none focus:ring-2 focus:ring-[#18181B]/20"
-                  >
-                    <option value="newest">جدیدترین مدل‌های کارگاه</option>
-                    <option value="bestseller">پرفروش‌ترین‌های بنکداری</option>
-                    <option value="price_asc">ارزان‌ترین پک</option>
-                    <option value="price_desc">گران‌ترین پک</option>
-                  </select>
+                {/* Right controls: View Mode Switcher + Sort */}
+                <div className="flex items-center justify-between md:justify-end gap-2 flex-wrap sm:flex-nowrap">
+                  
+                  {/* View Mode Switcher */}
+                  <div className="flex items-center bg-[#FAF7F2] p-1 rounded-2xl border border-[#E6DEC8] text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setLayoutMode('horizontal_shelves')}
+                      className={`px-2.5 py-1 rounded-xl font-bold flex items-center gap-1 transition-all ${
+                        layoutMode === 'horizontal_shelves'
+                          ? 'bg-[#18181B] text-[#FAF7F2] shadow-2xs'
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                      title="نمایش قفسه‌های سوایپی افقی (مخصوص گوشی)"
+                    >
+                      <Rows3 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span className="hidden xs:inline">سوایپ افقی</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLayoutMode('grid')}
+                      className={`px-2.5 py-1 rounded-xl font-bold flex items-center gap-1 transition-all ${
+                        layoutMode === 'grid'
+                          ? 'bg-[#18181B] text-[#FAF7F2] shadow-2xs'
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                      title="نمایش شبکه‌ای"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span className="hidden xs:inline">شبکه</span>
+                    </button>
+                  </div>
+
+                  {/* Sort dropdown */}
+                  <div className="flex items-center gap-1.5 flex-1 sm:flex-none justify-end">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as any)}
+                      className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl px-2.5 py-1.5 text-xs text-stone-900 font-bold focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 w-full sm:w-auto"
+                    >
+                      <option value="newest">جدیدترین مدل‌ها</option>
+                      <option value="bestseller">پرفروش‌ترین‌های راسته</option>
+                      <option value="price_asc">ارزان‌ترین پک</option>
+                      <option value="price_desc">گران‌ترین پک</option>
+                    </select>
+                  </div>
+
                 </div>
 
               </div>
 
-              {/* Product Grid */}
+              {/* Products Rendering Section */}
               {filteredProducts.length === 0 ? (
                 <div className="bg-white rounded-3xl border border-[#E6DEC8] p-12 text-center space-y-3">
                   <Package className="w-12 h-12 text-stone-400 mx-auto" />
@@ -363,12 +486,40 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                     مشاهده کل کاتالوگ
                   </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                  {filteredProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
+              ) : layoutMode === 'horizontal_shelves' && selectedCategory === 'همه' && !searchQuery.trim() ? (
+                /* Rich Curated Horizontal Swipe Shelves */
+                <div className="space-y-6">
+                  
+                  {/* 1. Hot Bestsellers Reel */}
+                  {bestsellerProducts.length > 0 && (
+                    <HorizontalProductShelf
+                      id="shelf-bestsellers"
+                      title="پرفروش‌ترین‌های راسته بازار بزرگ"
+                      subtitle="مدل‌های پرتقاضا با بالاترین میزان رضایت مغازه‌داران"
+                      badgeText="🔥 ویترین داغ"
+                      badgeType="hot"
+                      icon={Flame}
+                      products={bestsellerProducts}
+                      onOpenDetail={setSelectedProduct}
+                      onQuickAddToCart={(prod, mode, qty) => {
+                        handleAddToCart(prod, mode, qty);
+                        setIsCartOpen(true);
+                      }}
+                      isPartnerLoggedIn={isPartnerLoggedIn}
+                      showRankNumber={true}
+                    />
+                  )}
+
+                  {/* 2. New Arrivals Reel */}
+                  {newArrivalProducts.length > 0 && (
+                    <HorizontalProductShelf
+                      id="shelf-new-arrivals"
+                      title="جدیدترین مدل‌های دوخت کارگاه"
+                      subtitle="طرح‌ها و ژورنال‌های تازه ترخیص شده هفته جاری"
+                      badgeText="✨ کالکشن جدید"
+                      badgeType="new"
+                      icon={Sparkles}
+                      products={newArrivalProducts}
                       onOpenDetail={setSelectedProduct}
                       onQuickAddToCart={(prod, mode, qty) => {
                         handleAddToCart(prod, mode, qty);
@@ -376,7 +527,106 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                       }}
                       isPartnerLoggedIn={isPartnerLoggedIn}
                     />
-                  ))}
+                  )}
+
+                  {/* 3. Retail Ready Shelf */}
+                  {retailReadyProducts.length > 0 && (
+                    <HorizontalProductShelf
+                      id="shelf-retail-ready"
+                      title="مدل‌های منتخب با امکان خرید تکی"
+                      subtitle="خرید تکی به قیمت عمده تولیدی با ارسال سریع پستی"
+                      badgeText="🛍️ ارسال تکی"
+                      badgeType="retail"
+                      icon={ShoppingBag}
+                      products={retailReadyProducts}
+                      onOpenDetail={setSelectedProduct}
+                      onQuickAddToCart={(prod, mode, qty) => {
+                        handleAddToCart(prod, mode, qty);
+                        setIsCartOpen(true);
+                      }}
+                      isPartnerLoggedIn={isPartnerLoggedIn}
+                    />
+                  )}
+
+                  {/* 4. Complete All Products Grid with Category Badges */}
+                  <div className="pt-4 border-t border-[#E6DEC8]/80 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-2xl bg-[#18181B] text-[#FAF7F2] flex items-center justify-center">
+                          <LayoutGrid className="w-4 h-4 text-[#D4AF37]" />
+                        </div>
+                        <div>
+                          <h3 className="font-black text-stone-900 text-sm sm:text-base">
+                            آرشیو کامل کاتالوگ ({filteredProducts.length} مدل)
+                          </h3>
+                          <p className="text-[11px] text-stone-500">
+                            مشاهده همزمان کلیه تولیدات در چیدمان شبکه‌ای
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+                      {filteredProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          onOpenDetail={setSelectedProduct}
+                          onQuickAddToCart={(prod, mode, qty) => {
+                            handleAddToCart(prod, mode, qty);
+                            setIsCartOpen(true);
+                          }}
+                          isPartnerLoggedIn={isPartnerLoggedIn}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              ) : (
+                /* When filtered or in grid mode: show Swipe Reel + Grid */
+                <div className="space-y-6">
+                  {/* Top Horizontal Swipe Reel for the active filter */}
+                  <HorizontalProductShelf
+                    id="shelf-filtered-active"
+                    title={selectedCategory === 'همه' ? 'نتایج جستجو و فیلترها' : selectedCategory}
+                    subtitle={`نمایش افقی ${filteredProducts.length} مدل شلوار زنانه`}
+                    badgeText="👈 سوایپ افقی"
+                    badgeType="custom"
+                    icon={Sparkles}
+                    products={filteredProducts}
+                    onOpenDetail={setSelectedProduct}
+                    onQuickAddToCart={(prod, mode, qty) => {
+                      handleAddToCart(prod, mode, qty);
+                      setIsCartOpen(true);
+                    }}
+                    isPartnerLoggedIn={isPartnerLoggedIn}
+                  />
+
+                  {/* Grid View */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-stone-700 px-1">
+                      <span>نمایش شبکه‌ای کامل:</span>
+                      <span className="text-stone-500 font-normal">
+                        {filteredProducts.length} مدل
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+                      {filteredProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          onOpenDetail={setSelectedProduct}
+                          onQuickAddToCart={(prod, mode, qty) => {
+                            handleAddToCart(prod, mode, qty);
+                            setIsCartOpen(true);
+                          }}
+                          isPartnerLoggedIn={isPartnerLoggedIn}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -472,6 +722,42 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
           }}
         />
       )}
+
+      {/* Floating AI Assistant Widget (Quick Access for Shoppers) */}
+      <StorefrontFloatingAiWidget
+        onOpen={() => setIsAiAssistantOpen(true)}
+      />
+
+      {/* Interactive Storefront AI Assistant & FAQ Advisor Modal */}
+      <StorefrontAiAssistantModal
+        isOpen={isAiAssistantOpen}
+        onClose={() => setIsAiAssistantOpen(false)}
+        products={products}
+        onOpenTracking={() => setIsTrackingOpen(true)}
+        onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
+        onOpenAboutModal={() => setIsAboutModalOpen(true)}
+        onFilterRetailOnly={() => setSalesModeFilter('retail_only')}
+        onSelectCategory={(cat) => setSelectedCategory(cat)}
+      />
+
+      {/* Sticky Bottom Navigation Bar for Mobile & Smartphone View */}
+      <MobileBottomNavBar
+        cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+        onOpenCart={() => setIsCartOpen(true)}
+        onScrollToCatalog={scrollToCatalog}
+        onOpenTracking={() => setIsTrackingOpen(true)}
+        onOpenCustomerAuthOrPortal={() => {
+          if (loggedInCustomer) {
+            setIsCustomerPortalOpen(true);
+          } else {
+            setIsCustomerAuthOpen(true);
+          }
+        }}
+        onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
+        onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
+        loggedInCustomer={loggedInCustomer}
+        isPartnerLoggedIn={isPartnerLoggedIn}
+      />
 
     </div>
   );

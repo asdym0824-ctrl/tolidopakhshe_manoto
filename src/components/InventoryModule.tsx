@@ -22,6 +22,7 @@ import {
   List
 } from 'lucide-react';
 import { Product, PackSize, ProductSource } from '../types';
+import { ImageUploader } from './common/ImageUploader';
 
 interface InventoryModuleProps {
   products: Product[];
@@ -62,6 +63,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     setEditForm({
       ...product,
       colorsStr: product.colors.join('، '),
+      galleryImages: product.galleryImages || [],
     });
   };
 
@@ -95,7 +97,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       minPackStockAlert: Number(editForm.minPackStockAlert) || 5,
       colors: colorArray,
       sizes: editForm.sizes,
-      image: editForm.image,
+      image: editForm.image || editingProduct.image,
+      galleryImages: editForm.galleryImages || [],
       description: editForm.description,
       isNewArrival: Boolean(editForm.isNewArrival),
       isBestSeller: Boolean(editForm.isBestSeller),
@@ -133,6 +136,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     colors: string;
     sizes: string;
     image: string;
+    galleryImages: string[];
     description: string;
   }>({
     name: '',
@@ -156,6 +160,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     colors: 'مشکی، کرم، طوسی، سرمه‌ای، خاکی',
     sizes: 'فری‌سایز مناسب ۳۸ تا ۴۶',
     image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop&q=80',
+    galleryImages: [],
     description: 'تنخور ژورنالی فوق‌العاده راحت، پارچه بدون آبرفت، دوخت تمیز کارگاهی',
   });
 
@@ -198,6 +203,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       name: formData.name || `مدل ${formData.category} ${formData.fabricType}`,
       category: formData.category,
       image: formData.image || 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop&q=80',
+      galleryImages: formData.galleryImages || [],
       fabricCost: formData.source === 'self_produced' ? formData.fabricCost : 0,
       tailoringCost: formData.source === 'self_produced' ? formData.tailoringCost : 0,
       trimsCost: formData.source === 'self_produced' ? formData.trimsCost : 0,
@@ -1005,14 +1011,17 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                 </div>
               </div>
 
-              {/* Image URL & Description */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">آدرس تصویر ژورنالی کالا:</label>
-                <input
-                  type="text"
+              {/* Image Uploader & Gallery */}
+              <div className="pt-1">
+                <ImageUploader
+                  id="new-product-image-uploader"
+                  label="عکس اصلی مدل و کاتالوگ ژورنالی:"
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full bg-stone-50 text-xs p-2 rounded-xl border border-stone-200 font-mono text-[11px]"
+                  onChange={(url) => setFormData({ ...formData, image: url })}
+                  galleryValues={formData.galleryImages}
+                  onGalleryChange={(imgs) => setFormData({ ...formData, galleryImages: imgs })}
+                  allowGallery={true}
+                  helpText="عکس پوشاک را آپلود کنید یا از بین ژورنال‌های آماده بازار مدل انتخاب کنید."
                 />
               </div>
 
@@ -1315,14 +1324,17 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                 </div>
               </div>
 
-              {/* Image URL */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">آدرس تصویر کالا:</label>
-                <input
-                  type="text"
+              {/* Image Uploader & Gallery */}
+              <div className="pt-1">
+                <ImageUploader
+                  id="edit-product-image-uploader"
+                  label="تصویر شاخص و کاتالوگ ژورنالی:"
                   value={editForm.image}
-                  onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-                  className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200 font-mono text-[11px]"
+                  onChange={(url) => setEditForm({ ...editForm, image: url })}
+                  galleryValues={editForm.galleryImages || []}
+                  onGalleryChange={(imgs) => setEditForm({ ...editForm, galleryImages: imgs })}
+                  allowGallery={true}
+                  helpText="تصویر جدید را از گوشی/سیستم آپلود کنید یا کاتالوگ آماده انتخاب کنید."
                 />
               </div>
 

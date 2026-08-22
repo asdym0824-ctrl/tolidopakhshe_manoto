@@ -22,7 +22,7 @@ import {
   INITIAL_STOREFRONT_ORDERS 
 } from './data/mockData';
 
-// Initial registered customer accounts for storefront
+// Initial registered customer accounts for storefront & retail
 const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
     id: 'usr-1',
@@ -35,6 +35,8 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
     postalCode: '8146599123',
     isPartnerWholesale: true,
     registeredAt: '۱۴۰۳/۰۴/۱۵',
+    totalOrdersCount: 2,
+    totalSpentToman: 2340000,
   },
   {
     id: 'usr-2',
@@ -47,6 +49,47 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
     postalCode: '9183746501',
     isPartnerWholesale: true,
     registeredAt: '۱۴۰۳/۰۵/۰۱',
+    totalOrdersCount: 1,
+    totalSpentToman: 1180000,
+  },
+  {
+    id: 'usr-3',
+    phone: '09351112233',
+    fullName: 'نیلوفر رضایی',
+    province: 'تهران',
+    city: 'تهران',
+    address: 'سعادت‌آباد، خیابان صرافها، پلاک ۱۸، واحد ۴',
+    postalCode: '1998765432',
+    isPartnerWholesale: false,
+    registeredAt: '۱۴۰۳/۰۳/۰۲',
+    totalOrdersCount: 1,
+    totalSpentToman: 515000,
+  },
+  {
+    id: 'usr-4',
+    phone: '09129876543',
+    fullName: 'پریسا کاشانی',
+    province: 'تهران',
+    city: 'تهران',
+    address: 'پاسداران، بوستان دوم، کوچه مریم، پلاک ۹',
+    postalCode: '1668749120',
+    isPartnerWholesale: false,
+    registeredAt: '۱۴۰۳/۰۲/۱۵',
+    totalOrdersCount: 3,
+    totalSpentToman: 1250000,
+  },
+  {
+    id: 'usr-5',
+    phone: '09173334455',
+    fullName: 'زهرا دهقانی',
+    province: 'فارس',
+    city: 'شیراز',
+    address: 'خیابان زند، کوچه ۴۴، مجتمع آفتاب',
+    postalCode: '7134981200',
+    isPartnerWholesale: false,
+    registeredAt: '۱۴۰۳/۰۱/۲۰',
+    totalOrdersCount: 4,
+    totalSpentToman: 1890000,
   }
 ];
 
@@ -73,6 +116,7 @@ import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
 import { InventoryModule } from './components/InventoryModule';
 import { CustomerCRMModule } from './components/CustomerCRMModule';
+import { RetailCustomersModule } from './components/RetailCustomersModule';
 import { SalesInvoiceModule } from './components/SalesInvoiceModule';
 import { FinanceModule } from './components/FinanceModule';
 import { MarketingAIModule } from './components/MarketingAIModule';
@@ -415,6 +459,17 @@ export default function App() {
               />
             )}
 
+            {/* View 3.5: Retail Customers & Storefront Direct Buyers Module */}
+            {currentTab === 'retail_customers' && (
+              <RetailCustomersModule
+                customerUsers={customerUsers}
+                orders={storefrontOrders}
+                wholesaleCustomers={customers}
+                onAddRetailCustomer={handleRegisterCustomerUser}
+                onUpdateRetailCustomer={handleUpdateCustomerUser}
+              />
+            )}
+
             {/* View 4: Sales & Multi-tier Invoicing Module */}
             {currentTab === 'sales' && (
               <SalesInvoiceModule
@@ -444,6 +499,8 @@ export default function App() {
                 products={products}
                 socialPosts={socialPosts}
                 autoResponders={autoResponders}
+                siteSettings={siteSettings}
+                onUpdateSiteSettings={setSiteSettings}
                 onAddSocialPost={handleAddSocialPost}
                 onAddAutoResponder={handleAddAutoResponder}
               />
