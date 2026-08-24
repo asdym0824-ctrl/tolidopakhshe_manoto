@@ -66,6 +66,140 @@ async function startServer() {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // API Route: Natural Language Quick Entry Parser for Bazaar Merchant
+  app.post("/api/quick-entry", async (req, res) => {
+    try {
+      const { text, products = [], customers = [] } = req.body;
+      const userInput = (text || "").trim();
+
+      if (!userInput) {
+        return res.status(400).json({ success: false, error: "متن ورودی خالی است." });
+      }
+
+      const productsListSummary = Array.isArray(products)
+        ? products.map((p: any) => `ID: ${p.id} | نام: ${p.name} | قیمت پک عمده: ${p.baseWholesalePricePerPack} | پک ${p.packSize} تایی | موجودی: ${p.packStock} پک`).join("\n")
+        : "";
+
+      const customersListSummary = Array.isArray(customers)
+        ? customers.map((c: any) => `ID: ${c.id} | نام: ${c.name} | فروشگاه: ${c.storeName || ''} | شهر: ${c.city || ''} | تلفن: ${c.phone || ''}`).join("\n")
+        : "";
+
+      const ai = getGeminiAI();
+
+      if (ai) {
+        const prompt = `شما یک دستیار هوشمند حسابداری و ثبت فاکتور در بازار بزرگ تهران هستید.
+وظیفه شما: دریافت یک جمله محاوره‌ای بازاری از صاحب حجره و استخراج دقیق اطلاعات ساختاریافته فاکتور فروش یا تغییر موجودی یا ثبت مشتری است.
+
+متن بازاری ثبت شده توسط صاحب حجره:
+"${userInput}"
+
+لیست محصولات موجود در انبار جهت تطبیق هوشمند (Fuzzy Match):
+${productsListSummary}
+
+لیست مشتریان موجود در سیستم:
+${customersListSummary}
+
+لطفاً خروجی را صرفاً به صورت یک JSON استاندارد و معتبر (بدون هیچ توضیح متنی اضافه) با ساختار زیر برگردانید:
+{
+  "actionType": "sale_invoice" | "stock_update" | "new_customer",
+  "summaryPersian": "خلاصه کوتاه و تمیز به زبان فارسی از کاری که ثبت می‌شود",
+  "matchedProductId": "آیدی محصول منطبق از لیست بالا یا null",
+  "matchedProductName": "نام دقیق کالا",
+  "quantity": 2,
+  "unitType": "pack" | "single",
+  "packSize": 6,
+  "pricePerPack": 480000,
+  "totalAmount": 960000,
+  "matchedCustomerId": "آیدی مشتری منطبق یا null",
+  "customerName": "نام خریدار",
+  "customerCity": "شهر مقصد اگر ذکر شده",
+  "paymentType": "cash" | "check",
+  "paymentNotes": "توضیحات تسویه (نقد، واریزی، چک صیادی)",
+  "confidenceScore": 0.95
+}`;
+
+        const generatedJson = await generateContentWithFallback(ai, prompt, { responseMimeType: "application/json" });
+        if (generatedJson) {
+          try {
+            const parsed = JSON.parse(generatedJson);
+            return res.json({ success: true, data: parsed, source: "gemini" });
+          } catch (e) {
+            console.warn("Failed to parse Gemini quick-entry JSON:", e);
+          }
+        }
+      }
+
+      // Local Intelligent Persian Rule-Based Parser Fallback
+      const normalized = userInput.toLowerCase();
+      
+      // Match quantities (e.g. ۲ پک, 5 عدد, سه بسته)
+      const numPersianMap: Record<string, number> = {
+        'یک': 1, 'دو': 2, 'سه': 3, 'چهار': 4, 'پنج': 5,
+        'شش': 6, 'هفت': 7, 'هشت': 8, 'نه': 9, 'ده': 10,
+        '۱': 1, '۲': 2, '۳': 3, '۴': 4, '۵': 5,
+        '۶': 6, '۷': 7, '۸': 8, '۹': 9, '۱۰': 10
+      };
+
+      let detectedQty = 1;
+      const numMatch = userInput.match(/(\d+|یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده)\s*(پک|بسته|جین|عدد|تا)/);
+      if (numMatch) {
+        const rawNum = numMatch[1];
+        detectedQty = numPersianMap[rawNum] || parseInt(rawNum, 10) || 1;
+      }
+
+      const isPack = !userInput.includes('تکی') && !userInput.includes('عدد');
+      const isCheck = userInput.includes('چک') || userInput.includes('صیاد') || userInput.includes('مدت');
+      const paymentType = isCheck ? 'check' : 'cash';
+
+      // Find matching product
+      let matchedProd = Array.isArray(products) ? products.find((p: any) => 
+        userInput.includes(p.name) || 
+        (p.category && userInput.includes(p.category)) ||
+        (p.fabricType && userInput.includes(p.fabricType)) ||
+        (p.name.includes('بگ') && userInput.includes('بگ')) ||
+        (p.name.includes('راحتی') && userInput.includes('راحتی')) ||
+        (p.name.includes('داکرون') && userInput.includes('داکرون')) ||
+        (p.name.includes('لگ') && userInput.includes('لگ'))
+      ) : null;
+
+      if (!matchedProd && Array.isArray(products) && products.length > 0) {
+        matchedProd = products[0];
+      }
+
+      // Find matching customer
+      let matchedCust = Array.isArray(customers) ? customers.find((c: any) =>
+        userInput.includes(c.name) || (c.storeName && userInput.includes(c.storeName)) || (c.city && userInput.includes(c.city))
+      ) : null;
+
+      const customerName = matchedCust ? matchedCust.name : (userInput.match(/به\s+([\u0600-\u06FF\s]+)/)?.[1]?.trim() || 'مشتری حضوری / نقدی');
+      const pricePerPack = matchedProd ? matchedProd.baseWholesalePricePerPack : 450000;
+      const totalAmount = pricePerPack * detectedQty;
+
+      const fallbackResult = {
+        actionType: "sale_invoice",
+        summaryPersian: `ثبت فاکتور فروش ${detectedQty} ${isPack ? 'پک' : 'عدد'} ${matchedProd?.name || 'شلوار زنانه'} برای ${customerName}`,
+        matchedProductId: matchedProd?.id || 'prod-1',
+        matchedProductName: matchedProd?.name || 'شلوار زنانه بازار',
+        quantity: detectedQty,
+        unitType: isPack ? "pack" : "single",
+        packSize: matchedProd?.packSize || 6,
+        pricePerPack,
+        totalAmount,
+        matchedCustomerId: matchedCust?.id || null,
+        customerName,
+        customerCity: matchedCust?.city || 'تهران',
+        paymentType,
+        paymentNotes: isCheck ? 'چک صیادی بنفش' : 'نقدی / واریزی',
+        confidenceScore: 0.85
+      };
+
+      return res.json({ success: true, data: fallbackResult, source: "rule_fallback" });
+    } catch (error: any) {
+      console.error("Quick entry error:", error);
+      res.status(500).json({ success: false, error: error.message || "Failed to parse entry" });
+    }
+  });
+
   // API Route: AI Caption & Content Generator for Fashion Wholesale
   app.post("/api/generate-caption", async (req, res) => {
     try {

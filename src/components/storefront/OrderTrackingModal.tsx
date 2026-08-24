@@ -12,7 +12,9 @@ import {
   Check, 
   ExternalLink,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Bike
 } from 'lucide-react';
 
 interface OrderTrackingModalProps {
@@ -167,8 +169,45 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                 </div>
               </div>
 
-              {/* Waybill Highlight Box */}
-              {matchedOrder.waybillNumber ? (
+              {/* Instant Courier Highlight Box */}
+              {matchedOrder.shippingMethod === 'peyk_instant' ? (
+                <div className="bg-[#18181B] text-[#FAF7F2] rounded-2xl p-4 shadow-md space-y-3 border border-[#D4AF37]/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-[#D4AF37] text-stone-950 flex items-center justify-center font-bold">
+                        <Zap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white">ارسال لحظه‌ای با پیک موتوری (تحویل فوری زیر ۲ ساعت)</span>
+                        <p className="text-[10px] text-[#D4AF37]">
+                          ناوگان: {matchedOrder.instantCourierInfo?.provider === 'snapp_box' ? 'اسنپ‌باکس (Snapp! Box)' : matchedOrder.instantCourierInfo?.provider === 'alopeyk' ? 'الوپیک (Alopeyk)' : matchedOrder.instantCourierInfo?.provider === 'tapsi_pack' ? 'تپسی‌پک' : 'پیک موتوری اختصاصی بازار'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700 px-2.5 py-1 rounded-full font-bold animate-pulse">
+                      اعزام سریع سفیر
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-stone-900/80 p-3 rounded-xl border border-stone-800">
+                    <div className="flex items-center gap-1.5 text-stone-300">
+                      <Bike className="w-4 h-4 text-[#D4AF37]" />
+                      <span>سفیر مسئول: <strong>{matchedOrder.instantCourierInfo?.driverName || 'سفیر اسنپ‌باکس'}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-stone-300 sm:justify-end">
+                      <Clock className="w-4 h-4 text-[#D4AF37]" />
+                      <span>تخمین تحویل: <strong>{matchedOrder.estimatedDeliveryDate || 'کمتر از ۲ ساعت آینده'}</strong></span>
+                    </div>
+                  </div>
+
+                  {matchedOrder.instantCourierInfo?.deliveryNote && (
+                    <div className="text-[11px] text-stone-300">
+                      <strong>یادداشت آدرس/زنگ:</strong> {matchedOrder.instantCourierInfo.deliveryNote}
+                    </div>
+                  )}
+                </div>
+              ) : matchedOrder.waybillNumber ? (
                 <div className="bg-[#18181B] text-[#FAF7F2] rounded-2xl p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 border border-[#3F3F46]">
                   <div className="space-y-1">
                     <span className="text-[11px] text-[#D4AF37] block font-bold">

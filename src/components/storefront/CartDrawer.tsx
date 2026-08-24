@@ -9,7 +9,9 @@ import {
   Sparkles, 
   ShieldCheck,
   TrendingDown,
-  ShoppingBasket
+  ShoppingBasket,
+  Zap,
+  Bike
 } from 'lucide-react';
 
 interface CartDrawerProps {
@@ -225,6 +227,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Footer & Checkout Action */}
           {cartItems.length > 0 && (
             <div className="p-4 sm:p-5 border-t border-[#E6DEC8] bg-[#FAF7F2] space-y-3">
+              {/* Instant Delivery Notice Banner */}
+              <div className="bg-[#18181B] text-[#FAF7F2] rounded-xl p-2.5 flex items-center justify-between text-[11px] border border-[#D4AF37]/30">
+                <div className="flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-[#D4AF37] flex-shrink-0 animate-pulse" />
+                  <span>ارسال لحظه‌ای با پیک (تحویل زیر ۲ ساعت در تهران)</span>
+                </div>
+                <span className="text-[10px] text-[#D4AF37] font-bold">فعال ⚡</span>
+              </div>
+
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between text-stone-600">
                   <span>جمع کل اقلام:</span>

@@ -1,6 +1,7 @@
 export type ModuleTab = 
   | 'dashboard'
   | 'inventory'
+  | 'production'
   | 'crm'
   | 'retail_customers'
   | 'sales'
@@ -94,7 +95,15 @@ export interface StorefrontCustomerInfo {
   storeName?: string;
 }
 
-export type StorefrontShippingMethod = 'barbari_vatan' | 'tipax' | 'chapar' | 'peyk_tehran' | 'post_pishtaz';
+export type StorefrontShippingMethod = 'peyk_instant' | 'barbari_vatan' | 'tipax' | 'chapar' | 'peyk_tehran' | 'post_pishtaz';
+
+export interface InstantCourierInfo {
+  provider: 'snapp_box' | 'alopeyk' | 'tapsi_pack' | 'dedicated_bazaar';
+  urgency: 'immediate_2h' | 'today_evening' | 'custom_time';
+  deliveryNote?: string;
+  driverName?: string;
+  driverPhone?: string;
+}
 
 export interface StorefrontOrder {
   id: string;
@@ -108,6 +117,7 @@ export interface StorefrontOrder {
   finalAmountToman: number;
   shippingMethod: StorefrontShippingMethod;
   shippingMethodTitle: string;
+  instantCourierInfo?: InstantCourierInfo;
   paymentMethod: 'online_gateway' | 'card_to_card' | 'wholesale_check';
   paymentStatus: 'paid' | 'pending_verification' | 'pending_check';
   orderStatus: 'registered' | 'processing' | 'packed' | 'sent_to_carrier' | 'delivered';
@@ -121,6 +131,8 @@ export type CustomerType = 'shop_keeper' | 'partner_wholesale' | 'online_shop' |
 export type CustomerTier = 'tier_colleague' | 'tier_wholesale_1' | 'tier_wholesale_2';
 export type PaymentTerms = 'cash_only' | 'check_eligible' | 'credit';
 
+export type WholesaleLoyaltyTier = 'partner_regular' | 'partner_silver' | 'partner_gold_vip';
+
 export interface Customer {
   id: string;
   name: string;
@@ -131,6 +143,12 @@ export interface Customer {
   type: CustomerType;
   tier: CustomerTier;
   
+  // Wholesale Loyalty & Volume Incentive Program (Fix 3)
+  wholesaleLoyaltyTier?: WholesaleLoyaltyTier;
+  totalPacksPurchased?: number;
+  referralCount?: number;
+  referredByCustomerId?: string;
+
   // Trust & Check limits
   trustScore: number; // 1 to 100
   paymentTerms: PaymentTerms;
@@ -154,6 +172,8 @@ export interface Customer {
   followUpReason?: string;
 }
 
+export type CheckOutcome = 'cleared_on_time' | 'cleared_late' | 'bounced';
+
 export interface CheckItem {
   id: string;
   checkNumber: string;
@@ -166,6 +186,7 @@ export interface CheckItem {
   customerName: string;
   storeName: string;
   status: 'pending' | 'in_collection' | 'cleared' | 'bounced';
+  outcome?: CheckOutcome;
   registeredInSayad: boolean;
   notes: string;
 }
@@ -290,3 +311,60 @@ export interface SiteSettings {
   isRetailSaleActive: boolean;
   minFreeShippingToman: number;
 }
+
+export interface FabricSupplier {
+  id: string;
+  name: string;
+  managerName: string;
+  phone: string;
+  marketLocation: string; // e.g. بازار مولوی، سرای آزادی
+  fabricTypes: string[]; // e.g. ['کتان لایت', 'داکرون', 'لینن']
+  avgPricePerMeter: number; // تومان
+  rollLengthMeters: number; // متراژ طاقه
+  defectRate: string; // کمتر از ۱٪
+  deliverySpeed: string; // همان روز / ۲۴ ساعته
+  paymentTerms: string; // نقدی با ۲٪ تخفیف / چک صیادی ۳۰ روزه
+  rating: number; // 1 to 5
+  notes?: string;
+  lastPurchaseDate?: string;
+}
+
+export interface TailorWorkshop {
+  id: string;
+  name: string;
+  masterName: string;
+  phone: string;
+  address: string; // e.g. بازار خیام، کوچه کربلایی
+  specialtyModels: string[]; // e.g. ['شلوار بگ', 'داکرون اداری', 'لگ غواصی']
+  wagePerUnit: number; // دستمزد دوخت هر عدد به تومان
+  qualityScore: string; // عالی (پنج‌لا دوز)، تخصصی کش‌دوزی
+  dailyCapacity: number; // تعداد در روز
+  typicalLeadTimeDays: number; // زمان آماده‌سازی (روز)
+  rating: number;
+  notes?: string;
+  currentActiveBatchesCount?: number;
+}
+
+export interface ProductionBatch {
+  id: string;
+  batchNumber: string; // e.g. PRD-1403-101
+  productName: string;
+  category: string;
+  fabricSupplierId: string;
+  fabricSupplierName: string;
+  fabricType: string;
+  fabricMetersUsed: number; // متراژ پارچه مصرفی
+  fabricCostPerMeter: number;
+  tailorWorkshopId: string;
+  tailorWorkshopName: string;
+  wagePerUnit: number;
+  plannedUnitCount: number; // تعداد خروجی برنامه‌ریزی شده (مثلا ۶۰۰ عدد)
+  status: 'fabric_ordered' | 'cutting' | 'sewing' | 'finishing_ironing' | 'delivered_to_warehouse';
+  startDate: string;
+  estimatedDeliveryDate: string;
+  actualDeliveryDate?: string;
+  totalCostToman: number;
+  costPerUnitToman: number;
+  notes?: string;
+}
+

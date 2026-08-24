@@ -21,9 +21,9 @@ interface ShipmentRecord {
   storeName: string;
   phone: string;
   destinationCity: string;
-  carrier: 'باربری وطن (شوش)' | 'تیپاکس بازار' | 'چاپار' | 'باربری پیام‌گیر (خیام)';
-  waybillNumber: string; // شماره بیجک
-  sackCount: number; // تعداد گونی یا کارتن
+  carrier: 'باربری وطن (شوش)' | 'تیپاکس بازار' | 'چاپار' | 'باربری پیام‌گیر (خیام)' | 'پیک موتوری لحظه‌ای (اسنپ‌باکس/الوپیک)';
+  waybillNumber: string; // شماره بیجک یا کد رهگیری سفیر
+  sackCount: number; // تعداد گونی یا کارتن یا بسته
   status: 'packed' | 'delivered_to_carrier' | 'received_by_customer';
   dispatchDate: string;
   shippingFeeType: 'پس‌کرایه (به عهده مشتری)' | 'پیش‌کرایه';
@@ -76,6 +76,20 @@ export const LogisticsModule: React.FC<LogisticsModuleProps> = ({ invoices }) =>
       status: 'packed',
       dispatchDate: 'امروز',
       shippingFeeType: 'پس‌کرایه (به عهده مشتری)',
+    },
+    {
+      id: 'shp-4',
+      invoiceNumber: '۱۴۰۳-۱۴۵',
+      customerName: 'فروشگاه تندیس تهران',
+      storeName: 'گالری مانتو تندیس تجریش',
+      phone: '09127891234',
+      destinationCity: 'تهران (تجریش)',
+      carrier: 'پیک موتوری لحظه‌ای (اسنپ‌باکس/الوپیک)',
+      waybillNumber: 'SNP-LIVE-7819',
+      sackCount: 1,
+      status: 'delivered_to_carrier',
+      dispatchDate: 'امروز (تحویل فوری)',
+      shippingFeeType: 'پیش‌کرایه',
     },
   ]);
 

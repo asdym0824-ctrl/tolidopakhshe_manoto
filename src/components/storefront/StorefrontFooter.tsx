@@ -120,23 +120,44 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
 
           {/* Col 3: Logistics & Address */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white text-sm pb-1 border-b border-stone-800">
-              آدرس دفاتر بازار بزرگ
+            <h4 className="font-bold text-white text-sm pb-1 border-b border-stone-800 flex items-center justify-between">
+              <span>آدرس و لوکیشن بازار</span>
+              {onOpenRoutingModal && (
+                <button
+                  type="button"
+                  onClick={onOpenRoutingModal}
+                  className="text-[10px] text-[#D4AF37] hover:underline flex items-center gap-1 font-bold"
+                >
+                  <Navigation className="w-3 h-3" />
+                  <span>مسیریابی</span>
+                </button>
+              )}
             </h4>
             <div className="space-y-2.5 text-xs text-stone-300">
-              <div className="bg-stone-900 p-2.5 rounded-xl border border-stone-800 space-y-1">
-                <span className="text-[#D4AF37] font-bold block text-[11px]">آدرس ۱ (بازار عباس‌آباد):</span>
-                <p className="text-[11px] text-stone-300 leading-relaxed">
+              <button
+                type="button"
+                onClick={onOpenRoutingModal || onOpenAboutModal}
+                className="w-full text-right bg-stone-900 hover:bg-stone-800/90 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37]/50 transition-all space-y-1 block group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[#D4AF37] font-bold block text-[11px]">آدرس مغازه (بازار عباس‌آباد):</span>
+                  <span className="text-[10px] text-emerald-400 group-hover:text-emerald-300 font-bold">بلد • نشان</span>
+                </div>
+                <p className="text-[11px] text-stone-300 leading-relaxed group-hover:text-white transition-colors">
                   {BRAND_INFO.mainAddressFa}
                 </p>
-              </div>
+              </button>
 
-              <div className="bg-stone-900 p-2.5 rounded-xl border border-stone-800 space-y-1">
-                <span className="text-[#B89B58] font-bold block text-[11px]">مسیر مترو محمدیه:</span>
-                <p className="text-[11px] text-stone-300 leading-relaxed">
+              <button
+                type="button"
+                onClick={onOpenRoutingModal || onOpenAboutModal}
+                className="w-full text-right bg-stone-900 hover:bg-stone-800/90 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37]/50 transition-all space-y-1 block group"
+              >
+                <span className="text-[#B89B58] font-bold block text-[11px]">مسیر دسترسی سریع با مترو:</span>
+                <p className="text-[11px] text-stone-300 leading-relaxed group-hover:text-white transition-colors">
                   {BRAND_INFO.subwayRouteFa}
                 </p>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -145,21 +166,27 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
             <h4 className="font-bold text-white text-sm pb-1 border-b border-stone-800">
               تلفن‌های ثبت سفارش و استعلام
             </h4>
-            <ul className="space-y-2 font-mono text-stone-300 text-xs">
+            <ul className="space-y-2 text-stone-300 text-xs">
               {BRAND_INFO.allPhones.map((ph, idx) => (
                 <li key={idx}>
                   <a
                     href={`tel:${ph.phone}`}
-                    className="bg-stone-900 hover:bg-[#18181B] p-2 rounded-xl border border-stone-800 hover:border-[#D4AF37]/50 flex items-center justify-between transition-all text-white font-bold"
+                    className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer"
+                    title={`تماس مستقیم با ${ph.label}`}
                   >
-                    <span className="text-[11px] font-sans text-stone-400">{ph.label}:</span>
-                    <span className="text-[#D4AF37] font-mono">{ph.display}</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Phone className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform flex-shrink-0" />
+                      <span className="text-[11px] text-stone-300 group-hover:text-white truncate">{ph.label}:</span>
+                    </div>
+                    <span dir="ltr" className="text-[#D4AF37] group-hover:text-amber-300 font-black text-xs sm:text-sm tabular-nums tracking-wider font-['Vazirmatn',sans-serif]">
+                      {ph.display}
+                    </span>
                   </a>
                 </li>
               ))}
             </ul>
-            <div className="text-[11px] text-stone-500 font-sans pt-1">
-              <Clock className="w-3.5 h-3.5 inline ml-1 text-stone-400" />
+            <div className="text-[11px] text-stone-400 font-sans pt-1 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>پاسخگویی ۸:۳۰ الی ۱۹:۰۰ همه روزه</span>
             </div>
           </div>

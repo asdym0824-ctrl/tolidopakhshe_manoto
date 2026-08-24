@@ -15,7 +15,8 @@ import {
   Scissors, 
   Layers, 
   Info,
-  HelpCircle
+  HelpCircle,
+  Zap
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -142,9 +143,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
             {/* Trust Badges */}
             <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-[#E6DEC8] space-y-2 text-xs text-stone-700">
+              <div className="flex items-center gap-2 text-[#8C6D37] font-bold">
+                <Zap className="w-4 h-4 text-[#8C6D37] flex-shrink-0 animate-pulse" />
+                <span>ارسال لحظه‌ای با پیک موتوری (زیر ۲ ساعت در تهران) فعال است</span>
+              </div>
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-[#8C6D37] flex-shrink-0" />
-                <span>ارسال مستقیم از بازار بزرگ تهران (باربری وطن، تیپاکس، چاپار)</span>
+                <span>ارسال مستقیم به شهرستان‌ها (باربری وطن، تیپاکس، چاپار)</span>
               </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700 flex-shrink-0" />

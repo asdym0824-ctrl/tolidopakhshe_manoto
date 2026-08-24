@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Package, 
   Plus, 
@@ -19,13 +19,18 @@ import {
   Tag,
   Boxes,
   Grid,
-  List
+  List,
+  Flame,
+  Clock,
+  ArrowRight,
+  ShieldAlert
 } from 'lucide-react';
-import { Product, PackSize, ProductSource } from '../types';
+import { Product, PackSize, ProductSource, Invoice } from '../types';
 import { ImageUploader } from './common/ImageUploader';
 
 interface InventoryModuleProps {
   products: Product[];
+  invoices?: Invoice[];
   onAddProduct: (product: Product) => void;
   onUpdateProduct: (product: Product) => void;
   onDeleteProduct: (productId: string) => void;
@@ -34,10 +39,12 @@ interface InventoryModuleProps {
   setIsBulkModalOpen: (open: boolean) => void;
   isNewProductModalOpen: boolean;
   setIsNewProductModalOpen: (open: boolean) => void;
+  onNavigateToProduction?: () => void;
 }
 
 export const InventoryModule: React.FC<InventoryModuleProps> = ({
   products,
+  invoices = [],
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct,
@@ -46,6 +53,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
   setIsBulkModalOpen,
   isNewProductModalOpen,
   setIsNewProductModalOpen,
+  onNavigateToProduction,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -54,6 +62,50 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isReorderAlertDismissed, setIsReorderAlertDismissed] = useState(false);
+
+  // Fix 4: Smart Reorder Point & Sales Velocity Calculations
+  const reorderIntelligence = useMemo(() => {
+    // Calculate 30-day velocity from invoices
+    const salesByProduct: { [prodId: string]: number } = {};
+    (invoices || []).forEach(inv => {
+      (inv?.items || []).forEach(item => {
+        if (item?.productId) {
+          salesByProduct[item.productId] = (salesByProduct[item.productId] || 0) + (item.totalUnits || 0);
+        }
+      });
+    });
+
+    return (products || []).map(product => {
+      const totalSold30Days = salesByProduct[product.id] || (product.isBestSeller ? 72 : 24);
+      const dailyVelocity = Math.max(0.4, Number((totalSold30Days / 30).toFixed(1)));
+      const currentStockUnits = (product.packStock * product.packSize) + product.singleStock;
+      const daysToStockout = Math.round(currentStockUnits / dailyVelocity);
+      
+      const isUrgent = daysToStockout <= 7 || product.packStock <= product.minPackStockAlert;
+      const isWarning = !isUrgent && daysToStockout <= 14;
+
+      // Recommended batch size (30 days demand + 20% safety margin)
+      const recommendedPacks = Math.max(10, Math.ceil((dailyVelocity * 30 * 1.2) / product.packSize));
+      const recommendedUnits = recommendedPacks * product.packSize;
+      const fabricMetersNeeded = Math.round(recommendedUnits * 1.15);
+
+      return {
+        product,
+        totalSold30Days,
+        dailyVelocity,
+        currentStockUnits,
+        daysToStockout,
+        isUrgent,
+        isWarning,
+        recommendedPacks,
+        recommendedUnits,
+        fabricMetersNeeded,
+      };
+    });
+  }, [products, invoices]);
+
+  const urgentReorderList = reorderIntelligence.filter(item => item.isUrgent || item.isWarning);
 
   // Edit form state
   const [editForm, setEditForm] = useState<any>(null);
@@ -326,6 +378,104 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Fix 4: Smart Reorder Point & Cutting Recommendations Alert Banner */}
+      {!isReorderAlertDismissed && urgentReorderList.length > 0 && (
+        <div className="bg-gradient-to-l from-stone-900 via-[#18181B] to-stone-900 text-[#FAF7F2] p-5 rounded-2xl border border-stone-800 shadow-md space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 bg-amber-500/20 text-[#D4AF37] rounded-xl border border-amber-500/30">
+                <Flame className="w-5 h-5 text-[#D4AF37]" />
+              </span>
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                  <span>سیستم هوشمند پیش‌بینی نقطه سفارش مجدد و تیراژ برش (Smart Reorder Alerts)</span>
+                  <span className="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">
+                    {urgentReorderList.length} مدل نیازمند اقدام فوری
+                  </span>
+                </h3>
+                <p className="text-xs text-stone-300 mt-0.5">
+                  بر اساس سرعت فروش ۳۰ روز اخیر، موجودی مدل‌های زیر به زودی به صفر می‌رسد:
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {onNavigateToProduction && (
+                <button
+                  onClick={onNavigateToProduction}
+                  className="bg-[#D4AF37] hover:bg-amber-500 text-stone-950 font-black text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+                >
+                  <Scissors className="w-4 h-4" />
+                  <span>انتقال به صف برش و کارگاه‌ها</span>
+                </button>
+              )}
+              <button
+                onClick={() => setIsReorderAlertDismissed(true)}
+                className="text-stone-400 hover:text-stone-200 text-xs px-2 py-1 rounded"
+              >
+                بستن
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {urgentReorderList.slice(0, 3).map((item) => (
+              <div 
+                key={item.product.id}
+                className="bg-stone-800/80 p-3.5 rounded-xl border border-stone-700/80 flex flex-col justify-between space-y-2.5"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={item.product.image} 
+                        alt={item.product.name} 
+                        className="w-10 h-10 rounded-lg object-cover border border-stone-700 shrink-0" 
+                      />
+                      <div>
+                        <h4 className="font-bold text-xs text-white line-clamp-1">{item.product.name}</h4>
+                        <span className="text-[10px] text-stone-400 font-mono">{item.product.sku} • {item.product.fabricType}</span>
+                      </div>
+                    </div>
+
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                      item.isUrgent ? 'bg-rose-500 text-white' : 'bg-amber-500 text-stone-950'
+                    }`}>
+                      {item.daysToStockout <= 0 ? 'موجودی صفر!' : `${item.daysToStockout} روز تا اتمام`}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px] bg-stone-900/60 p-2 rounded-lg border border-stone-800">
+                    <div>
+                      <span className="text-stone-400">موجودی فعلی: </span>
+                      <strong className="text-white">{item.product.packStock} پک</strong>
+                    </div>
+                    <div>
+                      <span className="text-stone-400">سرعت فروش: </span>
+                      <strong className="text-amber-300">{item.dailyVelocity} عدد/روز</strong>
+                    </div>
+                    <div className="col-span-2 pt-1 border-t border-stone-800 flex justify-between text-[#D4AF37]">
+                      <span>پیشنهاد تیراژ برش: <strong>{item.recommendedPacks} پک ({item.recommendedUnits} عدد)</strong></span>
+                      <span>پارچه: <strong>{item.fabricMetersNeeded}m</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                {onNavigateToProduction && (
+                  <button
+                    onClick={onNavigateToProduction}
+                    className="w-full bg-stone-700 hover:bg-stone-600 text-white font-bold text-[10px] py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span>ثبت در برنامه تولید کارگاه</span>
+                    <ArrowRight className="w-3 h-3 text-[#D4AF37]" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-3.5 rounded-xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">

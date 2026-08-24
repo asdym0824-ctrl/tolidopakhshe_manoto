@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CartItem, StorefrontCustomerInfo, StorefrontShippingMethod, StorefrontOrder, CustomerUser } from '../../types';
+import { CartItem, StorefrontCustomerInfo, StorefrontShippingMethod, StorefrontOrder, CustomerUser, InstantCourierInfo } from '../../types';
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -16,7 +16,12 @@ import {
   Phone, 
   User, 
   FileText,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Clock,
+  Sparkles,
+  Bike,
+  Navigation
 } from 'lucide-react';
 
 interface CheckoutViewProps {
@@ -50,7 +55,25 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   });
 
   // Shipping Method
-  const [shippingMethod, setShippingMethod] = useState<StorefrontShippingMethod>('barbari_vatan');
+  const [shippingMethod, setShippingMethod] = useState<StorefrontShippingMethod>('peyk_instant');
+
+  // Check if destination is Tehran (province or city contains تهران)
+  const isTehranDestination = Boolean(
+    (customer.province && customer.province.trim().includes('تهران')) ||
+    (customer.city && customer.city.trim().includes('تهران'))
+  );
+
+  // Auto-switch away from instant peyk if user selects a non-Tehran destination
+  React.useEffect(() => {
+    if (!isTehranDestination && (shippingMethod === 'peyk_instant' || shippingMethod === 'peyk_tehran')) {
+      setShippingMethod(isPartnerLoggedIn ? 'barbari_vatan' : 'tipax');
+    }
+  }, [customer.province, customer.city, isTehranDestination, shippingMethod, isPartnerLoggedIn]);
+
+  // Instant Courier Options State
+  const [courierProvider, setCourierProvider] = useState<'snapp_box' | 'alopeyk' | 'tapsi_pack' | 'dedicated_bazaar'>('snapp_box');
+  const [courierUrgency, setCourierUrgency] = useState<'immediate_2h' | 'today_evening' | 'custom_time'>('immediate_2h');
+  const [courierDeliveryNote, setCourierDeliveryNote] = useState('');
 
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState<'online_gateway' | 'card_to_card' | 'wholesale_check'>('online_gateway');
@@ -64,11 +87,19 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   // Totals
   const subtotalToman = cartItems.reduce((acc, item) => acc + item.totalPriceToman, 0);
   
-  const shippingCosts: Record<StorefrontShippingMethod, { title: string; cost: number; desc: string }> = {
+  const shippingCosts: Record<StorefrontShippingMethod, { title: string; cost: number; desc: string; badge?: string; isInstant?: boolean }> = {
+    peyk_instant: {
+      title: '⚡ ارسال لحظه‌ای با پیک (تحویل زیر ۲ ساعت)',
+      cost: 95000,
+      desc: 'سریع‌ترین شیوه • ارسال بلافاصله پس از ثبت سفارش با اسنپ‌باکس، الوپیک و تپسی‌پک در تهران و حومه',
+      badge: '⚡ تحویل فوری زیر ۲ ساعت',
+      isInstant: true,
+    },
     barbari_vatan: {
       title: 'باربری وطن (میدان شوش)',
       cost: 85000,
       desc: 'مناسب‌ترین گزینه برای کیسه و کارتن‌های عمده • تحویل به انبار باربری شهر مقصد',
+      badge: 'پیشنهاد عمده بازار',
     },
     tipax: {
       title: 'تیپاکس اکسپرس',
@@ -81,9 +112,9 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       desc: 'مناسب بسته‌های سبک و متوسط تک‌فروشی و نیمه‌عمده',
     },
     peyk_tehran: {
-      title: 'پیک موتوری فوری بازار',
-      cost: 75000,
-      desc: 'ویژه شهر تهران و بازار بزرگ • تحویل در همان روز کاری',
+      title: 'پیک موتوری عادی بازار',
+      cost: 70000,
+      desc: 'ویژه شهر تهران و بازار بزرگ • تحویل تا پایان روز کاری',
     },
     post_pishtaz: {
       title: 'پست پیشتاز',
@@ -114,6 +145,20 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
     const trackingCode = `MNT-${randomSuffix}`;
     const orderNumber = `MNT-1403-${randomSuffix}`;
 
+    const instantCourierInfo: InstantCourierInfo | undefined = shippingMethod === 'peyk_instant' ? {
+      provider: courierProvider,
+      urgency: courierUrgency,
+      deliveryNote: courierDeliveryNote,
+      driverName: courierProvider === 'snapp_box' ? 'سفیر اسنپ‌باکس (آقای مرادی)' : courierProvider === 'alopeyk' ? 'سفیر الوپیک (آقای رضایی)' : 'پیک اختصاصی بازار بزرگ',
+      driverPhone: '09123456789'
+    } : undefined;
+
+    const estimatedDeliveryDate = shippingMethod === 'peyk_instant' 
+      ? 'امروز، کمتر از ۲ ساعت آینده (ارسال لحظه‌ای با پیک)'
+      : shippingMethod === 'peyk_tehran'
+      ? 'امروز تا ساعت ۱۹'
+      : '۲ الی ۳ روز کاری آینده';
+
     const newOrder: StorefrontOrder = {
       id: `order-${Date.now()}`,
       orderNumber,
@@ -126,10 +171,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       finalAmountToman,
       shippingMethod,
       shippingMethodTitle: selectedShipping.title,
+      instantCourierInfo,
       paymentMethod,
       paymentStatus: status,
-      orderStatus: 'processing',
-      carrierName: selectedShipping.title,
+      orderStatus: shippingMethod === 'peyk_instant' ? 'processing' : 'processing',
+      carrierName: shippingMethod === 'peyk_instant' 
+        ? `پیک لحظه‌ای (${courierProvider === 'snapp_box' ? 'اسنپ‌باکس' : courierProvider === 'alopeyk' ? 'الوپیک' : courierProvider === 'tapsi_pack' ? 'تپسی‌پک' : 'پیک بازار'})`
+        : selectedShipping.title,
       createdAt: new Date().toLocaleDateString('fa-IR', {
         year: 'numeric',
         month: '2-digit',
@@ -137,7 +185,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         hour: '2-digit',
         minute: '2-digit'
       }),
-      estimatedDeliveryDate: '۲ الی ۳ روز کاری آینده'
+      estimatedDeliveryDate
     };
 
     setPlacedOrder(newOrder);
@@ -227,6 +275,38 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
               <div><strong>شهر مقصد:</strong> {placedOrder.customer.city} ({placedOrder.customer.province})</div>
               <div className="sm:col-span-2"><strong>آدرس:</strong> {placedOrder.customer.address}</div>
             </div>
+
+            {/* Instant Courier Live Dispatch Card (If Instant Courier) */}
+            {placedOrder.shippingMethod === 'peyk_instant' && (
+              <div className="bg-[#18181B] text-[#FAF7F2] rounded-2xl p-4 border border-[#D4AF37]/40 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#D4AF37] text-stone-900 flex items-center justify-center font-bold">
+                      <Zap className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-[#FAF7F2]">ارسال لحظه‌ای با پیک فعال گردید</span>
+                      <p className="text-[10px] text-[#D4AF37]">ناوگان: {placedOrder.instantCourierInfo?.provider === 'snapp_box' ? 'اسنپ‌باکس' : placedOrder.instantCourierInfo?.provider === 'alopeyk' ? 'الوپیک' : placedOrder.instantCourierInfo?.provider === 'tapsi_pack' ? 'تپسی‌پک' : 'پیک اختصاصی بازار'}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700 px-2.5 py-1 rounded-full font-bold animate-pulse">
+                    آماده‌سازی فوری بسته
+                  </span>
+                </div>
+                <div className="text-[11px] text-stone-300 bg-stone-900/80 p-2.5 rounded-xl border border-stone-800 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>تخمین زمان رسیدن سفیر به آدرس شما:</span>
+                  </div>
+                  <span className="font-bold text-white">۴۵ الی ۹۰ دقیقه آینده</span>
+                </div>
+                {placedOrder.instantCourierInfo?.deliveryNote && (
+                  <p className="text-[10px] text-stone-400">
+                    <strong>یادداشت تحویل:</strong> {placedOrder.instantCourierInfo.deliveryNote}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Items Table */}
             <div className="pt-2 border-t border-[#E6DEC8]">
@@ -469,47 +549,176 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
               {(Object.keys(shippingCosts) as StorefrontShippingMethod[]).map((methodKey) => {
                 const opt = shippingCosts[methodKey];
                 const isSelected = shippingMethod === methodKey;
+                const isInstant = methodKey === 'peyk_instant';
+                const isTehranOnly = methodKey === 'peyk_instant' || methodKey === 'peyk_tehran';
+                const isDisabled = isTehranOnly && !isTehranDestination;
 
                 return (
-                  <label
-                    key={methodKey}
-                    className={`p-3.5 rounded-2xl border-2 transition-all flex items-start gap-3 cursor-pointer ${
-                      isSelected
-                        ? 'border-[#18181B] bg-[#FAF7F2] shadow-xs'
-                        : 'border-[#DDD5C0] bg-white hover:border-[#18181B]/40'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="shipping_method"
-                      value={methodKey}
-                      checked={isSelected}
-                      onChange={() => setShippingMethod(methodKey)}
-                      className="mt-1 text-[#18181B] focus:ring-[#18181B]"
-                    />
+                  <div key={methodKey} className="space-y-2">
+                    <label
+                      className={`p-3.5 rounded-2xl border-2 transition-all flex items-start gap-3 ${
+                        isDisabled
+                          ? 'opacity-50 cursor-not-allowed bg-stone-50 border-stone-200'
+                          : isSelected
+                            ? isInstant 
+                              ? 'border-[#18181B] bg-[#FAF7F2] shadow-sm ring-2 ring-[#D4AF37]/30 cursor-pointer'
+                              : 'border-[#18181B] bg-[#FAF7F2] shadow-xs cursor-pointer'
+                            : 'border-[#DDD5C0] bg-white hover:border-[#18181B]/40 cursor-pointer'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="shipping_method"
+                        value={methodKey}
+                        disabled={isDisabled}
+                        checked={isSelected}
+                        onChange={() => !isDisabled && setShippingMethod(methodKey)}
+                        className="mt-1 text-[#18181B] focus:ring-[#18181B] disabled:opacity-40"
+                      />
 
-                    <div className="flex-1 flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-stone-900 text-xs sm:text-sm">
-                            {opt.title}
-                          </span>
-                          {methodKey === 'barbari_vatan' && (
-                            <span className="text-[10px] bg-[#18181B] text-[#D4AF37] font-bold px-2 py-0.5 rounded-md">
-                              پیشنهاد عمده بازار
+                      <div className="flex-1 flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`font-bold text-xs sm:text-sm ${isInstant ? 'text-stone-900 font-black' : 'text-stone-900'} ${isDisabled ? 'text-stone-400' : ''}`}>
+                              {opt.title}
                             </span>
-                          )}
+                            {opt.badge && (
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                                isDisabled
+                                  ? 'bg-stone-200 text-stone-600'
+                                  : isInstant ? 'bg-[#18181B] text-[#D4AF37]' : 'bg-[#18181B] text-[#D4AF37]'
+                              }`}>
+                                {isInstant && !isDisabled && <Zap className="w-3 h-3 text-[#D4AF37]" />}
+                                {opt.badge}
+                              </span>
+                            )}
+                            {isDisabled && (
+                              <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
+                                ویژه شهر تهران (مقصد انتخابی شما: {customer.city || customer.province || 'غیر تهران'})
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-stone-500 mt-0.5">
+                            {isDisabled ? 'این شیوه فقط برای آدرس‌های واقع در شهر تهران و حومه قابل انتخاب است.' : opt.desc}
+                          </p>
                         </div>
-                        <p className="text-[11px] text-stone-500 mt-0.5">
-                          {opt.desc}
-                        </p>
-                      </div>
 
-                      <span className="text-xs font-bold text-stone-800 whitespace-nowrap">
-                        {opt.cost.toLocaleString('fa-IR')} تومان
-                      </span>
-                    </div>
-                  </label>
+                        <span className={`text-xs font-bold whitespace-nowrap ${isDisabled ? 'text-stone-400' : 'text-stone-800'}`}>
+                          {opt.cost.toLocaleString('fa-IR')} تومان
+                        </span>
+                      </div>
+                    </label>
+
+                    {/* Instant Courier Sub-Settings & Preferences Panel */}
+                    {isInstant && isSelected && !isDisabled && (
+                      <div className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-2xl p-4 space-y-3.5 mr-6 text-xs animate-fadeIn shadow-xs">
+                        <div className="flex items-center justify-between border-b border-[#E6DEC8] pb-2">
+                          <div className="flex items-center gap-1.5 font-bold text-stone-900">
+                            <Bike className="w-4 h-4 text-[#8C6D37]" />
+                            <span>تنظیمات ناوگان و زمان ارسال پیک موتوری لحظه‌ای</span>
+                          </div>
+                          <span className="text-[10px] bg-[#18181B] text-[#D4AF37] px-2 py-0.5 rounded-md font-bold">
+                            تضمین سرعت
+                          </span>
+                        </div>
+
+                        {/* Courier Provider Choices */}
+                        <div>
+                          <label className="text-[11px] font-bold text-stone-700 block mb-1.5">
+                            انتخاب ناوگان پیک موتوری:
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {[
+                              { id: 'snapp_box', name: 'اسنپ‌باکس', desc: 'سفیر لحظه‌ای' },
+                              { id: 'alopeyk', name: 'الوپیک', desc: 'رهگیری زنده' },
+                              { id: 'tapsi_pack', name: 'تپسی‌پک', desc: 'تحویل اکسپرس' },
+                              { id: 'dedicated_bazaar', name: 'پیک اختصاصی بازار', desc: 'متصدی کارگاه' }
+                            ].map((p) => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => setCourierProvider(p.id as any)}
+                                className={`p-2 rounded-xl border text-right transition-all flex flex-col justify-between ${
+                                  courierProvider === p.id 
+                                    ? 'bg-[#18181B] text-white border-[#18181B] shadow-xs' 
+                                    : 'bg-white text-stone-800 border-[#DDD5C0] hover:border-stone-400'
+                                }`}
+                              >
+                                <span className="font-bold text-xs">{p.name}</span>
+                                <span className={`text-[10px] ${courierProvider === p.id ? 'text-[#D4AF37]' : 'text-stone-500'}`}>{p.desc}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Urgency Choices */}
+                        <div>
+                          <label className="text-[11px] font-bold text-stone-700 block mb-1.5">
+                            زمان‌بندی تحویل فوری:
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {[
+                              { id: 'immediate_2h', title: 'تحویل آنی (زیر ۲ ساعت)', sub: 'اعزام سریع‌ترین سفیر' },
+                              { id: 'today_evening', title: 'عصر امروز (۱۷ الی ۲۰)', sub: 'بازه عصرگاهی' },
+                              { id: 'custom_time', title: 'هماهنگی تلفنی قبل از اعزام', sub: 'تماس با گیرنده' }
+                            ].map((u) => (
+                              <label
+                                key={u.id}
+                                className={`p-2.5 rounded-xl border cursor-pointer flex items-center justify-between gap-2 transition-all ${
+                                  courierUrgency === u.id 
+                                    ? 'bg-white border-[#18181B] ring-1 ring-[#18181B]' 
+                                    : 'bg-white/60 border-[#DDD5C0] hover:bg-white'
+                                }`}
+                              >
+                                <div>
+                                  <span className="font-bold text-xs text-stone-900 block">{u.title}</span>
+                                  <span className="text-[10px] text-stone-500">{u.sub}</span>
+                                </div>
+                                <input
+                                  type="radio"
+                                  name="courier_urgency"
+                                  value={u.id}
+                                  checked={courierUrgency === u.id}
+                                  onChange={() => setCourierUrgency(u.id as any)}
+                                  className="text-[#18181B] focus:ring-[#18181B]"
+                                />
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Delivery Driver Note */}
+                        <div>
+                          <label className="text-[11px] font-bold text-stone-700 block mb-1">
+                            توضیحات و هماهنگی ویژه برای سفیر پیک موتوری (اختیاری):
+                          </label>
+                          <input
+                            type="text"
+                            value={courierDeliveryNote}
+                            onChange={(e) => setCourierDeliveryNote(e.target.value)}
+                            placeholder="مثال: زنگ واحد ۴، تحویل به نگهبانی لابی یا تماس قبل از رسیدن"
+                            className="w-full px-3 py-2 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 text-xs text-stone-800 bg-white"
+                          />
+                        </div>
+
+                        {/* Location check notice */}
+                        <div className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl p-2.5 flex items-center gap-2 text-[11px]">
+                          <Navigation className="w-4 h-4 text-[#8C6D37] flex-shrink-0" />
+                          <span className="text-stone-700">
+                            {customer.city.includes('تهران') || customer.province.includes('تهران') ? (
+                              <span className="text-emerald-700 font-bold">
+                                ✅ شهر مقصد شما ({customer.city || 'تهران'}) در محدوده ارسال لحظه‌ای و زیر ۲ ساعت با پیک موتوری قرار دارد.
+                              </span>
+                            ) : (
+                              <span className="text-stone-600">
+                                💡 ارسال لحظه‌ای با پیک ویژه مناطق ۲۲گانه تهران و حومه است. در صورت ثبت برای شهرستان‌ها، هماهنگی تحویل به باربری انجام خواهد شد.
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   LayoutDashboard, 
   Package, 
+  Scissors,
   Users, 
   ShoppingBasket,
   Receipt, 
@@ -12,9 +13,11 @@ import {
   ShieldCheck, 
   Sparkles,
   ChevronLeft,
-  Crown
+  Crown,
+  LogOut
 } from 'lucide-react';
-import { ModuleTab } from '../types';
+import { ModuleTab, UserRoleType } from '../types';
+import { ROLE_PERMISSIONS, isTabAllowedForRole } from '../utils/rolePermissions';
 
 interface SidebarProps {
   currentTab: ModuleTab;
@@ -22,7 +25,9 @@ interface SidebarProps {
   lowStockCount: number;
   checkAlertCount: number;
   followUpCount: number;
+  currentUserRole?: UserRoleType;
   onOpenStorefront?: () => void;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -31,9 +36,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   lowStockCount,
   checkAlertCount,
   followUpCount,
+  currentUserRole = 'super_admin',
   onOpenStorefront,
+  onLogout,
 }) => {
-  const menuItems: {
+  const roleConfig = ROLE_PERMISSIONS[currentUserRole] || ROLE_PERMISSIONS.super_admin;
+
+  const allMenuItems: {
     id: ModuleTab;
     label: string;
     description: string;
@@ -54,6 +63,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Package,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
       badgeColor: 'bg-rose-500 text-white',
+    },
+    {
+      id: 'production',
+      label: 'تولید و تامین‌کنندگان',
+      description: 'پارچه‌فروشان، دوزندگان، قیمت متری و تحویل',
+      icon: Scissors,
     },
     {
       id: 'crm',
@@ -110,14 +125,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
+  // Filter menu items by user role
+  const menuItems = allMenuItems.filter((item) =>
+    isTabAllowedForRole(item.id, currentUserRole as UserRoleType)
+  );
+
   return (
     <aside id="app-sidebar" className="w-full md:w-64 bg-white border-l border-[#E6DEC8] flex flex-col shrink-0">
       <div className="p-3">
         
         <div className="text-[11px] font-black text-[#8C6D37] px-3 py-1.5 uppercase tracking-wider flex items-center justify-between">
-          <span>بخش‌های مدیریت</span>
-          <span className="text-[10px] bg-[#FAF7F2] text-[#18181B] border border-[#E6DEC8] px-2 py-0.5 rounded-full font-bold">
-            سوپر ادمین
+          <span>بخش‌های مجاز</span>
+          <span className="text-[10px] bg-[#18181B] text-[#D4AF37] px-2 py-0.5 rounded-full font-bold">
+            {roleConfig.shortLabel}
           </span>
         </div>
 
@@ -127,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               id="sidebar-btn-open-storefront"
               onClick={onOpenStorefront}
-              className="w-full py-2.5 px-3 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all shadow-xs flex items-center justify-between group border border-[#3F3F46]"
+              className="w-full py-2.5 px-3 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all shadow-xs flex items-center justify-between group border border-[#3F3F46] cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
@@ -150,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 id={`nav-item-${item.id}`}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-right transition-all group ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-right transition-all group cursor-pointer ${
                   isActive
                     ? 'bg-[#18181B] text-[#FAF7F2] font-bold shadow-xs'
                     : 'text-stone-700 hover:bg-[#FAF7F2] hover:text-[#18181B] font-medium'
@@ -195,20 +215,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Workshop & Supplier Quick Indicator */}
-      <div className="mt-auto p-3.5 border-t border-[#E6DEC8] bg-[#FAF7F2] m-2 rounded-2xl border">
-        <div className="flex items-center gap-2 text-[#18181B] text-xs font-black mb-1">
+      <div className="mt-auto p-3.5 border-t border-[#E6DEC8] bg-[#FAF7F2] m-2 rounded-2xl border space-y-2">
+        <div className="flex items-center gap-2 text-[#18181B] text-xs font-black">
           <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
           <span>تولید و کارگاه اسدی</span>
         </div>
         <p className="text-[11px] text-stone-600 leading-relaxed">
           سیستم با فرمول بهای تمام‌شده پارچه و دستمزد دوخت بازار تهران همگام است.
         </p>
-        <div className="mt-2 pt-2 border-t border-[#DDD5C0] flex items-center justify-between text-[10px] text-[#8C6D37]">
+        <div className="pt-2 border-t border-[#DDD5C0] flex items-center justify-between text-[10px] text-[#8C6D37]">
           <span>فروش عمده استاندارد:</span>
           <span className="font-bold text-[#18181B] bg-white border border-[#DDD5C0] px-2 py-0.5 rounded-md">
             پک‌های ۴، ۶، ۸، ۱۲
           </span>
         </div>
+
+        {onLogout && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={onLogout}
+              className="w-full py-2 bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>خروج از حساب مدیریت</span>
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

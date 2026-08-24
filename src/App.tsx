@@ -10,7 +10,10 @@ import {
   UserRoleType,
   StorefrontOrder,
   CustomerUser,
-  SiteSettings
+  SiteSettings,
+  FabricSupplier,
+  TailorWorkshop,
+  ProductionBatch
 } from './types';
 import { 
   INITIAL_PRODUCTS, 
@@ -19,7 +22,10 @@ import {
   INITIAL_CHECKS, 
   INITIAL_SOCIAL_POSTS, 
   INITIAL_AUTO_RESPONDERS,
-  INITIAL_STOREFRONT_ORDERS 
+  INITIAL_STOREFRONT_ORDERS,
+  INITIAL_FABRIC_SUPPLIERS,
+  INITIAL_TAILOR_WORKSHOPS,
+  INITIAL_PRODUCTION_BATCHES
 } from './data/mockData';
 
 // Initial registered customer accounts for storefront & retail
@@ -115,6 +121,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
 import { InventoryModule } from './components/InventoryModule';
+import { ProductionModule } from './components/ProductionModule';
 import { CustomerCRMModule } from './components/CustomerCRMModule';
 import { RetailCustomersModule } from './components/RetailCustomersModule';
 import { SalesInvoiceModule } from './components/SalesInvoiceModule';
@@ -123,15 +130,28 @@ import { MarketingAIModule } from './components/MarketingAIModule';
 import { StorefrontModule } from './components/StorefrontModule';
 import { LogisticsModule } from './components/LogisticsModule';
 import { RolesSettingsModule } from './components/RolesSettingsModule';
+import { MobileQuickActionFAB } from './components/common/MobileQuickActionFAB';
+import { QuickNaturalLanguageEntryModal } from './components/common/QuickNaturalLanguageEntryModal';
 
 // Storefront & Auth Imports
 import { StorefrontView } from './components/storefront/StorefrontView';
 import { AdminAuthGate } from './components/admin/AdminAuthGate';
+import { calculateTotalUnitStock } from './utils/stockUtils';
+import { isTabAllowedForRole, ROLE_PERMISSIONS } from './utils/rolePermissions';
+import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export default function App() {
   // Application Zone State: 'storefront' (Public Store) | 'admin_auth' | 'admin_dashboard'
   const [appZone, setAppZone] = useState<'storefront' | 'admin_auth' | 'admin_dashboard'>('storefront');
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(true);
+  
+  // Real Admin Authentication state backed by sessionStorage
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('manoto_admin_authenticated') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // Admin Navigation State
   const [currentTab, setCurrentTab] = useState<ModuleTab>('dashboard');
@@ -147,11 +167,78 @@ export default function App() {
   const [storefrontOrders, setStorefrontOrders] = useState<StorefrontOrder[]>(INITIAL_STOREFRONT_ORDERS);
   const [customerUsers, setCustomerUsers] = useState<CustomerUser[]>(INITIAL_CUSTOMER_USERS);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
+  
+  // Production Management States (Super Admin)
+  const [fabricSuppliers, setFabricSuppliers] = useState<FabricSupplier[]>(INITIAL_FABRIC_SUPPLIERS);
+  const [tailorWorkshops, setTailorWorkshops] = useState<TailorWorkshop[]>(INITIAL_TAILOR_WORKSHOPS);
+  const [productionBatches, setProductionBatches] = useState<ProductionBatch[]>(INITIAL_PRODUCTION_BATCHES);
 
   // Quick Action Modal States
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
   const [isNewInvoiceModalOpen, setIsNewInvoiceModalOpen] = useState(false);
+  const [isQuickEntryModalOpen, setIsQuickEntryModalOpen] = useState(false);
+
+  // Direct Stock Update handler (for quick entry)
+  const handleUpdateProductStock = (productId: string, newPackStock: number) => {
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          packStock: newPackStock,
+          totalUnitStock: calculateTotalUnitStock(newPackStock, p.packSize, p.singleStock)
+        };
+      }
+      return p;
+    }));
+  };
+
+  // Full System State Restore Handler (Fix 4)
+  const handleRestoreFullState = (restored: any) => {
+    if (restored.products && Array.isArray(restored.products)) setProducts(restored.products);
+    if (restored.customers && Array.isArray(restored.customers)) setCustomers(restored.customers);
+    if (restored.invoices && Array.isArray(restored.invoices)) setInvoices(restored.invoices);
+    if (restored.checks && Array.isArray(restored.checks)) setChecks(restored.checks);
+    if (restored.fabricSuppliers && Array.isArray(restored.fabricSuppliers)) setFabricSuppliers(restored.fabricSuppliers);
+    if (restored.tailorWorkshops && Array.isArray(restored.tailorWorkshops)) setTailorWorkshops(restored.tailorWorkshops);
+    if (restored.productionBatches && Array.isArray(restored.productionBatches)) setProductionBatches(restored.productionBatches);
+    if (restored.customerUsers && Array.isArray(restored.customerUsers)) setCustomerUsers(restored.customerUsers);
+    if (restored.siteSettings && typeof restored.siteSettings === 'object') setSiteSettings(restored.siteSettings);
+  };
+
+  // Reset to Default Factory Sample Data (Fix 4)
+  const handleResetToSampleData = () => {
+    setProducts(INITIAL_PRODUCTS);
+    setCustomers(INITIAL_CUSTOMERS);
+    setInvoices(INITIAL_INVOICES);
+    setChecks(INITIAL_CHECKS);
+    setFabricSuppliers(INITIAL_FABRIC_SUPPLIERS);
+    setTailorWorkshops(INITIAL_TAILOR_WORKSHOPS);
+    setProductionBatches(INITIAL_PRODUCTION_BATCHES);
+    setCustomerUsers(INITIAL_CUSTOMER_USERS);
+    setSiteSettings(INITIAL_SITE_SETTINGS);
+  };
+
+  // Admin Authentication handlers
+  const handleAdminAuthenticated = () => {
+    try {
+      sessionStorage.setItem('manoto_admin_authenticated', 'true');
+    } catch (e) {
+      console.warn('Session storage write error', e);
+    }
+    setIsAdminAuthenticated(true);
+    setAppZone('admin_dashboard');
+  };
+
+  const handleAdminLogout = () => {
+    try {
+      sessionStorage.removeItem('manoto_admin_authenticated');
+    } catch (e) {
+      console.warn('Session storage remove error', e);
+    }
+    setIsAdminAuthenticated(false);
+    setAppZone('storefront');
+  };
 
   // Customer Account handlers
   const handleRegisterCustomerUser = (newUser: CustomerUser) => {
@@ -179,7 +266,7 @@ export default function App() {
   const handleStorefrontOrderPlaced = (order: StorefrontOrder) => {
     setStorefrontOrders([order, ...storefrontOrders]);
 
-    // 1. Deduct stock from products
+    // 1. Deduct stock from products using standardized calculateTotalUnitStock
     order.items.forEach(item => {
       setProducts(prev => prev.map(p => {
         if (p.id === item.productId) {
@@ -188,14 +275,14 @@ export default function App() {
             return {
               ...p,
               packStock: newPackStock,
-              totalUnitStock: newPackStock * p.packSize + p.singleStock
+              totalUnitStock: calculateTotalUnitStock(newPackStock, p.packSize, p.singleStock)
             };
           } else {
-            const newSingleStock = Math.max(0, p.singleStock - item.quantity);
+            const newSingleStock = Math.max(0, (p.singleStock || 0) - item.quantity);
             return {
               ...p,
               singleStock: newSingleStock,
-              totalUnitStock: p.packStock * p.packSize + newSingleStock
+              totalUnitStock: calculateTotalUnitStock(p.packStock, p.packSize, newSingleStock)
             };
           }
         }
@@ -291,7 +378,7 @@ export default function App() {
   // Handlers for Invoices
   const handleAddInvoice = (newInv: Invoice) => {
     setInvoices([newInv, ...invoices]);
-    // Deduct stock
+    // Deduct stock using standardized calculateTotalUnitStock
     newInv.items.forEach(item => {
       setProducts(prev => prev.map(p => {
         if (p.id === item.productId) {
@@ -299,7 +386,7 @@ export default function App() {
           return {
             ...p,
             packStock: newPackStock,
-            totalUnitStock: newPackStock * p.packSize,
+            totalUnitStock: calculateTotalUnitStock(newPackStock, p.packSize, p.singleStock),
           };
         }
         return p;
@@ -309,6 +396,32 @@ export default function App() {
 
   const handleUpdateInvoiceStatus = (invoiceId: string, status: any) => {
     setInvoices(invoices.map(inv => inv.id === invoiceId ? { ...inv, status } : inv));
+  };
+
+  // Handlers for Production & Workflows
+  const handleAddSupplier = (newSup: FabricSupplier) => {
+    setFabricSuppliers(prev => [newSup, ...prev]);
+  };
+
+  const handleAddWorkshop = (newWs: TailorWorkshop) => {
+    setTailorWorkshops(prev => [newWs, ...prev]);
+  };
+
+  const handleAddBatch = (newBatch: ProductionBatch) => {
+    setProductionBatches(prev => [newBatch, ...prev]);
+  };
+
+  const handleUpdateBatchStatus = (batchId: string, status: ProductionBatch['status']) => {
+    setProductionBatches(prev => prev.map(b => {
+      if (b.id === batchId) {
+        return {
+          ...b,
+          status,
+          ...(status === 'delivered_to_warehouse' ? { actualDeliveryDate: new Date().toLocaleDateString('fa-IR') } : {})
+        };
+      }
+      return b;
+    }));
   };
 
   // Handlers for Finance & Checks
@@ -358,16 +471,17 @@ export default function App() {
   if (appZone === 'admin_auth') {
     return (
       <AdminAuthGate
-        onAuthenticated={() => {
-          setIsAdminAuthenticated(true);
-          setAppZone('admin_dashboard');
-        }}
+        onAuthenticated={handleAdminAuthenticated}
         onBackToStorefront={() => setAppZone('storefront')}
       />
     );
   }
 
-  // 3. Admin Dashboard Zone (Unified Luxury Palette matching the Main Storefront)
+  // Check tab permission for active role
+  const isTabPermitted = isTabAllowedForRole(currentTab, currentUserRole);
+  const activeRoleConfig = ROLE_PERMISSIONS[currentUserRole] || ROLE_PERMISSIONS.super_admin;
+
+  // 3. Admin Dashboard Zone
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#18181B] font-sans flex flex-col antialiased selection:bg-[#D4AF37] selection:text-[#18181B]" dir="rtl">
       
@@ -378,6 +492,7 @@ export default function App() {
         products={products}
         customers={customers}
         checks={checks}
+        invoices={invoices}
         currentUserRole={currentUserRole}
         onSwitchUserRole={(role) => setCurrentUserRole(role as UserRoleType)}
         onOpenQuickNewProduct={() => {
@@ -388,7 +503,9 @@ export default function App() {
           setCurrentTab('sales');
           setIsNewInvoiceModalOpen(true);
         }}
+        onOpenQuickEntry={() => setIsQuickEntryModalOpen(true)}
         onOpenStorefront={() => setAppZone('storefront')}
+        onLogout={handleAdminLogout}
       />
 
       {/* Main Container Layout with Sidebar */}
@@ -403,139 +520,234 @@ export default function App() {
               lowStockCount={lowStockCount}
               checkAlertCount={checkAlertCount}
               followUpCount={followUpCount}
+              currentUserRole={currentUserRole}
               onOpenStorefront={() => setAppZone('storefront')}
+              onLogout={handleAdminLogout}
             />
           </aside>
 
           {/* Main Module Content Area */}
           <main className="lg:col-span-9 space-y-6">
             
-            {/* View 1: Executive Dashboard */}
-            {currentTab === 'dashboard' && (
-              <DashboardView
-                products={products}
-                customers={customers}
-                checks={checks}
-                invoices={invoices}
-                onNavigate={setCurrentTab}
-                onOpenBulkPriceModal={() => {
-                  setCurrentTab('inventory');
-                  setIsBulkModalOpen(true);
-                }}
-                onOpenNewProductModal={() => {
-                  setCurrentTab('inventory');
-                  setIsNewProductModalOpen(true);
-                }}
-                onOpenNewInvoiceModal={() => {
-                  setCurrentTab('sales');
-                  setIsNewInvoiceModalOpen(true);
-                }}
-              />
-            )}
+            {/* RBAC Guard Check */}
+            {!isTabPermitted ? (
+              <div className="bg-white p-8 rounded-3xl border border-[#E6DEC8] text-center space-y-4 shadow-sm">
+                <div className="w-14 h-14 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center mx-auto border border-amber-200">
+                  <ShieldAlert className="w-8 h-8 text-amber-700" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-stone-900">
+                    عدم دسترسی به این بخش
+                  </h3>
+                  <p className="text-xs text-stone-600 max-w-md mx-auto mt-1">
+                    نقش کاربری فعلی شما (<strong className="text-stone-900 font-bold">{activeRoleConfig.title}</strong>) مجوز دسترسی به این ماژول را ندارد.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    onClick={() => setCurrentTab('dashboard')}
+                    className="inline-flex items-center gap-2 bg-[#18181B] text-[#FAF7F2] px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-stone-800 transition-colors shadow-xs cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>بازگشت به داشبورد مجاز</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* View 1: Executive Dashboard */}
+                {currentTab === 'dashboard' && (
+                  <DashboardView
+                    products={products}
+                    customers={customers}
+                    checks={checks}
+                    invoices={invoices}
+                    productionBatches={productionBatches}
+                    onNavigate={setCurrentTab}
+                    onOpenBulkPriceModal={() => {
+                      setCurrentTab('inventory');
+                      setIsBulkModalOpen(true);
+                    }}
+                    onOpenNewProductModal={() => {
+                      setCurrentTab('inventory');
+                      setIsNewProductModalOpen(true);
+                    }}
+                    onOpenNewInvoiceModal={() => {
+                      setCurrentTab('sales');
+                      setIsNewInvoiceModalOpen(true);
+                    }}
+                    onOpenQuickEntry={() => setIsQuickEntryModalOpen(true)}
+                  />
+                )}
 
-            {/* View 2: Inventory Module */}
-            {currentTab === 'inventory' && (
-              <InventoryModule
-                products={products}
-                onAddProduct={handleAddProduct}
-                onUpdateProduct={handleUpdateProduct}
-                onDeleteProduct={handleDeleteProduct}
-                onBulkUpdatePrices={handleBulkUpdatePrices}
-                isBulkModalOpen={isBulkModalOpen}
-                setIsBulkModalOpen={setIsBulkModalOpen}
-                isNewProductModalOpen={isNewProductModalOpen}
-                setIsNewProductModalOpen={setIsNewProductModalOpen}
-              />
-            )}
+                {/* View 2: Inventory Module */}
+                {currentTab === 'inventory' && (
+                  <InventoryModule
+                    products={products}
+                    invoices={invoices}
+                    onAddProduct={handleAddProduct}
+                    onUpdateProduct={handleUpdateProduct}
+                    onDeleteProduct={handleDeleteProduct}
+                    onBulkUpdatePrices={handleBulkUpdatePrices}
+                    isBulkModalOpen={isBulkModalOpen}
+                    setIsBulkModalOpen={setIsBulkModalOpen}
+                    isNewProductModalOpen={isNewProductModalOpen}
+                    setIsNewProductModalOpen={setIsNewProductModalOpen}
+                    onNavigateToProduction={() => setCurrentTab('production')}
+                  />
+                )}
 
-            {/* View 3: Customers & CRM Module */}
-            {currentTab === 'crm' && (
-              <CustomerCRMModule
-                customers={customers}
-                onAddCustomer={handleAddCustomer}
-                onUpdateCustomer={handleUpdateCustomer}
-                onDeleteCustomer={handleDeleteCustomer}
-                onImportCustomers={handleImportCustomers}
-              />
-            )}
+                {/* View 2.5: Production & Workshops Module (Super Admin) */}
+                {currentTab === 'production' && (
+                  <ProductionModule
+                    fabricSuppliers={fabricSuppliers}
+                    tailorWorkshops={tailorWorkshops}
+                    productionBatches={productionBatches}
+                    onAddSupplier={handleAddSupplier}
+                    onAddWorkshop={handleAddWorkshop}
+                    onAddBatch={handleAddBatch}
+                    onUpdateBatchStatus={handleUpdateBatchStatus}
+                  />
+                )}
 
-            {/* View 3.5: Retail Customers & Storefront Direct Buyers Module */}
-            {currentTab === 'retail_customers' && (
-              <RetailCustomersModule
-                customerUsers={customerUsers}
-                orders={storefrontOrders}
-                wholesaleCustomers={customers}
-                onAddRetailCustomer={handleRegisterCustomerUser}
-                onUpdateRetailCustomer={handleUpdateCustomerUser}
-              />
-            )}
+                {/* View 3: Customers & CRM Module */}
+                {currentTab === 'crm' && (
+                  <CustomerCRMModule
+                    customers={customers}
+                    checks={checks}
+                    invoices={invoices}
+                    onAddCustomer={handleAddCustomer}
+                    onUpdateCustomer={handleUpdateCustomer}
+                    onDeleteCustomer={handleDeleteCustomer}
+                    onImportCustomers={handleImportCustomers}
+                  />
+                )}
 
-            {/* View 4: Sales & Multi-tier Invoicing Module */}
-            {currentTab === 'sales' && (
-              <SalesInvoiceModule
-                invoices={invoices}
-                customers={customers}
-                products={products}
-                onAddInvoice={handleAddInvoice}
-                onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
-                isNewInvoiceModalOpen={isNewInvoiceModalOpen}
-                setIsNewInvoiceModalOpen={setIsNewInvoiceModalOpen}
-              />
-            )}
+                {/* View 3.5: Retail Customers & Storefront Direct Buyers Module */}
+                {currentTab === 'retail_customers' && (
+                  <RetailCustomersModule
+                    customerUsers={customerUsers}
+                    orders={storefrontOrders}
+                    wholesaleCustomers={customers}
+                    onAddRetailCustomer={handleRegisterCustomerUser}
+                    onUpdateRetailCustomer={handleUpdateCustomerUser}
+                  />
+                )}
 
-            {/* View 5: Finance & Checks Module */}
-            {currentTab === 'finance' && (
-              <FinanceModule
-                checks={checks}
-                customers={customers}
-                onAddCheck={handleAddCheck}
-                onUpdateCheckStatus={handleUpdateCheckStatus}
-              />
-            )}
+                {/* View 4: Sales & Multi-tier Invoicing Module */}
+                {currentTab === 'sales' && (
+                  <SalesInvoiceModule
+                    invoices={invoices}
+                    customers={customers}
+                    products={products}
+                    checks={checks}
+                    onAddInvoice={handleAddInvoice}
+                    onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
+                    isNewInvoiceModalOpen={isNewInvoiceModalOpen}
+                    setIsNewInvoiceModalOpen={setIsNewInvoiceModalOpen}
+                  />
+                )}
 
-            {/* View 6: Marketing Automation & AI Module */}
-            {currentTab === 'marketing' && (
-              <MarketingAIModule
-                products={products}
-                socialPosts={socialPosts}
-                autoResponders={autoResponders}
-                siteSettings={siteSettings}
-                onUpdateSiteSettings={setSiteSettings}
-                onAddSocialPost={handleAddSocialPost}
-                onAddAutoResponder={handleAddAutoResponder}
-              />
-            )}
+                {/* View 5: Finance & Checks Module */}
+                {currentTab === 'finance' && (
+                  <FinanceModule
+                    checks={checks}
+                    customers={customers}
+                    products={products}
+                    invoices={invoices}
+                    onAddCheck={handleAddCheck}
+                    onUpdateCheckStatus={handleUpdateCheckStatus}
+                    onNavigateToProduction={() => setCurrentTab('production')}
+                  />
+                )}
 
-            {/* View 7: B2B Storefront & Website Settings Module */}
-            {currentTab === 'storefront' && (
-              <StorefrontModule
-                products={products}
-                siteSettings={siteSettings}
-                onUpdateSiteSettings={setSiteSettings}
-                customerUsers={customerUsers}
-                orders={storefrontOrders}
-                onOpenLiveStorefront={() => setAppZone('storefront')}
-              />
-            )}
+                {/* View 6: Marketing Automation & AI Module */}
+                {currentTab === 'marketing' && (
+                  <MarketingAIModule
+                    products={products}
+                    socialPosts={socialPosts}
+                    autoResponders={autoResponders}
+                    siteSettings={siteSettings}
+                    onUpdateSiteSettings={setSiteSettings}
+                    onAddSocialPost={handleAddSocialPost}
+                    onAddAutoResponder={handleAddAutoResponder}
+                  />
+                )}
 
-            {/* View 8: Logistics & Dispatch Module */}
-            {currentTab === 'logistics' && (
-              <LogisticsModule
-                invoices={invoices}
-              />
-            )}
+                {/* View 7: B2B Storefront & Website Settings Module */}
+                {currentTab === 'storefront' && (
+                  <StorefrontModule
+                    products={products}
+                    siteSettings={siteSettings}
+                    onUpdateSiteSettings={setSiteSettings}
+                    customerUsers={customerUsers}
+                    orders={storefrontOrders}
+                    onOpenLiveStorefront={() => setAppZone('storefront')}
+                  />
+                )}
 
-            {/* View 9: Roles & Security Module */}
-            {currentTab === 'roles' && (
-              <RolesSettingsModule
-                currentRole={currentUserRole}
-                onRoleChange={setCurrentUserRole}
-              />
+                {/* View 8: Logistics & Dispatch Module */}
+                {currentTab === 'logistics' && (
+                  <LogisticsModule
+                    invoices={invoices}
+                  />
+                )}
+
+                {/* View 9: Roles & Security Module */}
+                {currentTab === 'roles' && (
+                  <RolesSettingsModule
+                    currentRole={currentUserRole}
+                    onRoleChange={setCurrentUserRole}
+                    products={products}
+                    customers={customers}
+                    invoices={invoices}
+                    checks={checks}
+                    fabricSuppliers={fabricSuppliers}
+                    tailorWorkshops={tailorWorkshops}
+                    productionBatches={productionBatches}
+                    customerUsers={customerUsers}
+                    siteSettings={siteSettings}
+                    onRestoreFullState={handleRestoreFullState}
+                    onResetToSampleData={handleResetToSampleData}
+                  />
+                )}
+              </>
             )}
 
           </main>
         </div>
       </div>
+
+      {/* Floating Action Button (FAB) for Mobile Daily Usage */}
+      <MobileQuickActionFAB
+        currentUserRole={currentUserRole}
+        onOpenNewInvoice={() => {
+          setCurrentTab('sales');
+          setIsNewInvoiceModalOpen(true);
+        }}
+        onOpenNewProduct={() => {
+          setCurrentTab('inventory');
+          setIsNewProductModalOpen(true);
+        }}
+        onOpenNewCustomer={() => {
+          setCurrentTab('crm');
+        }}
+        onOpenNewBatch={() => {
+          setCurrentTab('production');
+        }}
+        onOpenQuickEntry={() => setIsQuickEntryModalOpen(true)}
+      />
+
+      {/* Natural Language AI Quick Entry Modal */}
+      <QuickNaturalLanguageEntryModal
+        isOpen={isQuickEntryModalOpen}
+        onClose={() => setIsQuickEntryModalOpen(false)}
+        products={products}
+        customers={customers}
+        onAddInvoice={handleAddInvoice}
+        onUpdateProductStock={handleUpdateProductStock}
+        onAddNewCustomer={handleAddCustomer}
+      />
 
       {/* Footer */}
       <footer className="mt-auto border-t border-[#E6DEC8] bg-[#FAF7F2] py-4 text-center text-xs text-[#8C6D37]">

@@ -78,7 +78,9 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
             >
               <Phone className="w-3.5 h-3.5 text-[#8C6D37]" />
               <span>تلفن دفتر:</span>
-              <span className="font-mono text-[#8C6D37] font-black">{BRAND_INFO.primaryPhoneDisplay}</span>
+              <span dir="ltr" className="text-[#8C6D37] font-black tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
+                {BRAND_INFO.primaryPhoneDisplay}
+              </span>
             </a>
 
             <a
