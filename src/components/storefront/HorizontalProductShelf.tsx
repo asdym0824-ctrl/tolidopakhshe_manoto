@@ -12,7 +12,11 @@ import {
   ArrowLeft,
   Flame,
   Tag,
-  Clock
+  Clock,
+  Check,
+  ShieldCheck,
+  Truck,
+  Play
 } from 'lucide-react';
 
 interface HorizontalProductShelfProps {
@@ -49,6 +53,8 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeModes, setActiveModes] = useState<Record<string, PurchaseMode>>({});
+  const [addedFeedback, setAddedFeedback] = useState<Record<string, boolean>>({});
+  const [selectedColors, setSelectedColors] = useState<Record<string, string>>({});
 
   const updateScrollButtons = () => {
     if (!scrollContainerRef.current) return;
@@ -81,7 +87,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
 
   const handleScroll = (direction: 'next' | 'prev') => {
     if (!scrollContainerRef.current) return;
-    const scrollAmount = 300;
+    const scrollAmount = window.innerWidth < 640 ? window.innerWidth * 0.8 : 320;
     // In RTL, scrolling right or left:
     const sign = direction === 'next' ? -1 : 1;
     scrollContainerRef.current.scrollBy({
@@ -90,45 +96,59 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
     });
   };
 
+  const handleAddToCartWithFeedback = (product: Product, mode: PurchaseMode, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onQuickAddToCart(product, mode, 1);
+    
+    setAddedFeedback(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => {
+      setAddedFeedback(prev => ({ ...prev, [product.id]: false }));
+    }, 1800);
+  };
+
   const getBadgeStyles = () => {
     switch (badgeType) {
       case 'hot':
-        return 'bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-xs';
+        return 'bg-gradient-to-r from-rose-500 via-amber-500 to-yellow-500 text-white shadow-xs font-black';
       case 'new':
-        return 'bg-emerald-700 text-emerald-100 border border-emerald-600/50 shadow-xs';
+        return 'bg-gradient-to-r from-emerald-700 to-teal-800 text-emerald-50 border border-emerald-500/40 shadow-xs font-bold';
       case 'retail':
-        return 'bg-[#8C6D37] text-white shadow-xs';
+        return 'bg-[#8C6D37] text-white shadow-xs font-bold';
       case 'wholesale':
-        return 'bg-[#18181B] text-[#D4AF37] border border-[#D4AF37]/40 shadow-xs';
+        return 'bg-[#18181B] text-[#D4AF37] border border-[#D4AF37]/50 shadow-xs font-bold';
       default:
-        return 'bg-[#FAF7F2] text-[#18181B] border border-[#E6DEC8]';
+        return 'bg-[#FAF7F2] text-[#18181B] border border-[#E6DEC8] font-bold';
     }
   };
 
   if (products.length === 0) return null;
 
   return (
-    <section id={id} className="space-y-3.5 bg-gradient-to-b from-white to-stone-50/50 p-4 sm:p-5 rounded-3xl border border-[#E6DEC8] shadow-xs relative" dir="rtl">
+    <section 
+      id={id} 
+      className="space-y-3.5 bg-gradient-to-b from-white via-white to-[#FAF7F2]/60 p-3.5 sm:p-5 rounded-3xl border border-[#E6DEC8] shadow-xs relative transition-all duration-300" 
+      dir="rtl"
+    >
       
-      {/* Header Section */}
+      {/* Header Section with Mobile Ergonomics */}
       <div className="flex items-center justify-between gap-2 border-b border-[#E6DEC8]/60 pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs flex-shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs shrink-0">
             <Icon className="w-4 h-4" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-black text-sm sm:text-base text-stone-900 leading-tight">
+              <h3 className="font-black text-sm sm:text-base text-stone-900 leading-tight truncate">
                 {title}
               </h3>
               {badgeText && (
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${getBadgeStyles()}`}>
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full whitespace-nowrap ${getBadgeStyles()}`}>
                   {badgeText}
                 </span>
               )}
             </div>
             {subtitle && (
-              <p className="text-[11px] text-stone-500 mt-0.5 hidden xs:block">
+              <p className="text-[11px] text-stone-500 mt-0.5 hidden xs:block truncate">
                 {subtitle}
               </p>
             )}
@@ -136,21 +156,21 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
         </div>
 
         {/* Right side controls: Swipe hint, View All, and Navigation Arrows */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           
           {/* Mobile Swipe Hint Badge */}
-          <div className="hidden xs:flex sm:hidden items-center gap-1 text-[10px] text-[#8C6D37] bg-amber-50 border border-[#D4AF37]/30 px-2 py-0.5 rounded-full font-medium">
-            <span>👈 به چپ بکشید</span>
+          <div className="flex sm:hidden items-center gap-1 text-[10px] text-[#8C6D37] bg-amber-50 border border-[#D4AF37]/30 px-2 py-0.5 rounded-full font-medium animate-pulse">
+            <span>👈 بکشید</span>
           </div>
 
           {onViewAll && (
             <button
               type="button"
               onClick={onViewAll}
-              className="text-xs font-bold text-stone-700 hover:text-[#8C6D37] transition-colors flex items-center gap-1 bg-[#FAF7F2] hover:bg-white border border-[#DDD5C0] px-2.5 py-1.5 rounded-xl shadow-2xs"
+              className="text-xs font-bold text-stone-700 hover:text-[#8C6D37] active:scale-95 transition-all flex items-center gap-1 bg-[#FAF7F2] hover:bg-white border border-[#DDD5C0] px-2.5 py-1.5 rounded-xl shadow-2xs"
             >
               <span>مشاهده همه ({products.length})</span>
-              <ArrowLeft className="w-3 h-3" />
+              <ArrowLeft className="w-3 h-3 text-[#8C6D37]" />
             </button>
           )}
 
@@ -159,7 +179,12 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
             <button
               type="button"
               onClick={() => handleScroll('prev')}
-              className="p-2 rounded-xl border border-[#DDD5C0] bg-white hover:bg-[#FAF7F2] text-stone-700 hover:text-stone-900 transition-colors shadow-2xs active:scale-95"
+              disabled={!canScrollRight}
+              className={`p-2 rounded-xl border border-[#DDD5C0] transition-all shadow-2xs active:scale-95 ${
+                canScrollRight 
+                  ? 'bg-white hover:bg-[#FAF7F2] text-stone-800' 
+                  : 'bg-stone-100 text-stone-400 opacity-50 cursor-not-allowed'
+              }`}
               title="مشاهده موارد قبلی"
             >
               <ChevronRight className="w-4 h-4" />
@@ -167,7 +192,12 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
             <button
               type="button"
               onClick={() => handleScroll('next')}
-              className="p-2 rounded-xl border border-[#DDD5C0] bg-white hover:bg-[#FAF7F2] text-stone-700 hover:text-stone-900 transition-colors shadow-2xs active:scale-95"
+              disabled={!canScrollLeft}
+              className={`p-2 rounded-xl border border-[#DDD5C0] transition-all shadow-2xs active:scale-95 ${
+                canScrollLeft 
+                  ? 'bg-white hover:bg-[#FAF7F2] text-stone-800' 
+                  : 'bg-stone-100 text-stone-400 opacity-50 cursor-not-allowed'
+              }`}
               title="مشاهده موارد بعدی"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -178,15 +208,16 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
       </div>
 
       {/* Horizontal Swipe Scroll Track */}
-      <div className="relative">
+      <div className="relative -mx-3.5 sm:mx-0">
         <div
           ref={scrollContainerRef}
-          className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto pb-3 pt-1 px-1 snap-x snap-mandatory scroll-smooth no-scrollbar touch-pan-x"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 px-3.5 sm:px-1 snap-x snap-mandatory scroll-smooth no-scrollbar touch-pan-x"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {products.map((product, index) => {
             const isRetailAvailable = Boolean(product.allowRetailSale && (product.singleStock > 0 || product.packStock > 0));
             const currentMode = activeModes[product.id] || 'wholesale_pack';
+            const isAdded = Boolean(addedFeedback[product.id]);
 
             // Pricing
             const wholesaleUnitPrice = isPartnerLoggedIn ? product.colleaguePricePerUnit : product.baseWholesalePricePerUnit;
@@ -198,11 +229,11 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
               <div
                 key={product.id}
                 id={`swipe-card-${product.id}`}
-                className="w-[74vw] xs:w-[250px] sm:w-[270px] flex-shrink-0 snap-start bg-white rounded-2xl border border-[#E6DEC8] hover:border-[#18181B] shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden group select-none"
+                className="w-[168px] xs:w-[190px] sm:w-[230px] md:w-[260px] shrink-0 snap-start bg-white rounded-2xl border border-[#E6DEC8] hover:border-[#18181B] shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden group select-none relative"
               >
-                {/* Image Section */}
+                {/* Image Section - Compact and Crisp */}
                 <div
-                  className="relative aspect-4/5 w-full bg-[#F5EFEB] overflow-hidden cursor-pointer"
+                  className="relative aspect-square w-full bg-[#F5EFEB] overflow-hidden cursor-pointer active:opacity-95"
                   onClick={() => onOpenDetail(product)}
                 >
                   <img
@@ -215,105 +246,100 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
 
                   {/* Rank Badge for Bestsellers */}
                   {showRankNumber && (
-                    <div className="absolute top-2.5 left-2.5 z-10 w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-stone-950 font-black text-xs flex items-center justify-center shadow-md border border-white">
+                    <div className="absolute top-2 left-2 z-10 w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-300 text-stone-950 font-black text-[10px] flex items-center justify-center shadow-xs border border-white">
                       #{index + 1}
                     </div>
                   )}
 
-                  {/* Top Badges */}
-                  <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5 items-end z-10">
-                    <span className="bg-[#18181B]/95 backdrop-blur-xs text-[#FAF7F2] text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-xs flex items-center gap-1">
-                      <Package className="w-3 h-3 text-[#D4AF37]" />
-                      پک {product.packSize} تایی
+                  {/* Top Badges - Compact */}
+                  <div className="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
+                    <span className="bg-[#18181B]/95 backdrop-blur-xs text-[#FAF7F2] text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-stone-700">
+                      <Package className="w-2.5 h-2.5 text-[#D4AF37]" />
+                      پک {product.packSize}
                     </span>
 
-                    {isRetailAvailable ? (
-                      <span className="bg-[#8C6D37]/95 backdrop-blur-xs text-white text-[9px] font-semibold px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
-                        <ShoppingBag className="w-2.5 h-2.5" />
-                        تکی موجود
+                    {product.videoUrl && (
+                      <span className="bg-[#18181B]/95 backdrop-blur-xs text-[#D4AF37] text-[7.5px] sm:text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shadow-xs flex items-center gap-0.5 border border-[#D4AF37]/40">
+                        <Play className="w-2 h-2 fill-[#D4AF37]" />
+                        ویدیو
                       </span>
-                    ) : (
-                      <span className="bg-stone-800/90 backdrop-blur-xs text-stone-200 text-[9px] font-medium px-2 py-0.5 rounded-md shadow-xs">
-                        فقط عمده
+                    )}
+
+                    {isRetailAvailable && (
+                      <span className="bg-[#8C6D37]/95 backdrop-blur-xs text-white text-[8px] sm:text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shadow-xs flex items-center gap-0.5">
+                        تکی
                       </span>
                     )}
                   </div>
 
                   {/* Fabric Type & Rating Bottom Overlay */}
-                  <div className="absolute bottom-2 right-2 left-2 flex items-center justify-between pointer-events-none z-10">
-                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[10px] font-medium px-2 py-0.5 rounded-md shadow-xs truncate max-w-[65%] border border-[#E6DEC8]/60">
+                  <div className="absolute bottom-1.5 right-1.5 left-1.5 flex items-center justify-between pointer-events-none z-10">
+                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md shadow-2xs truncate max-w-[70%] border border-[#E6DEC8]/80">
                       {product.fabricType}
                     </span>
                     {product.rating && (
-                      <span className="bg-white/95 text-stone-900 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-[#E6DEC8]/60">
-                        <Star className="w-2.5 h-2.5 fill-[#D4AF37] text-[#D4AF37]" />
+                      <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8.5px] sm:text-[9.5px] font-bold px-1.5 py-0.5 rounded-md shadow-2xs flex items-center gap-0.5 border border-[#E6DEC8]/80">
+                        <Star className="w-2 h-2 fill-[#D4AF37] text-[#D4AF37]" />
                         {product.rating}
                       </span>
                     )}
                   </div>
 
-                  {/* Quick View Hover overlay */}
-                  <div className="absolute inset-0 bg-stone-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <span className="bg-white/95 text-[#18181B] px-3 py-1.5 rounded-xl font-bold text-[11px] shadow-md flex items-center gap-1 border border-[#E6DEC8]">
+                  {/* Quick View Hover overlay (Desktop) */}
+                  <div className="absolute inset-0 bg-stone-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none hidden sm:flex">
+                    <span className="bg-white/95 text-[#18181B] px-2.5 py-1 rounded-lg font-black text-[11px] shadow-md flex items-center gap-1 border border-[#E6DEC8]">
                       <Eye className="w-3 h-3 text-[#8C6D37]" />
-                      مشاهده مشخصات
+                      جزئیات
                     </span>
                   </div>
                 </div>
 
-                {/* Details Body */}
-                <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
+                {/* Details Body - Compact & Readable */}
+                <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2">
                   <div>
-                    <div className="flex items-center justify-between text-[10px] text-stone-500 mb-1">
-                      <span>{product.category}</span>
-                      <span className="font-mono text-stone-400">{product.sku}</span>
+                    <div className="flex items-center justify-between text-[9px] text-stone-500 mb-0.5">
+                      <span className="font-semibold text-stone-600 truncate">{product.category}</span>
+                      <span className="font-mono text-stone-400 text-[8px] bg-stone-100 px-1 py-0.2 rounded shrink-0">{product.sku}</span>
                     </div>
 
                     <h4
                       onClick={() => onOpenDetail(product)}
-                      className="font-bold text-stone-900 text-xs sm:text-sm leading-snug line-clamp-1 cursor-pointer hover:text-[#8C6D37] transition-colors"
+                      className="font-black text-stone-900 text-[11px] sm:text-xs leading-snug line-clamp-1 cursor-pointer hover:text-[#8C6D37] transition-colors"
                       title={product.name}
                     >
                       {product.name}
                     </h4>
 
-                    {/* Colors */}
+                    {/* Colors Count / Quick Preview */}
                     {product.colors && product.colors.length > 0 && (
-                      <div className="flex items-center gap-1 mt-1.5">
-                        <span className="text-[9px] text-stone-400">رنگ:</span>
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {product.colors.slice(0, 3).map((c, idx) => (
-                            <span
-                              key={idx}
-                              className="text-[9px] bg-[#FAF7F2] text-stone-700 border border-[#E6DEC8] px-1.5 py-0.2 rounded"
-                            >
-                              {c}
-                            </span>
-                          ))}
-                          {product.colors.length > 3 && (
-                            <span className="text-[9px] text-stone-400 font-bold">+{product.colors.length - 3}</span>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-1 mt-1 text-[9px] text-stone-500">
+                        <span className="text-stone-400">رنگ:</span>
+                        <span className="font-bold text-stone-700 truncate">{product.colors.slice(0, 2).join('، ')}</span>
+                        {product.colors.length > 2 && (
+                          <span className="text-[#8C6D37] font-bold text-[8.5px]">+{product.colors.length - 2}</span>
+                        )}
                       </div>
                     )}
                   </div>
 
-                  {/* Pricing Box */}
-                  <div className="bg-[#FAF7F2] rounded-xl p-2.5 border border-[#E6DEC8] space-y-1.5">
+                  {/* Pricing Box - Streamlined */}
+                  <div className="bg-[#FAF7F2] rounded-xl p-2 border border-[#E6DEC8] space-y-1">
                     {/* Retail / Wholesale Mini Toggle if available */}
                     {isRetailAvailable && (
-                      <div className="flex items-center bg-[#ECE4D5] p-0.5 rounded-lg text-[9px] font-bold">
+                      <div className="flex items-center bg-[#ECE4D5] p-0.5 rounded-md text-[8.5px] font-black">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveModes(prev => ({ ...prev, [product.id]: 'wholesale_pack' }));
                           }}
-                          className={`flex-1 py-0.5 rounded-md transition-all ${
-                            currentMode === 'wholesale_pack' ? 'bg-[#18181B] text-[#FAF7F2]' : 'text-stone-700'
+                          className={`flex-1 py-0.5 rounded transition-all ${
+                            currentMode === 'wholesale_pack' 
+                              ? 'bg-[#18181B] text-[#FAF7F2] shadow-2xs' 
+                              : 'text-stone-700 hover:text-stone-900'
                           }`}
                         >
-                          پک عمده
+                          پک ({product.packSize})
                         </button>
                         <button
                           type="button"
@@ -321,8 +347,10 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                             e.stopPropagation();
                             setActiveModes(prev => ({ ...prev, [product.id]: 'retail_single' }));
                           }}
-                          className={`flex-1 py-0.5 rounded-md transition-all ${
-                            currentMode === 'retail_single' ? 'bg-[#8C6D37] text-white' : 'text-stone-700'
+                          className={`flex-1 py-0.5 rounded transition-all ${
+                            currentMode === 'retail_single' 
+                              ? 'bg-[#8C6D37] text-white shadow-2xs' 
+                              : 'text-stone-700 hover:text-stone-900'
                           }`}
                         >
                           تکی
@@ -330,18 +358,18 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                       </div>
                     )}
 
-                    {/* Price Tag */}
+                    {/* Price Tag with High Legibility */}
                     {currentMode === 'wholesale_pack' ? (
                       <div className="space-y-0.5">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[10px] text-stone-600">پک {product.packSize} تایی:</span>
-                          <span className="text-xs sm:text-sm font-black text-stone-900">
+                        <div className="flex items-baseline justify-between gap-1">
+                          <span className="text-[8.5px] text-stone-500">پک {product.packSize} تایی:</span>
+                          <span className="text-[11px] sm:text-xs font-black text-stone-900">
                             {wholesalePackPrice.toLocaleString('fa-IR')}{' '}
-                            <span className="text-[9px] font-normal text-stone-500">تومان</span>
+                            <span className="text-[8px] font-normal text-stone-500">ت</span>
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-stone-700">
-                          <span>هر عدد:</span>
+                        <div className="flex items-center justify-between text-[8.5px] text-stone-600 pt-0.5 border-t border-[#E6DEC8]/50">
+                          <span className="text-stone-400">هر عدد:</span>
                           <span className="font-bold text-[#8C6D37]">
                             {wholesaleUnitPrice.toLocaleString('fa-IR')} ت
                           </span>
@@ -349,41 +377,47 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                       </div>
                     ) : (
                       <div className="space-y-0.5">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[10px] text-stone-600">قیمت تکی:</span>
-                          <span className="text-xs sm:text-sm font-black text-[#8C6D37]">
+                        <div className="flex items-baseline justify-between gap-1">
+                          <span className="text-[8.5px] text-stone-500">تک‌فروشی:</span>
+                          <span className="text-[11px] sm:text-xs font-black text-[#8C6D37]">
                             {retailUnitPrice.toLocaleString('fa-IR')}{' '}
-                            <span className="text-[9px] font-normal text-stone-500">تومان</span>
+                            <span className="text-[8px] font-normal text-stone-500">ت</span>
                           </span>
                         </div>
-                        <div className="text-[9px] text-emerald-800 font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
-                          <span>آماده ارسال فوری</span>
+                        <div className="text-[8px] text-emerald-800 font-bold flex items-center gap-0.5 pt-0.5 border-t border-[#E6DEC8]/50">
+                          <CheckCircle2 className="w-2 h-2 text-emerald-600 shrink-0" />
+                          <span className="truncate">ارسال پستی فوری</span>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 pt-0.5">
+                  {/* Actions: Compact touch targets */}
+                  <div className="flex items-center gap-1 pt-0.5">
                     <button
                       type="button"
                       id={`btn-shelf-add-${product.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onQuickAddToCart(product, currentMode, 1);
-                      }}
-                      className="flex-1 py-2 px-2 bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2] rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 shadow-xs"
+                      onClick={(e) => handleAddToCartWithFeedback(product, currentMode, e)}
+                      className={`flex-1 min-h-[36px] py-1.5 px-1.5 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 shadow-2xs active:scale-95 ${
+                        isAdded
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2]'
+                      }`}
                     >
-                      {currentMode === 'wholesale_pack' ? (
+                      {isAdded ? (
                         <>
-                          <Package className="w-3 h-3 text-[#D4AF37]" />
-                          <span>خرید پک {product.packSize} تایی</span>
+                          <Check className="w-3 h-3 text-white stroke-[3]" />
+                          <span>ثبت شد ✓</span>
+                        </>
+                      ) : currentMode === 'wholesale_pack' ? (
+                        <>
+                          <Package className="w-3 h-3 text-[#D4AF37] shrink-0" />
+                          <span className="truncate">خرید پک</span>
                         </>
                       ) : (
                         <>
-                          <ShoppingBag className="w-3 h-3 text-[#D4AF37]" />
-                          <span>خرید ۱ عدد</span>
+                          <ShoppingBag className="w-3 h-3 text-[#D4AF37] shrink-0" />
+                          <span className="truncate">خرید ۱ عدد</span>
                         </>
                       )}
                     </button>
@@ -391,32 +425,33 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenDetail(product)}
-                      className="p-2 border border-[#DDD5C0] hover:border-[#18181B] text-stone-700 hover:text-stone-900 bg-white hover:bg-[#FAF7F2] rounded-xl transition-colors"
-                      title="مشاهده جزئیات"
+                      className="min-h-[36px] min-w-[36px] p-1.5 border border-[#DDD5C0] hover:border-[#18181B] text-stone-700 hover:text-stone-900 bg-white hover:bg-[#FAF7F2] active:bg-stone-100 rounded-xl transition-all flex items-center justify-center shadow-2xs active:scale-95 shrink-0"
+                      title="مشاهده مشخصات و عکس‌های بیشتر"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                     </button>
                   </div>
-
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Scroll Progress Bar at Bottom of Shelf */}
-        <div className="mt-2 px-1 flex items-center justify-between text-[10px] text-stone-400">
+        {/* Scroll Progress & Swipe Helper Bar at Bottom of Shelf */}
+        <div className="mt-2.5 px-3.5 sm:px-1 flex items-center justify-between text-[11px] text-stone-500 font-medium">
           <div className="flex items-center gap-1.5">
-            <span className="font-mono">{products.length} مدل شلوار</span>
-            <span className="hidden xs:inline">•</span>
-            <span className="hidden xs:inline">قابلیت کشیدن به چپ و راست</span>
+            <span className="font-bold text-stone-700">{products.length} مدل شلوار</span>
+            <span className="text-stone-300">•</span>
+            <span className="text-stone-500 text-[10px]">کشویی قابل سوایپ</span>
           </div>
 
-          <div className="w-24 sm:w-32 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#8C6D37] to-[#D4AF37] rounded-full transition-all duration-150"
-              style={{ width: `${Math.max(15, scrollProgress)}%` }}
-            />
+          <div className="flex items-center gap-2">
+            <div className="w-20 sm:w-28 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#8C6D37] to-[#D4AF37] rounded-full transition-all duration-150"
+                style={{ width: `${Math.max(15, scrollProgress)}%` }}
+              />
+            </div>
           </div>
         </div>
 
@@ -425,3 +460,4 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
     </section>
   );
 };
+

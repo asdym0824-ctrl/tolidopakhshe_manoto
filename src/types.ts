@@ -24,6 +24,8 @@ export interface Product {
   category: string; // e.g. شلوار بگ, شلوار اسلش, شلوار راحتی, لگ و ساپورت, جاگر, داکرون, کارگو
   image: string;
   galleryImages?: string[];
+  videoUrl?: string; // ویدیو معرفی، تنخور ژورنالی، تست کشسانی و دوخت (MP4 یا لینک مستقیم/آپارات)
+  videoTitle?: string; // عنوان ویدیو مانند "ویدیو تنخور ژورنالی و تست پارچه"
   
   // Cost breakdown (به ازای هر عدد)
   fabricCost: number; // هزینه پارچه هر عدد
@@ -295,6 +297,39 @@ export interface CustomerUser {
   totalSpentToman?: number;
 }
 
+export type StorefrontBannerPosition = 'after_bestsellers' | 'after_new_arrivals' | 'after_retail' | 'mid_grid';
+
+export type StorefrontBannerAction = 
+  | 'wholesale_modal' 
+  | 'about_modal' 
+  | 'routing_map' 
+  | 'telegram' 
+  | 'whatsapp' 
+  | 'call_sales' 
+  | 'retail_filter' 
+  | 'scroll_catalog';
+
+export type StorefrontBannerStyle = 'gold_luxury' | 'dark_emerald' | 'amber_bazaar' | 'purple_royal' | 'crimson_sale';
+
+export type StorefrontBannerIcon = 'flame' | 'sparkles' | 'truck' | 'shield' | 'package' | 'scissors' | 'store' | 'tag';
+
+export interface StorefrontBanner {
+  id: string;
+  title: string;
+  subtitle: string;
+  badgeText?: string;
+  tagline?: string;
+  buttonText: string;
+  buttonAction: StorefrontBannerAction;
+  buttonTarget?: string;
+  secondaryButtonText?: string;
+  secondaryButtonAction?: StorefrontBannerAction;
+  styleVariant: StorefrontBannerStyle;
+  iconType: StorefrontBannerIcon;
+  position: StorefrontBannerPosition;
+  isActive: boolean;
+}
+
 export interface SiteSettings {
   brandName: string;
   brandSubtitle: string;
@@ -310,6 +345,7 @@ export interface SiteSettings {
   announcementNotice: string;
   isRetailSaleActive: boolean;
   minFreeShippingToman: number;
+  midGridBanners?: StorefrontBanner[];
 }
 
 export interface FabricSupplier {

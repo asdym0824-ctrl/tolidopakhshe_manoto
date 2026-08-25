@@ -17,7 +17,9 @@ import {
   CreditCard,
   X,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Menu,
+  HelpCircle
 } from 'lucide-react';
 import { ModuleTab, Product, Customer, CheckItem, Invoice, UserRoleType } from '../types';
 import { ManotoLogo } from './common/ManotoLogo';
@@ -37,6 +39,8 @@ interface HeaderProps {
   onOpenQuickEntry?: () => void;
   onOpenStorefront?: () => void;
   onLogout?: () => void;
+  onOpenHelpModal?: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -52,7 +56,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQuickNewInvoice,
   onOpenQuickEntry,
   onOpenStorefront,
-  onLogout
+  onLogout,
+  onOpenHelpModal,
+  onOpenMobileMenu
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -366,10 +372,23 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between gap-4">
           
           {/* Right Section: Brand & Shop Identity */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Mobile / Tablet Drawer Trigger */}
+            {onOpenMobileMenu && (
+              <button
+                type="button"
+                id="btn-header-mobile-menu"
+                onClick={onOpenMobileMenu}
+                className="p-2 bg-[#18181B] hover:bg-stone-800 text-[#D4AF37] border border-[#3F3F46] rounded-xl transition-colors shadow-xs lg:hidden cursor-pointer flex items-center justify-center shrink-0"
+                title="مشاهده منوی سیستم و ماژول‌ها"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+
             <div 
               onClick={onOpenStorefront}
-              className="cursor-pointer group flex items-center gap-3"
+              className="cursor-pointer group flex items-center gap-2 sm:gap-3"
               title="مشاهده ویترین عمومی فروشگاه"
             >
               <div className="bg-[#FAF7F2] border border-[#E6DEC8] p-1.5 rounded-2xl shadow-xs group-hover:border-[#18181B] transition-all">
@@ -448,6 +467,20 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Search className="w-4 h-4" />
             </button>
+
+            {/* Help Guide Button */}
+            {onOpenHelpModal && (
+              <button
+                type="button"
+                id="btn-header-help-guide"
+                onClick={onOpenHelpModal}
+                className="hidden md:flex text-xs bg-[#FAF7F2] hover:bg-[#E6DEC8]/60 text-[#8C6D37] hover:text-stone-950 font-bold px-3 py-2 rounded-xl transition-all items-center gap-1.5 border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                title="راهنمای سریع کار با سیستم"
+              >
+                <HelpCircle className="w-4 h-4 text-[#8C6D37]" />
+                <span>راهنما</span>
+              </button>
+            )}
 
             {/* Quick Action: Natural Language One-Line Entry */}
             {canQuickEntry && onOpenQuickEntry && (

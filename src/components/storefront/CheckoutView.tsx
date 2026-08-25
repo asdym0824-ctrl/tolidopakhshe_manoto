@@ -83,6 +83,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [isGatewayOpen, setIsGatewayOpen] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<StorefrontOrder | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Totals
   const subtotalToman = cartItems.reduce((acc, item) => acc + item.totalPriceToman, 0);
@@ -128,8 +129,12 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
   const handleStartPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customer.fullName || !customer.phone || !customer.address) {
-      alert('لطفاً فیلدهای ضروری نام، شماره تماس و آدرس را تکمیل فرمایید.');
+    setFormError(null);
+
+    if (!customer.fullName.trim() || !customer.phone.trim() || !customer.address.trim()) {
+      setFormError('لطفاً نام و نام خانوادگی، شماره تماس و آدرس دقیق گیرنده را تکمیل فرمایید.');
+      const elem = document.getElementById('checkout-customer-section');
+      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
@@ -410,8 +415,21 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         {/* Left 7 Cols: Customer Info & Shipping Options */}
         <div className="lg:col-span-7 space-y-6">
           
+          {/* Validation Error Banner */}
+          {formError && (
+            <div 
+              role="alert"
+              className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 flex items-start gap-3 shadow-xs animate-fadeIn"
+            >
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs font-bold leading-relaxed">
+                <span>{formError}</span>
+              </div>
+            </div>
+          )}
+
           {/* Section 1: Customer Info */}
-          <div className="bg-white rounded-3xl border border-[#DDD5C0] p-5 sm:p-6 shadow-xs space-y-4">
+          <div id="checkout-customer-section" className="bg-white rounded-3xl border border-[#DDD5C0] p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-[#E6DEC8]">
               <div className="w-8 h-8 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center font-bold text-sm">
                 ۱

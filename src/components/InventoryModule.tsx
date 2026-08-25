@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Product, PackSize, ProductSource, Invoice } from '../types';
 import { ImageUploader } from './common/ImageUploader';
+import { VideoUploader } from './common/VideoUploader';
 
 interface InventoryModuleProps {
   products: Product[];
@@ -116,6 +117,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       ...product,
       colorsStr: product.colors.join('، '),
       galleryImages: product.galleryImages || [],
+      videoUrl: product.videoUrl || '',
+      videoTitle: product.videoTitle || '',
     });
   };
 
@@ -151,6 +154,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       sizes: editForm.sizes,
       image: editForm.image || editingProduct.image,
       galleryImages: editForm.galleryImages || [],
+      videoUrl: editForm.videoUrl?.trim() || undefined,
+      videoTitle: editForm.videoTitle?.trim() || undefined,
       description: editForm.description,
       isNewArrival: Boolean(editForm.isNewArrival),
       isBestSeller: Boolean(editForm.isBestSeller),
@@ -189,6 +194,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     sizes: string;
     image: string;
     galleryImages: string[];
+    videoUrl?: string;
+    videoTitle?: string;
     description: string;
   }>({
     name: '',
@@ -213,6 +220,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     sizes: 'فری‌سایز مناسب ۳۸ تا ۴۶',
     image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop&q=80',
     galleryImages: [],
+    videoUrl: '',
+    videoTitle: '',
     description: 'تنخور ژورنالی فوق‌العاده راحت، پارچه بدون آبرفت، دوخت تمیز کارگاهی',
   });
 
@@ -256,6 +265,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       category: formData.category,
       image: formData.image || 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop&q=80',
       galleryImages: formData.galleryImages || [],
+      videoUrl: formData.videoUrl?.trim() || undefined,
+      videoTitle: formData.videoTitle?.trim() || undefined,
       fabricCost: formData.source === 'self_produced' ? formData.fabricCost : 0,
       tailoringCost: formData.source === 'self_produced' ? formData.tailoringCost : 0,
       trimsCost: formData.source === 'self_produced' ? formData.trimsCost : 0,
@@ -1175,6 +1186,19 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                 />
               </div>
 
+              {/* Video Uploader for Storefront showcase */}
+              <div className="pt-1">
+                <VideoUploader
+                  id="new-product-video-uploader"
+                  label="ویدیو معرفی و تنخور ژورنالی (نمایش در ویترین سایت):"
+                  value={formData.videoUrl || ''}
+                  onChange={(vUrl) => setFormData({ ...formData, videoUrl: vUrl })}
+                  videoTitle={formData.videoTitle || ''}
+                  onTitleChange={(title) => setFormData({ ...formData, videoTitle: title })}
+                  helpText="افزودن ویدیو تنخور و تست پارچه، اعتماد خریداران عمده و تکی ویترین سایت را به شدت افزایش می‌دهد."
+                />
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-4 border-t border-stone-100">
                 <button
                   type="button"
@@ -1243,6 +1267,25 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                   <span>{selectedProductForDetails.totalCostPrice.toLocaleString('fa-IR')} تومان</span>
                 </div>
               </div>
+
+              {/* Video Player in Details Modal if available */}
+              {selectedProductForDetails.videoUrl && (
+                <div className="p-3 bg-stone-900 text-white rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs text-[#D4AF37] font-bold">
+                    <span>🎬 ویدیو تنخور و دوخت محصول:</span>
+                    <span className="text-[10px] text-stone-400">{selectedProductForDetails.videoTitle || 'کیفیت بالا'}</span>
+                  </div>
+                  <div className="rounded-lg overflow-hidden bg-black aspect-video max-h-48 flex items-center justify-center">
+                    <video
+                      src={selectedProductForDetails.videoUrl}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
 
               <p className="text-stone-500 text-[11px] leading-relaxed">
                 {selectedProductForDetails.description}
@@ -1485,6 +1528,19 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                   onGalleryChange={(imgs) => setEditForm({ ...editForm, galleryImages: imgs })}
                   allowGallery={true}
                   helpText="تصویر جدید را از گوشی/سیستم آپلود کنید یا کاتالوگ آماده انتخاب کنید."
+                />
+              </div>
+
+              {/* Video Uploader for Storefront showcase */}
+              <div className="pt-1">
+                <VideoUploader
+                  id="edit-product-video-uploader"
+                  label="ویدیو معرفی و تنخور ژورنالی کالا (نمایش در ویترین سایت):"
+                  value={editForm.videoUrl || ''}
+                  onChange={(vUrl) => setEditForm({ ...editForm, videoUrl: vUrl })}
+                  videoTitle={editForm.videoTitle || ''}
+                  onTitleChange={(title) => setEditForm({ ...editForm, videoTitle: title })}
+                  helpText="افزودن ویدیو تنخور و تست پارچه، اعتماد خریداران عمده و تکی ویترین سایت را به شدت افزایش می‌دهد."
                 />
               </div>
 

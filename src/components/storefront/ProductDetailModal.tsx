@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Product, PurchaseMode } from '../../types';
 import { SmartPurchaseSelector } from './SmartPurchaseSelector';
+import { BRAND_INFO } from '../../data/brandInfo';
 import { 
   X, 
   Package, 
@@ -16,7 +17,10 @@ import {
   Layers, 
   Info,
   HelpCircle,
-  Zap
+  Zap,
+  Film,
+  Play,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -44,6 +48,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 }) => {
   if (!isOpen || !product) return null;
 
+  const [activeMediaType, setActiveMediaType] = useState<'image' | 'video'>(product.videoUrl ? 'image' : 'image');
   const [selectedImage, setSelectedImage] = useState<string>(product.image);
   const [purchaseMode, setPurchaseMode] = useState<PurchaseMode>('wholesale_pack');
   const [quantity, setQuantity] = useState<number>(1);
@@ -92,6 +97,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <span className="text-xs text-stone-500 font-mono">
               کد کالا: {product.sku}
             </span>
+            {product.videoUrl && (
+              <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                <Film className="w-3 h-3 text-[#8C6D37]" />
+                دارای ویدیو تنخور
+              </span>
+            )}
           </div>
 
           <button
@@ -107,39 +118,116 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         {/* Modal Body */}
         <div className="overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 flex-1">
           
-          {/* Left Column: Image Gallery */}
+          {/* Left Column: Media Gallery (Images & Video) */}
           <div className="md:col-span-5 space-y-3">
-            <div className="aspect-4/5 w-full bg-[#F5EFEB] rounded-2xl overflow-hidden border border-[#E6DEC8] shadow-inner relative">
-              <img
-                src={selectedImage}
-                alt={product.name}
-                className="w-full h-full object-cover object-center transition-all duration-300"
-                referrerPolicy="no-referrer"
-              />
+            
+            {/* Media Switcher Tabs if video is available */}
+            {product.videoUrl && (
+              <div className="flex items-center gap-1.5 p-1 bg-[#FAF7F2] rounded-xl border border-[#E6DEC8] text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaType('image')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                    activeMediaType === 'image'
+                      ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
+                      : 'text-stone-700 hover:bg-white'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>عکس‌های مدل ({images.length})</span>
+                </button>
 
-              <div className="absolute bottom-3 right-3 bg-[#18181B]/90 backdrop-blur-xs text-[#FAF7F2] text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 border border-[#D4AF37]/30">
-                <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>پک {product.packSize} عددی دوخت کارگاه</span>
-              </div>
-            </div>
-
-            {/* Thumbnail switcher */}
-            {images.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                {images.map((img, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => setSelectedImage(img)}
-                    className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
-                      selectedImage === img ? 'border-[#18181B] scale-95 shadow-md' : 'border-[#E6DEC8] hover:border-[#8C6D37] opacity-75 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt={`نمای ${index + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaType('video')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                    activeMediaType === 'video'
+                      ? 'bg-[#D4AF37] text-[#18181B] shadow-xs font-black'
+                      : 'text-stone-700 hover:bg-white'
+                  }`}
+                >
+                  <Film className="w-3.5 h-3.5 text-[#8C6D37]" />
+                  <span>ویدیو تنخور و دوخت</span>
+                </button>
               </div>
             )}
+
+            {/* Main Media Screen: Photo or Video */}
+            <div className="aspect-4/5 w-full bg-[#F5EFEB] rounded-2xl overflow-hidden border border-[#E6DEC8] shadow-inner relative flex items-center justify-center">
+              {activeMediaType === 'video' && product.videoUrl ? (
+                <div className="w-full h-full bg-black flex flex-col items-center justify-center relative">
+                  <video
+                    src={product.videoUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-contain"
+                  />
+                  {product.videoTitle && (
+                    <div className="absolute top-2 right-2 left-2 bg-[#18181B]/80 backdrop-blur-xs text-[#FAF7F2] text-[10px] px-2.5 py-1 rounded-lg font-bold truncate">
+                      🎬 {product.videoTitle}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <img
+                    src={selectedImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover object-center transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {product.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveMediaType('video')}
+                      className="absolute top-3 left-3 bg-[#18181B]/90 hover:bg-black text-[#D4AF37] text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border border-[#D4AF37]/50 shadow-lg backdrop-blur-xs transition-all hover:scale-105"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-[#D4AF37]" />
+                      <span>پخش ویدیو</span>
+                    </button>
+                  )}
+
+                  <div className="absolute bottom-3 right-3 bg-[#18181B]/90 backdrop-blur-xs text-[#FAF7F2] text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 border border-[#D4AF37]/30">
+                    <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>پک {product.packSize} عددی دوخت کارگاه</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Thumbnails switcher (including video thumbnail if available) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {product.videoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaType('video')}
+                  className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 flex flex-col items-center justify-center bg-[#18181B] text-[#D4AF37] ${
+                    activeMediaType === 'video' ? 'border-[#D4AF37] scale-95 shadow-md ring-2 ring-[#D4AF37]/50' : 'border-[#E6DEC8] hover:border-[#8C6D37] opacity-85'
+                  }`}
+                >
+                  <Play className="w-5 h-5 fill-current mb-1" />
+                  <span className="text-[9px] font-black">ویدیو</span>
+                </button>
+              )}
+
+              {images.map((img, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    setSelectedImage(img);
+                    setActiveMediaType('image');
+                  }}
+                  className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
+                    activeMediaType === 'image' && selectedImage === img ? 'border-[#18181B] scale-95 shadow-md' : 'border-[#E6DEC8] hover:border-[#8C6D37] opacity-75 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt={`نمای ${index + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
 
             {/* Trust Badges */}
             <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-[#E6DEC8] space-y-2 text-xs text-stone-700">
@@ -274,7 +362,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <div className="pt-2 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400">
                 <span>نیاز به مشاوره تیراژ بالا یا فاکتور رسمی دارید؟</span>
                 <a
-                  href={`https://wa.me/989121110000?text=${inquiryText}`}
+                  href={`https://wa.me/98${BRAND_INFO.primaryPhone.replace(/^0/, '')}?text=${inquiryText}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#D4AF37] hover:text-white font-bold flex items-center gap-1 hover:underline transition-colors"

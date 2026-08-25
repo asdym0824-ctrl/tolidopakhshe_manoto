@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Product, CartItem, PurchaseMode, StorefrontOrder, CustomerUser } from '../../types';
+import { Product, CartItem, PurchaseMode, StorefrontOrder, CustomerUser, SiteSettings } from '../../types';
+import { BRAND_INFO } from '../../data/brandInfo';
 import { StorefrontHeader } from './StorefrontHeader';
 import { StorefrontHero } from './StorefrontHero';
 import { ProductCard } from './ProductCard';
@@ -16,6 +17,9 @@ import { StorefrontFloatingAiWidget } from './StorefrontFloatingAiWidget';
 import { MobileCategoryStories } from './MobileCategoryStories';
 import { InteractiveCategoryExplorer } from './InteractiveCategoryExplorer';
 import { HorizontalProductShelf } from './HorizontalProductShelf';
+import { StorefrontMidGridBanner } from './StorefrontMidGridBanner';
+import { StorefrontVideoReels } from './StorefrontVideoReels';
+import { FullCatalogModal } from './FullCatalogModal';
 import { MobileBottomNavBar } from './MobileBottomNavBar';
 import { StorefrontFooter } from './StorefrontFooter';
 import { 
@@ -35,12 +39,15 @@ import {
   Sparkle,
   TrendingUp,
   Compass,
+  Film,
+  Calculator,
   X
 } from 'lucide-react';
 
 interface StorefrontViewProps {
   products: Product[];
   orders: StorefrontOrder[];
+  siteSettings?: SiteSettings;
   onOrderPlaced: (order: StorefrontOrder) => void;
   onSwitchToAdmin: () => void;
   customerUsers: CustomerUser[];
@@ -51,6 +58,7 @@ interface StorefrontViewProps {
 export const StorefrontView: React.FC<StorefrontViewProps> = ({
   products,
   orders,
+  siteSettings,
   onOrderPlaced,
   onSwitchToAdmin,
   customerUsers,
@@ -73,16 +81,39 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   const [isCustomerAuthOpen, setIsCustomerAuthOpen] = useState(false);
   const [isCustomerPortalOpen, setIsCustomerPortalOpen] = useState(false);
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
+  const [isFullCatalogOpen, setIsFullCatalogOpen] = useState(false);
 
   const handleOpenAboutModal = (tab: 'all' | 'map' | 'metro' = 'all') => {
     setAboutModalInitialTab(tab);
     setIsAboutModalOpen(true);
   };
 
+  // Extract Mid-Grid Banners from siteSettings
+  const midGridBanners = useMemo(() => {
+    return siteSettings?.midGridBanners || [];
+  }, [siteSettings?.midGridBanners]);
+
+  const bestsellersBanner = useMemo(() => {
+    return midGridBanners.find(b => b.position === 'after_bestsellers' && b.isActive);
+  }, [midGridBanners]);
+
+  const newArrivalsBanner = useMemo(() => {
+    return midGridBanners.find(b => b.position === 'after_new_arrivals' && b.isActive);
+  }, [midGridBanners]);
+
+  const retailBanner = useMemo(() => {
+    return midGridBanners.find(b => b.position === 'after_retail' && b.isActive);
+  }, [midGridBanners]);
+
+  const midCatalogBanners = useMemo(() => {
+    return midGridBanners.filter(b => b.isActive && (b.position === 'mid_grid' || b.position === 'after_bestsellers' || b.position === 'after_new_arrivals'));
+  }, [midGridBanners]);
+
   // Filters, Search & Display Mode
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('همه');
   const [salesModeFilter, setSalesModeFilter] = useState<'all' | 'retail_only' | 'wholesale_only'>('all');
+  const [videoFilterOnly, setVideoFilterOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'bestseller' | 'price_asc' | 'price_desc'>('newest');
   const [layoutMode, setLayoutMode] = useState<'horizontal_shelves' | 'grid' | 'compact_list'>('horizontal_shelves');
   const [mobileArchiveView, setMobileArchiveView] = useState<'shelf' | 'grid'>('shelf');
@@ -179,6 +210,11 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
         return false;
       }
 
+      // Video Only Filter
+      if (videoFilterOnly && !product.videoUrl) {
+        return false;
+      }
+
       // Sales Mode
       if (salesModeFilter === 'retail_only') {
         const isRetail = product.allowRetailSale && (product.singleStock > 0 || product.packStock > 0);
@@ -195,7 +231,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       if (sortBy === 'price_desc') return b.baseWholesalePricePerPack - a.baseWholesalePricePerPack;
       return 0;
     });
-  }, [products, searchQuery, selectedCategory, salesModeFilter, sortBy]);
+  }, [products, searchQuery, selectedCategory, salesModeFilter, videoFilterOnly, sortBy]);
 
   // Cart Handlers
   const handleAddToCart = (
@@ -279,6 +315,10 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
     }
   };
 
+  const handleViewAllProducts = () => {
+    setIsFullCatalogOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F5EE] text-stone-900 flex flex-col selection:bg-[#18181B] selection:text-[#FAF7F2]" dir="rtl">
       
@@ -305,7 +345,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
         }}
         products={products}
         onSelectProduct={setSelectedProduct}
-        onScrollToCatalog={scrollToCatalog}
+        onScrollToCatalog={handleViewAllProducts}
       />
 
       {/* Structured Data JSON-LD Schema for Google Rich Snippets & Local SEO */}
@@ -321,11 +361,11 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                 "name": "پوشاک من و تو (اسدی) - MANOTO DRESS",
                 "description": "تولید و پخش مستقیم پوشاک و شلوار زنانه عمده در بازار بزرگ تهران، پاساژ المهدی ۴، پلاک ۲۴۲",
                 "url": "https://manoto-dress.ir",
-                "telephone": "09121234567",
+                "telephone": BRAND_INFO.primaryPhone,
                 "priceRange": "$$",
                 "address": {
                   "@type": "PostalAddress",
-                  "streetAddress": "بازار بزرگ تهران، سرای ملی، پاساژ المهدی ۴، پلاک ۲۴۲",
+                  "streetAddress": BRAND_INFO.mainAddressFa,
                   "addressLocality": "تهران",
                   "addressRegion": "تهران",
                   "postalCode": "11918",
@@ -333,8 +373,8 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                 },
                 "geo": {
                   "@type": "GeoCoordinates",
-                  "latitude": "35.6720",
-                  "longitude": "51.4190"
+                  "latitude": String(BRAND_INFO.coordinates.lat),
+                  "longitude": String(BRAND_INFO.coordinates.lng)
                 }
               },
               {
@@ -397,7 +437,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
           <>
             {/* Hero Section */}
             <StorefrontHero
-              onScrollToCatalog={scrollToCatalog}
+              onScrollToCatalog={handleViewAllProducts}
               onFilterRetailOnly={() => {
                 setSalesModeFilter('retail_only');
                 scrollToCatalog();
@@ -406,6 +446,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                 setSalesModeFilter('wholesale_only');
                 scrollToCatalog();
               }}
+              onOpenRoutingModal={() => handleOpenAboutModal('map')}
               totalProductsCount={products.length}
             />
 
@@ -423,6 +464,12 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                 products={products}
                 salesModeFilter={salesModeFilter}
                 onSetSalesModeFilter={setSalesModeFilter}
+              />
+
+              {/* Video Reels Showcase for interactive fashion showcase */}
+              <StorefrontVideoReels
+                products={products}
+                onOpenProductModal={setSelectedProduct}
               />
 
               {/* Interactive Category Explorer Cards */}
@@ -504,6 +551,22 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                 {/* Right controls: View Mode Switcher + Sort */}
                 <div className="flex items-center justify-between md:justify-end gap-2 flex-wrap sm:flex-nowrap">
                   
+                  {/* Video Filter Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setVideoFilterOnly(!videoFilterOnly)}
+                    className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all border cursor-pointer ${
+                      videoFilterOnly
+                        ? 'bg-[#18181B] text-[#D4AF37] border-[#D4AF37] shadow-xs'
+                        : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:border-stone-800'
+                    }`}
+                    title="نمایش اختصاصی مدل‌های دارای فیلم و ویدیوی تنخور ژورنالی"
+                  >
+                    <Film className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span className="hidden sm:inline">فیلم تنخور</span>
+                    {videoFilterOnly && <Check className="w-3 h-3 text-emerald-400" />}
+                  </button>
+
                   {/* View Mode Switcher */}
                   <div className="flex items-center bg-[#FAF7F2] p-1 rounded-2xl border border-[#E6DEC8] text-xs">
                     <button
@@ -597,6 +660,23 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                     />
                   )}
 
+                  {/* Mid-Grid Banner 1 (After Bestsellers) */}
+                  {bestsellersBanner && (
+                    <StorefrontMidGridBanner
+                      banner={bestsellersBanner}
+                      onOpenWholesaleModal={() => setIsPartnerModalOpen(true)}
+                      onOpenAboutModal={() => handleOpenAboutModal('all')}
+                      onOpenRoutingMap={() => handleOpenAboutModal('map')}
+                      onFilterRetail={() => {
+                        setSalesModeFilter('retail_only');
+                        setSelectedCategory('همه');
+                      }}
+                      onScrollCatalog={() => {
+                        catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    />
+                  )}
+
                   {/* 2. New Arrivals Reel */}
                   {newArrivalProducts.length > 0 && (
                     <HorizontalProductShelf
@@ -616,6 +696,23 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                     />
                   )}
 
+                  {/* Mid-Grid Banner 2 (After New Arrivals) */}
+                  {newArrivalsBanner && (
+                    <StorefrontMidGridBanner
+                      banner={newArrivalsBanner}
+                      onOpenWholesaleModal={() => setIsPartnerModalOpen(true)}
+                      onOpenAboutModal={() => handleOpenAboutModal('all')}
+                      onOpenRoutingMap={() => handleOpenAboutModal('map')}
+                      onFilterRetail={() => {
+                        setSalesModeFilter('retail_only');
+                        setSelectedCategory('همه');
+                      }}
+                      onScrollCatalog={() => {
+                        catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    />
+                  )}
+
                   {/* 3. Retail Ready Shelf */}
                   {retailReadyProducts.length > 0 && (
                     <HorizontalProductShelf
@@ -632,6 +729,23 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                         setIsCartOpen(true);
                       }}
                       isPartnerLoggedIn={isPartnerLoggedIn}
+                    />
+                  )}
+
+                  {/* Mid-Grid Banner 3 (After Retail Ready Shelf) */}
+                  {retailBanner && (
+                    <StorefrontMidGridBanner
+                      banner={retailBanner}
+                      onOpenWholesaleModal={() => setIsPartnerModalOpen(true)}
+                      onOpenAboutModal={() => handleOpenAboutModal('all')}
+                      onOpenRoutingMap={() => handleOpenAboutModal('map')}
+                      onFilterRetail={() => {
+                        setSalesModeFilter('retail_only');
+                        setSelectedCategory('همه');
+                      }}
+                      onScrollCatalog={() => {
+                        catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+                      }}
                     />
                   )}
 
@@ -741,18 +855,40 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                           </div>
 
                           <div className="grid grid-cols-2 gap-2.5">
-                            {filteredProducts.map((product) => (
-                              <ProductCard
-                                key={product.id}
-                                product={product}
-                                onOpenDetail={setSelectedProduct}
-                                onQuickAddToCart={(prod, mode, qty) => {
-                                  handleAddToCart(prod, mode, qty);
-                                  setIsCartOpen(true);
-                                }}
-                                isPartnerLoggedIn={isPartnerLoggedIn}
-                              />
-                            ))}
+                            {filteredProducts.map((product, idx) => {
+                              const showBannerAfter = (idx + 1) === 4 && midCatalogBanners.length > 0;
+                              const bannerItem = midCatalogBanners[0];
+                              return (
+                                <React.Fragment key={product.id}>
+                                  <ProductCard
+                                    product={product}
+                                    onOpenDetail={setSelectedProduct}
+                                    onQuickAddToCart={(prod, mode, qty) => {
+                                      handleAddToCart(prod, mode, qty);
+                                      setIsCartOpen(true);
+                                    }}
+                                    isPartnerLoggedIn={isPartnerLoggedIn}
+                                  />
+                                  {showBannerAfter && bannerItem && (
+                                    <div className="col-span-2 py-1">
+                                      <StorefrontMidGridBanner
+                                        banner={bannerItem}
+                                        onOpenWholesaleModal={() => setIsPartnerModalOpen(true)}
+                                        onOpenAboutModal={() => handleOpenAboutModal('all')}
+                                        onOpenRoutingMap={() => handleOpenAboutModal('map')}
+                                        onFilterRetail={() => {
+                                          setSalesModeFilter('retail_only');
+                                          setSelectedCategory('همه');
+                                        }}
+                                        onScrollCatalog={() => {
+                                          catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
                           </div>
 
                           <button
@@ -769,26 +905,48 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                       )}
                     </div>
 
-                    {/* DESKTOP & TABLET DISPLAY: Grid View */}
+                    {/* DESKTOP & TABLET DISPLAY: Grid View with Mid-Grid Banner Injection */}
                     <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                      {filteredProducts.map((product) => (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          onOpenDetail={setSelectedProduct}
-                          onQuickAddToCart={(prod, mode, qty) => {
-                            handleAddToCart(prod, mode, qty);
-                            setIsCartOpen(true);
-                          }}
-                          isPartnerLoggedIn={isPartnerLoggedIn}
-                        />
-                      ))}
+                      {filteredProducts.map((product, idx) => {
+                        const showBannerAfter = (idx + 1) === 8 && midCatalogBanners.length > 0;
+                        const bannerItem = midCatalogBanners[0];
+                        return (
+                          <React.Fragment key={product.id}>
+                            <ProductCard
+                              product={product}
+                              onOpenDetail={setSelectedProduct}
+                              onQuickAddToCart={(prod, mode, qty) => {
+                                handleAddToCart(prod, mode, qty);
+                                setIsCartOpen(true);
+                              }}
+                              isPartnerLoggedIn={isPartnerLoggedIn}
+                            />
+                            {showBannerAfter && bannerItem && (
+                              <div className="col-span-full py-2">
+                                <StorefrontMidGridBanner
+                                  banner={bannerItem}
+                                  onOpenWholesaleModal={() => setIsPartnerModalOpen(true)}
+                                  onOpenAboutModal={() => handleOpenAboutModal('all')}
+                                  onOpenRoutingMap={() => handleOpenAboutModal('map')}
+                                  onFilterRetail={() => {
+                                    setSalesModeFilter('retail_only');
+                                    setSelectedCategory('همه');
+                                  }}
+                                  onScrollCatalog={() => {
+                                    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
                   </div>
 
                 </div>
               ) : (
-                /* When filtered or in grid mode: show Swipe Reel + Grid */
+                /* When filtered or in grid mode: show Swipe Reel + Grid with Mid-Grid Banners */
                 <div className="space-y-6">
                   {/* Top Horizontal Swipe Reel for the active filter */}
                   <HorizontalProductShelf
@@ -807,7 +965,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                     isPartnerLoggedIn={isPartnerLoggedIn}
                   />
 
-                  {/* Grid View */}
+                  {/* Grid View with Mid-Grid Banners */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs font-bold text-stone-700 px-1">
                       <span>نمایش شبکه‌ای کامل:</span>
@@ -817,18 +975,43 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
-                      {filteredProducts.map((product) => (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          onOpenDetail={setSelectedProduct}
-                          onQuickAddToCart={(prod, mode, qty) => {
-                            handleAddToCart(prod, mode, qty);
-                            setIsCartOpen(true);
-                          }}
-                          isPartnerLoggedIn={isPartnerLoggedIn}
-                        />
-                      ))}
+                      {filteredProducts.map((product, idx) => {
+                        const pool = midCatalogBanners.length > 0 ? midCatalogBanners : midGridBanners.filter(b => b.isActive);
+                        const showBanner = (idx + 1) % 6 === 0 && pool.length > 0 && idx < filteredProducts.length - 1;
+                        const bIndex = Math.floor((idx + 1) / 6 - 1) % pool.length;
+                        const bannerItem = pool[bIndex];
+
+                        return (
+                          <React.Fragment key={product.id}>
+                            <ProductCard
+                              product={product}
+                              onOpenDetail={setSelectedProduct}
+                              onQuickAddToCart={(prod, mode, qty) => {
+                                handleAddToCart(prod, mode, qty);
+                                setIsCartOpen(true);
+                              }}
+                              isPartnerLoggedIn={isPartnerLoggedIn}
+                            />
+                            {showBanner && bannerItem && (
+                              <div className="col-span-full py-2">
+                                <StorefrontMidGridBanner
+                                  banner={bannerItem}
+                                  onOpenWholesaleModal={() => setIsPartnerModalOpen(true)}
+                                  onOpenAboutModal={() => handleOpenAboutModal('all')}
+                                  onOpenRoutingMap={() => handleOpenAboutModal('map')}
+                                  onFilterRetail={() => {
+                                    setSalesModeFilter('retail_only');
+                                    setSelectedCategory('همه');
+                                  }}
+                                  onScrollCatalog={() => {
+                                    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -944,6 +1127,23 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
         onOpenAboutModal={() => setIsAboutModalOpen(true)}
         onFilterRetailOnly={() => setSalesModeFilter('retail_only')}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
+      />
+
+      {/* Full-Screen Dedicated Catalog View & Large Product Showcase Modal */}
+      <FullCatalogModal
+        isOpen={isFullCatalogOpen}
+        onClose={() => setIsFullCatalogOpen(false)}
+        products={products}
+        onSelectProduct={(product) => {
+          setSelectedProduct(product);
+        }}
+        onAddToCart={handleAddToCart}
+        cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+        onOpenCart={() => {
+          setIsFullCatalogOpen(false);
+          setIsCartOpen(true);
+        }}
+        isPartnerLoggedIn={isPartnerLoggedIn}
       />
 
       {/* Sticky Bottom Navigation Bar for Mobile & Smartphone View */}

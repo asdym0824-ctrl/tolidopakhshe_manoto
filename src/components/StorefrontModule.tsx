@@ -20,9 +20,33 @@ import {
   Store,
   Crown,
   ChevronLeft,
-  PackageCheck
+  PackageCheck,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Layers,
+  Flame,
+  Scissors,
+  Palette,
+  LayoutTemplate,
+  ToggleLeft,
+  ToggleRight,
+  RotateCcw
 } from 'lucide-react';
-import { Product, SiteSettings, CustomerUser, StorefrontOrder } from '../types';
+import { 
+  Product, 
+  SiteSettings, 
+  CustomerUser, 
+  StorefrontOrder, 
+  StorefrontBanner, 
+  StorefrontBannerPosition, 
+  StorefrontBannerAction, 
+  StorefrontBannerStyle, 
+  StorefrontBannerIcon 
+} from '../types';
+import { StorefrontMidGridBanner } from './storefront/StorefrontMidGridBanner';
+import { DEFAULT_STOREFRONT_BANNERS } from '../App';
 
 interface StorefrontModuleProps {
   products: Product[];
@@ -41,21 +65,99 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
   orders,
   onOpenLiveStorefront,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'registered_customers' | 'pricing_policy'>('site_info');
+  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'mid_grid_banners' | 'registered_customers' | 'pricing_policy'>('site_info');
   
   // Local form for site settings
-  const [formData, setFormData] = useState<SiteSettings>(siteSettings);
+  const [formData, setFormData] = useState<SiteSettings>(() => ({
+    ...siteSettings,
+    midGridBanners: siteSettings.midGridBanners || DEFAULT_STOREFRONT_BANNERS,
+  }));
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
 
   // Selected customer for viewing history
   const [selectedUserForHistory, setSelectedUserForHistory] = useState<CustomerUser | null>(null);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     onUpdateSiteSettings(formData);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
   };
+
+  // Banner CRUD Operations
+  const handleToggleBanner = (bannerId: string) => {
+    const updatedBanners = (formData.midGridBanners || []).map(b => 
+      b.id === bannerId ? { ...b, isActive: !b.isActive } : b
+    );
+    const updated = { ...formData, midGridBanners: updatedBanners };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+  };
+
+  const handleUpdateBannerField = (bannerId: string, updates: Partial<StorefrontBanner>) => {
+    const updatedBanners = (formData.midGridBanners || []).map(b => 
+      b.id === bannerId ? { ...b, ...updates } : b
+    );
+    const updated = { ...formData, midGridBanners: updatedBanners };
+    setFormData(updated);
+  };
+
+  const handleAddNewBanner = () => {
+    const newId = `banner-${Date.now()}`;
+    const newBanner: StorefrontBanner = {
+      id: newId,
+      title: 'عنوان بنر جذاب جدید فروشگاه',
+      subtitle: 'توضیحات تکمیلی در مورد شرایط همکاری، مزایای خرید مستقیم یا ارسال فوری کالا',
+      badgeText: '🔥 پیشنهاد ویژه بازار',
+      tagline: 'تضمین بالاترین کیفیت و کف قیمت بازار بزرگ',
+      buttonText: 'دریافت قیمت همکاری و فاکتور',
+      buttonAction: 'wholesale_modal',
+      secondaryButtonText: 'مشاهده آدرس در نقشه',
+      secondaryButtonAction: 'routing_map',
+      styleVariant: 'gold_luxury',
+      iconType: 'sparkles',
+      position: 'mid_grid',
+      isActive: true,
+    };
+
+    const updatedBanners = [...(formData.midGridBanners || []), newBanner];
+    const updated = { ...formData, midGridBanners: updatedBanners };
+    setFormData(updated);
+    setEditingBannerId(newId);
+    onUpdateSiteSettings(updated);
+  };
+
+  const handleDeleteBanner = (bannerId: string) => {
+    const updatedBanners = (formData.midGridBanners || []).filter(b => b.id !== bannerId);
+    const updated = { ...formData, midGridBanners: updatedBanners };
+    setFormData(updated);
+    if (editingBannerId === bannerId) setEditingBannerId(null);
+    onUpdateSiteSettings(updated);
+  };
+
+  const handleMoveBanner = (index: number, direction: 'up' | 'down') => {
+    const banners = [...(formData.midGridBanners || [])];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= banners.length) return;
+
+    const temp = banners[index];
+    banners[index] = banners[targetIndex];
+    banners[targetIndex] = temp;
+
+    const updated = { ...formData, midGridBanners: banners };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+  };
+
+  const handleResetDefaultBanners = () => {
+    const updated = { ...formData, midGridBanners: DEFAULT_STOREFRONT_BANNERS };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+  };
+
+  const currentBanners = formData.midGridBanners || [];
+  const activeBannersCount = currentBanners.filter(b => b.isActive).length;
 
   return (
     <div id="storefront-manager-module" className="space-y-6 animate-in fade-in duration-200">
@@ -94,7 +196,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
         </div>
 
         {/* Sub Navigation Tabs */}
-        <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[#E6DEC8] text-xs">
+        <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[#E6DEC8] text-xs flex-wrap">
           <button
             onClick={() => setActiveSubTab('site_info')}
             className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
@@ -104,7 +206,19 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             }`}
           >
             <Settings className="w-4 h-4 text-[#D4AF37]" />
-            <span>ویرایش اطلاعات و سربرگ سایت</span>
+            <span>اطلاعات و سربرگ سایت</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('mid_grid_banners')}
+            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'mid_grid_banners'
+                ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+            <span>بنرهای بین گریدها و تبلیغات ({activeBannersCount} فعال)</span>
           </button>
 
           <button
@@ -133,7 +247,432 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
         </div>
       </div>
 
-      {/* TAB 1: Edit Site Info & Announcements */}
+      {/* Save Toast Notification */}
+      {saveSuccess && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-xl flex items-center gap-2 text-xs font-bold animate-in fade-in">
+          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>تغییرات با موفقیت ذخیره شد و در ویترین آنلاین اعمال گردید!</span>
+        </div>
+      )}
+
+      {/* TAB 2: Mid-Grid Banners Management */}
+      {activeSubTab === 'mid_grid_banners' && (
+        <div className="space-y-6">
+          
+          {/* Header Action Bar */}
+          <div className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-[#18181B] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                <span>بنرهای اختصاصی بین ردیف‌های محصولات و قفسه‌ها</span>
+              </h3>
+              <p className="text-xs text-stone-500 mt-1">
+                طراحی شده برای افزایش تعامل، شکستن سادگی گریدها، معرفی کانال تلگرام، فروش عمده و هدایت به نقشه بازار
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleAddNewBanner}
+                className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+              >
+                <Plus className="w-4 h-4 text-[#D4AF37]" />
+                <span>افزودن بنر جدید</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetDefaultBanners}
+                className="bg-[#FAF7F2] hover:bg-stone-200 text-stone-700 border border-[#DDD5C0] font-bold text-xs px-3 py-2.5 rounded-xl transition-all flex items-center gap-1"
+                title="بازنشانی به بنرهای پیش‌فرض"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>بازنشانی پیش‌فرض</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveSettings()}
+                className="bg-[#D4AF37] hover:bg-[#c49f2e] text-[#18181B] font-black text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+              >
+                <Save className="w-4 h-4" />
+                <span>ذخیره کلیه بنرها</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Banners List */}
+          <div className="space-y-6">
+            {currentBanners.map((banner, index) => {
+              const isEditing = editingBannerId === banner.id;
+
+              return (
+                <div 
+                  key={banner.id} 
+                  className={`bg-white rounded-2xl border transition-all duration-200 shadow-xs overflow-hidden ${
+                    banner.isActive ? 'border-[#E6DEC8]' : 'border-stone-200 opacity-80'
+                  }`}
+                >
+                  {/* Banner Card Top Bar */}
+                  <div className="p-4 sm:p-5 bg-stone-50/80 border-b border-stone-200/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    
+                    <div className="flex items-center gap-3">
+                      <span className="w-7 h-7 rounded-xl bg-stone-200 text-stone-700 flex items-center justify-center font-mono font-black text-xs">
+                        #{index + 1}
+                      </span>
+
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-black text-[#18181B] text-xs sm:text-sm">
+                            {banner.title}
+                          </h4>
+                          {banner.badgeText && (
+                            <span className="text-[10px] bg-stone-200 text-stone-800 font-bold px-2 py-0.5 rounded-full">
+                              {banner.badgeText}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-stone-500 flex-wrap">
+                          <span>موقعیت: {
+                            banner.position === 'after_bestsellers' ? 'بعد از پرفروش‌ترین‌ها' :
+                            banner.position === 'after_new_arrivals' ? 'بعد از کالکشن جدید' :
+                            banner.position === 'after_retail' ? 'بعد از قفسه تک‌فروشی' :
+                            'میان گرید کاتالوگ'
+                          }</span>
+                          <span>•</span>
+                          <span>تم رنگی: {
+                            banner.styleVariant === 'gold_luxury' ? 'مشکی و طلایی لوکس' :
+                            banner.styleVariant === 'dark_emerald' ? 'زمردی سلطنتی' :
+                            banner.styleVariant === 'amber_bazaar' ? 'شکلاتی و کهربایی بازار' :
+                            banner.styleVariant === 'purple_royal' ? 'بنفش درباری' :
+                            'سرخ یاقوتی فروش ویژه'
+                          }</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions & Toggles */}
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                      
+                      {/* Move Up/Down */}
+                      <div className="flex items-center bg-white border border-stone-200 rounded-xl p-0.5">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => handleMoveBanner(index, 'up')}
+                          className="p-1 text-stone-600 hover:text-stone-900 disabled:opacity-30 cursor-pointer"
+                          title="انتقال به بالا"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === currentBanners.length - 1}
+                          onClick={() => handleMoveBanner(index, 'down')}
+                          className="p-1 text-stone-600 hover:text-stone-900 disabled:opacity-30 cursor-pointer"
+                          title="انتقال به پایین"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Toggle Active Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleBanner(banner.id)}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
+                          banner.isActive 
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                            : 'bg-stone-100 text-stone-600 border border-stone-300'
+                        }`}
+                      >
+                        {banner.isActive ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4 text-stone-400" />}
+                        <span>{banner.isActive ? 'فعال در سایت' : 'غیرفعال'}</span>
+                      </button>
+
+                      {/* Edit Details Button */}
+                      <button
+                        type="button"
+                        onClick={() => setEditingBannerId(isEditing ? null : banner.id)}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition-all ${
+                          isEditing 
+                            ? 'bg-[#18181B] text-[#FAF7F2] border-[#18181B]' 
+                            : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-50'
+                        }`}
+                      >
+                        <span>{isEditing ? 'بستن ویرایش' : 'ویرایش کامل'}</span>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBanner(banner.id)}
+                        className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                        title="حذف بنر"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                  {/* Live Rendered Visual Preview */}
+                  <div className="p-4 sm:p-5 bg-stone-100/50">
+                    <div className="text-[11px] font-bold text-stone-500 mb-2 flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-[#8C6D37]" />
+                      <span>پیش‌نمایش زنده ظاهر بنر در فروشگاه آنلاین:</span>
+                    </div>
+
+                    <StorefrontMidGridBanner banner={banner} />
+                  </div>
+
+                  {/* Expanded Edit Form */}
+                  {isEditing && (
+                    <div className="p-5 sm:p-6 bg-white border-t border-stone-200 space-y-5 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+                        <span className="font-black text-xs text-[#18181B] flex items-center gap-2">
+                          <Settings className="w-4 h-4 text-[#D4AF37]" />
+                          <span>فرم شخصی‌سازی محتوا و اکشن‌های بنر #{index + 1}</span>
+                        </span>
+                        <span className="text-[11px] text-stone-500">تغییرات به صورت آنی در پیش‌نمایش بالا اعمال می‌شوند</span>
+                      </div>
+
+                      {/* Row 1: Title & Subtitle */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1">
+                            عنوان اصلی بنر (Headline):
+                          </label>
+                          <input
+                            type="text"
+                            value={banner.title}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { title: e.target.value })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                            placeholder="مثال: خرید مستقیم از کارگاه تولیدی • بدون واسطه بازار"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1">
+                            نشانک بالای بنر (Badge):
+                          </label>
+                          <input
+                            type="text"
+                            value={banner.badgeText || ''}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { badgeText: e.target.value })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                            placeholder="مثال: ✨ ویژه بنکداران و بوتیک‌داران"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Row 2: Subtitle & Tagline */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1">
+                            متن توضیحات تکمیلی (Subtitle):
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={banner.subtitle}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { subtitle: e.target.value })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-medium focus:bg-white focus:border-[#18181B] outline-none resize-none"
+                            placeholder="ارسال سریع روزانه با باربری وطن و پیام‌گیر از میدان شوش به سراسر کشور..."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1">
+                            شعار یا ضمانت کوتاه (Tagline):
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={banner.tagline || ''}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { tagline: e.target.value })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-medium focus:bg-white focus:border-[#18181B] outline-none resize-none"
+                            placeholder="تضمین کیفیت دوخت ۵ لا و کش‌دوزی گنی ۱۰ سانتی"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Row 3: Buttons & Actions */}
+                      <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-4">
+                        <span className="font-black text-xs text-stone-800 block">تنظیم دکمه‌ها و لینک‌های اقدام بنر:</span>
+                        
+                        {/* Primary Button */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-600 mb-1">متن دکمه اصلی:</label>
+                            <input
+                              type="text"
+                              value={banner.buttonText}
+                              onChange={(e) => handleUpdateBannerField(banner.id, { buttonText: e.target.value })}
+                              className="w-full bg-white text-xs p-2 rounded-xl border border-[#DDD5C0] font-bold focus:border-[#18181B] outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-600 mb-1">عملیات دکمه اصلی:</label>
+                            <select
+                              value={banner.buttonAction}
+                              onChange={(e) => handleUpdateBannerField(banner.id, { buttonAction: e.target.value as StorefrontBannerAction })}
+                              className="w-full bg-white text-xs p-2 rounded-xl border border-[#DDD5C0] font-bold focus:border-[#18181B] outline-none"
+                            >
+                              <option value="wholesale_modal">باز کردن فرم قیمت همکار و فاکتور عمده</option>
+                              <option value="telegram">انتقال مستقیم به کانال تلگرام</option>
+                              <option value="whatsapp">انتقال به گفتگوی واتساپ / ایتا</option>
+                              <option value="routing_map">باز کردن نقشه و مسیریابی پاساژ</option>
+                              <option value="about_modal">مشاهده اطلاعات تماس و کارگاه‌ها</option>
+                              <option value="call_sales">تماس تلفنی مستقیم با مدیریت</option>
+                              <option value="retail_filter">فیلتر کردن مدل‌های تک‌فروشی</option>
+                              <option value="scroll_catalog">اسکرول به لیست محصولات کاتالوگ</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-600 mb-1">آدرس/شماره اختصاصی (اختیاری):</label>
+                            <input
+                              type="text"
+                              value={banner.buttonTarget || ''}
+                              onChange={(e) => handleUpdateBannerField(banner.id, { buttonTarget: e.target.value })}
+                              placeholder="پیش‌فرض از اطلاعات برند خوانده می‌شود"
+                              className="w-full bg-white text-xs p-2 rounded-xl border border-[#DDD5C0] font-mono text-[11px] focus:border-[#18181B] outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Secondary Button */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-stone-200">
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-600 mb-1">متن دکمه دوم (فرعی):</label>
+                            <input
+                              type="text"
+                              value={banner.secondaryButtonText || ''}
+                              onChange={(e) => handleUpdateBannerField(banner.id, { secondaryButtonText: e.target.value })}
+                              placeholder="مثال: مسیریابی پاساژ المهدی ۴ (خالی یعنی بدون دکمه دوم)"
+                              className="w-full bg-white text-xs p-2 rounded-xl border border-[#DDD5C0] font-bold focus:border-[#18181B] outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-600 mb-1">عملیات دکمه دوم:</label>
+                            <select
+                              value={banner.secondaryButtonAction || 'routing_map'}
+                              onChange={(e) => handleUpdateBannerField(banner.id, { secondaryButtonAction: e.target.value as StorefrontBannerAction })}
+                              className="w-full bg-white text-xs p-2 rounded-xl border border-[#DDD5C0] font-bold focus:border-[#18181B] outline-none"
+                            >
+                              <option value="routing_map">باز کردن نقشه و مسیریابی پاساژ</option>
+                              <option value="about_modal">اطلاعات کارگاه‌ها و راهنمای مترو</option>
+                              <option value="wholesale_modal">فرم درخواست همکاری عمده</option>
+                              <option value="telegram">ورود به کانال تلگرام</option>
+                              <option value="whatsapp">ارتباط واتساپ / ایتا</option>
+                              <option value="call_sales">تماس تلفنی با فروشگاه</option>
+                            </select>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Row 4: Styling & Position Placement */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        
+                        {/* Theme Variant */}
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
+                            <Palette className="w-3.5 h-3.5 text-[#8C6D37]" />
+                            <span>تم و پالت رنگی بنر:</span>
+                          </label>
+                          <select
+                            value={banner.styleVariant}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { styleVariant: e.target.value as StorefrontBannerStyle })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                          >
+                            <option value="gold_luxury">مشکی و طلایی لوکس (Gold Luxury)</option>
+                            <option value="dark_emerald">زمردی سلطنتی و طلایی (Emerald Royal)</option>
+                            <option value="amber_bazaar">شکلاتی و کهربایی بازار (Amber Bazaar)</option>
+                            <option value="purple_royal">بنفش درباری و یاقوتی (Purple Velvet)</option>
+                            <option value="crimson_sale">سرخ یاقوتی فروش ویژه (Ruby Crimson)</option>
+                          </select>
+                        </div>
+
+                        {/* Icon Type */}
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5 text-[#8C6D37]" />
+                            <span>آیکون نشانک:</span>
+                          </label>
+                          <select
+                            value={banner.iconType}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { iconType: e.target.value as StorefrontBannerIcon })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                          >
+                            <option value="package">📦 بسته و پک عمده (Package)</option>
+                            <option value="sparkles">✨ ستاره و درخشش (Sparkles)</option>
+                            <option value="flame">🔥 شعله و داغ (Flame)</option>
+                            <option value="scissors">✂️ قیچی و خیاطی کارگاه (Scissors)</option>
+                            <option value="store">🏪 فروشگاه و پاساژ (Store)</option>
+                            <option value="shield">🛡️ سپر و ضمانت دوخت (Shield)</option>
+                            <option value="truck">🚚 کامیون و باربری (Truck)</option>
+                            <option value="tag">🏷️ برچسب قیمت (Tag)</option>
+                          </select>
+                        </div>
+
+                        {/* Placement Position */}
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
+                            <LayoutTemplate className="w-3.5 h-3.5 text-[#8C6D37]" />
+                            <span>موقعیت قرارگیری در صفحه:</span>
+                          </label>
+                          <select
+                            value={banner.position}
+                            onChange={(e) => handleUpdateBannerField(banner.id, { position: e.target.value as StorefrontBannerPosition })}
+                            className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                          >
+                            <option value="after_bestsellers">بعد از ردیف پرفروش‌ترین‌ها</option>
+                            <option value="after_new_arrivals">بعد از ردیف کالکشن جدید</option>
+                            <option value="after_retail">بعد از ردیف امکان خرید تکی</option>
+                            <option value="mid_grid">در میان محصولات گرید کاتالوگ</option>
+                          </select>
+                        </div>
+
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="flex items-center justify-between pt-3 border-t border-stone-200">
+                        <button
+                          type="button"
+                          onClick={() => setEditingBannerId(null)}
+                          className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all"
+                        >
+                          بستن ویرایشگر
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleSaveSettings();
+                            setEditingBannerId(null);
+                          }}
+                          className="px-5 py-2 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-xs"
+                        >
+                          <Save className="w-4 h-4 text-[#D4AF37]" />
+                          <span>ذخیره و اعمال در فروشگاه</span>
+                        </button>
+                      </div>
+
+                    </div>
+                  )}
+
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      )}
       {activeSubTab === 'site_info' && (
         <form onSubmit={handleSaveSettings} className="space-y-5">
           {saveSuccess && (

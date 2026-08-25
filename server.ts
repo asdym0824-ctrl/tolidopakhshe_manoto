@@ -27,7 +27,7 @@ async function generateContentWithFallback(
   prompt: string, 
   config?: { responseMimeType?: string; systemInstruction?: string }
 ): Promise<string | null> {
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-3.7-flash', 'gemini-2.5-pro'];
+  const modelsToTry = ['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
   let lastError: any = null;
 
   for (const model of modelsToTry) {

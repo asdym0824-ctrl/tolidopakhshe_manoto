@@ -11,6 +11,7 @@ import {
   StorefrontOrder,
   CustomerUser,
   SiteSettings,
+  StorefrontBanner,
   FabricSupplier,
   TailorWorkshop,
   ProductionBatch
@@ -99,6 +100,69 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   }
 ];
 
+export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
+  {
+    id: 'banner-1',
+    title: 'خرید مستقیم از کارگاه تولیدی • بدون واسطه بازار بزرگ',
+    subtitle: 'ارسال سریع روزانه با باربری وطن و پیام‌گیر از میدان شوش به تمام شهرهای ایران با صدور آنی بیجک رسمی باربری',
+    badgeText: '✨ ویژه بنکداران و بوتیک‌داران',
+    tagline: 'تضمین کیفیت دوخت ۵ لا، کش‌دوزی گنی و ثبات رنگ پارچه',
+    buttonText: 'درخواست فاکتور و قیمت همکاری',
+    buttonAction: 'wholesale_modal',
+    secondaryButtonText: 'مسیریابی پاساژ المهدی ۴',
+    secondaryButtonAction: 'routing_map',
+    styleVariant: 'gold_luxury',
+    iconType: 'package',
+    position: 'after_bestsellers',
+    isActive: true,
+  },
+  {
+    id: 'banner-2',
+    title: 'عضویت در کانال رسمی تلگرام و روبیکای پوشاک من و تو',
+    subtitle: 'مشاهده فیلم‌های تنخور ژورنالی، تست کشسانی پارچه و اعلام زنده قیمت پک‌های جور هر روز ساعت ۱۱ و ۱۷',
+    badgeText: '📢 اطلاع از شارژ بارهای جدید',
+    tagline: 'بیش از ۱۲,۰۰۰ همکار فعال و مغازه‌دار در سراسر کشور',
+    buttonText: 'ورود به کانال تلگرام',
+    buttonAction: 'telegram',
+    secondaryButtonText: 'پشتیبانی واتساپ / ایتا',
+    secondaryButtonAction: 'whatsapp',
+    styleVariant: 'dark_emerald',
+    iconType: 'sparkles',
+    position: 'after_new_arrivals',
+    isActive: true,
+  },
+  {
+    id: 'banner-3',
+    title: 'تست حضوری، لمس پارچه و خرید دست‌اول در بازار تهران',
+    subtitle: 'پاساژ المهدی ۴، پلاک ۲۴۲ • همه روزه ۸:۳۰ الی ۱۹:۰۰ (دسترسی فوری ۵ دقیقه‌ای با مترو خیام و ۱۵ خرداد)',
+    badgeText: '📍 خرید حضوری در بازار',
+    tagline: 'پذیرایی و ثبت فاکتور رسمی با تسویه نقدی و چکی',
+    buttonText: 'مشاهده نقشه و راهنمای مترو',
+    buttonAction: 'about_modal',
+    secondaryButtonText: 'تماس مستقیم با مدیریت (اسدی)',
+    secondaryButtonAction: 'call_sales',
+    styleVariant: 'amber_bazaar',
+    iconType: 'store',
+    position: 'after_retail',
+    isActive: true,
+  },
+  {
+    id: 'banner-4',
+    title: 'تولید سفارشی با مارک، سایزبندی و تیراژ اختصاصی شما',
+    subtitle: 'آماده‌سازی سفارشات تیراژ بالای ۳۰۰ عدد در کارگاه‌های اختصاصی خیام با ضمانت زمان‌بندی و کیفیت درجه یک',
+    badgeText: '✂️ خط تولید اختصاصی',
+    tagline: 'تولید با الگو و ژورنال اختصاصی برند شما',
+    buttonText: 'تماس با واحد سفارشات عمده',
+    buttonAction: 'call_sales',
+    secondaryButtonText: 'اطلاعات کارگاه‌های تولیدی',
+    secondaryButtonAction: 'about_modal',
+    styleVariant: 'purple_royal',
+    iconType: 'scissors',
+    position: 'mid_grid',
+    isActive: true,
+  }
+];
+
 const INITIAL_SITE_SETTINGS: SiteSettings = {
   brandName: 'پوشاک من و تو',
   brandSubtitle: 'تولید و پخش شلوار زنانه اسدی • بازار بزرگ تهران',
@@ -114,6 +178,7 @@ const INITIAL_SITE_SETTINGS: SiteSettings = {
   announcementNotice: '🌟 ارسال فوری بار با باربری وطن و چاپار به تمام استان‌ها • مدل‌های جدید کالکشن تابستانه آماده ثبت سفارش',
   isRetailSaleActive: true,
   minFreeShippingToman: 5000000,
+  midGridBanners: DEFAULT_STOREFRONT_BANNERS,
 };
 
 // Component Imports
@@ -136,6 +201,9 @@ import { QuickNaturalLanguageEntryModal } from './components/common/QuickNatural
 // Storefront & Auth Imports
 import { StorefrontView } from './components/storefront/StorefrontView';
 import { AdminAuthGate } from './components/admin/AdminAuthGate';
+import { AdminHelpModal } from './components/admin/AdminHelpModal';
+import { AdminBreadcrumbBar } from './components/admin/AdminBreadcrumbBar';
+import { AdminMobileBottomNav } from './components/admin/AdminMobileBottomNav';
 import { calculateTotalUnitStock } from './utils/stockUtils';
 import { isTabAllowedForRole, ROLE_PERMISSIONS } from './utils/rolePermissions';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
@@ -178,6 +246,8 @@ export default function App() {
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
   const [isNewInvoiceModalOpen, setIsNewInvoiceModalOpen] = useState(false);
   const [isQuickEntryModalOpen, setIsQuickEntryModalOpen] = useState(false);
+  const [isAdminHelpOpen, setIsAdminHelpOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Direct Stock Update handler (for quick entry)
   const handleUpdateProductStock = (productId: string, newPackStock: number) => {
@@ -451,6 +521,7 @@ export default function App() {
     return (
       <StorefrontView
         products={products}
+        siteSettings={siteSettings}
         orders={storefrontOrders}
         onOrderPlaced={handleStorefrontOrderPlaced}
         onSwitchToAdmin={() => {
@@ -506,14 +577,16 @@ export default function App() {
         onOpenQuickEntry={() => setIsQuickEntryModalOpen(true)}
         onOpenStorefront={() => setAppZone('storefront')}
         onLogout={handleAdminLogout}
+        onOpenHelpModal={() => setIsAdminHelpOpen(true)}
+        onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
       />
 
       {/* Main Container Layout with Sidebar */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-5 lg:px-8 py-4 sm:py-6 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
           
-          {/* Right/Side Navigation (RTL layout) */}
-          <aside className="lg:col-span-3">
+          {/* Right/Side Navigation for Desktop (Hidden on mobile/tablet, shown on lg screens) */}
+          <aside className="hidden lg:block lg:col-span-3">
             <Sidebar
               currentTab={currentTab}
               onSelectTab={setCurrentTab}
@@ -523,12 +596,23 @@ export default function App() {
               currentUserRole={currentUserRole}
               onOpenStorefront={() => setAppZone('storefront')}
               onLogout={handleAdminLogout}
+              onOpenHelpModal={() => setIsAdminHelpOpen(true)}
             />
           </aside>
 
           {/* Main Module Content Area */}
-          <main className="lg:col-span-9 space-y-6">
+          <main className="col-span-1 lg:col-span-9 space-y-4 pb-24 lg:pb-6">
             
+            {/* Top Interactive Breadcrumb & Context Navigation Bar */}
+            <AdminBreadcrumbBar
+              currentTab={currentTab}
+              onSelectTab={setCurrentTab}
+              onOpenHelpModal={() => setIsAdminHelpOpen(true)}
+              totalProductsCount={products.length}
+              lowStockCount={lowStockCount}
+              pendingChecksCount={checkAlertCount}
+            />
+
             {/* RBAC Guard Check */}
             {!isTabPermitted ? (
               <div className="bg-white p-8 rounded-3xl border border-[#E6DEC8] text-center space-y-4 shadow-sm">
@@ -749,8 +833,72 @@ export default function App() {
         onAddNewCustomer={handleAddCustomer}
       />
 
+      {/* Admin Help & Workflow Guide Modal */}
+      <AdminHelpModal
+        isOpen={isAdminHelpOpen}
+        onClose={() => setIsAdminHelpOpen(false)}
+        onNavigateToTab={(tab) => {
+          setCurrentTab(tab);
+          setIsAdminHelpOpen(false);
+        }}
+      />
+
+      {/* Mobile & Tablet Full Screen Navigation Drawer */}
+      {isMobileDrawerOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-xs flex justify-end lg:hidden animate-in fade-in duration-200"
+          dir="rtl"
+          onClick={() => setIsMobileDrawerOpen(false)}
+        >
+          <div 
+            className="w-full max-w-xs h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Sidebar
+              currentTab={currentTab}
+              onSelectTab={(tab) => {
+                setCurrentTab(tab);
+                setIsMobileDrawerOpen(false);
+              }}
+              lowStockCount={lowStockCount}
+              checkAlertCount={checkAlertCount}
+              followUpCount={followUpCount}
+              currentUserRole={currentUserRole}
+              onOpenStorefront={() => {
+                setAppZone('storefront');
+                setIsMobileDrawerOpen(false);
+              }}
+              onLogout={() => {
+                setIsMobileDrawerOpen(false);
+                handleAdminLogout();
+              }}
+              onOpenHelpModal={() => {
+                setIsMobileDrawerOpen(false);
+                setIsAdminHelpOpen(true);
+              }}
+              isMobileDrawer={true}
+              onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom Sticky Navigation Bar */}
+      <AdminMobileBottomNav
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
+        onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
+        onOpenQuickNewInvoice={() => {
+          setCurrentTab('sales');
+          setIsNewInvoiceModalOpen(true);
+        }}
+        lowStockCount={lowStockCount}
+        checkAlertCount={checkAlertCount}
+        followUpCount={followUpCount}
+      />
+
       {/* Footer */}
-      <footer className="mt-auto border-t border-[#E6DEC8] bg-[#FAF7F2] py-4 text-center text-xs text-[#8C6D37]">
+      <footer className="mt-auto border-t border-[#E6DEC8] bg-[#FAF7F2] py-4 text-center text-xs text-[#8C6D37] mb-14 lg:mb-0">
         <p>سیستم یکپارچه مدیریت تولید و بنکداری پوشاک من و تو (اسدی) • بازار بزرگ تهران • پاساژ المهدی ۴، پلاک ۲۴۲</p>
       </footer>
 

@@ -192,6 +192,105 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
       )}
 
+      {/* Quick Operational Command Deck for Bazaar Daily Work */}
+      <section className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-2xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#E6DEC8]/80">
+          <div>
+            <h3 className="text-sm sm:text-base font-black text-[#18181B] flex items-center gap-2">
+              <span>میز کار سریع بازار (عملیات پرتکرار)</span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                دسترسـی فوری
+              </span>
+            </h3>
+            <p className="text-xs text-stone-500 mt-0.5">
+              اقدامات اصلی روزمره را در کمترین زمان و بدون جستجو در منوها انجام دهید
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          
+          <button
+            type="button"
+            id="dash-btn-new-invoice"
+            onClick={onOpenNewInvoiceModal}
+            className="p-3 bg-[#FAF7F2] hover:bg-[#18181B] text-stone-900 hover:text-[#FAF7F2] rounded-2xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all group cursor-pointer shadow-2xs hover:shadow-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-[#27272A] border border-[#DDD5C0] group-hover:border-[#3F3F46] flex items-center justify-center transition-colors">
+              <FileText className="w-4 h-4 text-[#8C6D37] group-hover:text-[#D4AF37]" />
+            </div>
+            <span className="font-black text-xs">صدور فاکتور</span>
+            <span className="text-[9.5px] text-stone-500 group-hover:text-stone-400 font-normal">تسویه نقدی/چکی</span>
+          </button>
+
+          <button
+            type="button"
+            id="dash-btn-new-product"
+            onClick={onOpenNewProductModal}
+            className="p-3 bg-[#FAF7F2] hover:bg-[#18181B] text-stone-900 hover:text-[#FAF7F2] rounded-2xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all group cursor-pointer shadow-2xs hover:shadow-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-[#27272A] border border-[#DDD5C0] group-hover:border-[#3F3F46] flex items-center justify-center transition-colors">
+              <Package className="w-4 h-4 text-[#8C6D37] group-hover:text-[#D4AF37]" />
+            </div>
+            <span className="font-black text-xs">ثبت مدل جدید</span>
+            <span className="text-[9.5px] text-stone-500 group-hover:text-stone-400 font-normal">پک‌بندی و بهای تمام‌شده</span>
+          </button>
+
+          <button
+            type="button"
+            id="dash-btn-bulk-price"
+            onClick={onOpenBulkPriceModal}
+            className="p-3 bg-[#FAF7F2] hover:bg-[#18181B] text-stone-900 hover:text-[#FAF7F2] rounded-2xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all group cursor-pointer shadow-2xs hover:shadow-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-[#27272A] border border-[#DDD5C0] group-hover:border-[#3F3F46] flex items-center justify-center transition-colors">
+              <Percent className="w-4 h-4 text-[#8C6D37] group-hover:text-[#D4AF37]" />
+            </div>
+            <span className="font-black text-xs">تغییر درصدی قیمت</span>
+            <span className="text-[9.5px] text-stone-500 group-hover:text-stone-400 font-normal">نوسان طاقه پارچه</span>
+          </button>
+
+          <button
+            type="button"
+            id="dash-btn-production"
+            onClick={() => onNavigate('production')}
+            className="p-3 bg-[#FAF7F2] hover:bg-[#18181B] text-stone-900 hover:text-[#FAF7F2] rounded-2xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all group cursor-pointer shadow-2xs hover:shadow-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-[#27272A] border border-[#DDD5C0] group-hover:border-[#3F3F46] flex items-center justify-center transition-colors">
+              <Scissors className="w-4 h-4 text-[#8C6D37] group-hover:text-[#D4AF37]" />
+            </div>
+            <span className="font-black text-xs">پارت کارگاه دوخت</span>
+            <span className="text-[9.5px] text-stone-500 group-hover:text-stone-400 font-normal">دوزندگان و پارچه</span>
+          </button>
+
+          <button
+            type="button"
+            id="dash-btn-finance"
+            onClick={() => onNavigate('finance')}
+            className="p-3 bg-[#FAF7F2] hover:bg-[#18181B] text-stone-900 hover:text-[#FAF7F2] rounded-2xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all group cursor-pointer shadow-2xs hover:shadow-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-[#27272A] border border-[#DDD5C0] group-hover:border-[#3F3F46] flex items-center justify-center transition-colors">
+              <CreditCard className="w-4 h-4 text-[#8C6D37] group-hover:text-[#D4AF37]" />
+            </div>
+            <span className="font-black text-xs">چک‌های صیادی</span>
+            <span className="text-[9.5px] text-stone-500 group-hover:text-stone-400 font-normal">پیگیری سررسید بانک</span>
+          </button>
+
+          <button
+            type="button"
+            id="dash-btn-ai-marketing"
+            onClick={() => onNavigate('marketing')}
+            className="p-3 bg-[#FAF7F2] hover:bg-[#18181B] text-stone-900 hover:text-[#FAF7F2] rounded-2xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all group cursor-pointer shadow-2xs hover:shadow-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-[#27272A] border border-[#DDD5C0] group-hover:border-[#3F3F46] flex items-center justify-center transition-colors">
+              <Sparkles className="w-4 h-4 text-[#8C6D37] group-hover:text-[#D4AF37]" />
+            </div>
+            <span className="font-black text-xs">کپشن‌نویسی هوشمند</span>
+            <span className="text-[9.5px] text-stone-500 group-hover:text-stone-400 font-normal">کانال تلگرام و روبیکا</span>
+          </button>
+
+        </div>
+      </section>
+
       {/* TOP WIDGET: Today's Priorities Checklist / کارهای امروز (Fix 3) */}
       <section className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E6DEC8] shadow-xs relative overflow-hidden space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-[#E6DEC8]">
@@ -463,68 +562,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       </div>
 
-      {/* Fast Operational Shortcuts */}
-      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-4">
-        <h3 className="text-sm sm:text-base font-black text-[#18181B]">
-          دسترسی سریع به ابزارهای کلیدی مدیریت
-        </h3>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <button
-            type="button"
-            onClick={onOpenNewInvoiceModal}
-            className="p-3 bg-[#FAF7F2] hover:bg-stone-200 text-stone-900 rounded-xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center gap-2 transition-colors cursor-pointer"
-          >
-            <FileText className="w-5 h-5 text-[#8C6D37]" />
-            <span>صدور فاکتور</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenNewProductModal}
-            className="p-3 bg-[#FAF7F2] hover:bg-stone-200 text-stone-900 rounded-xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Package className="w-5 h-5 text-[#8C6D37]" />
-            <span>ثبت کالای جدید</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenBulkPriceModal}
-            className="p-3 bg-[#FAF7F2] hover:bg-stone-200 text-stone-900 rounded-xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Percent className="w-5 h-5 text-[#8C6D37]" />
-            <span>تغییر درصدی قیمت</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('production')}
-            className="p-3 bg-[#FAF7F2] hover:bg-stone-200 text-stone-900 rounded-xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Scissors className="w-5 h-5 text-[#8C6D37]" />
-            <span>تولید و دوزندگان</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('marketing')}
-            className="p-3 bg-[#FAF7F2] hover:bg-stone-200 text-stone-900 rounded-xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Share2 className="w-5 h-5 text-[#8C6D37]" />
-            <span>کپشن‌نویسی Gemini</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('roles')}
-            className="p-3 bg-[#FAF7F2] hover:bg-stone-200 text-stone-900 rounded-xl border border-[#DDD5C0] font-bold text-xs flex flex-col items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Crown className="w-5 h-5 text-[#8C6D37]" />
-            <span>پشتیبان‌گیری و نقش‌ها</span>
-          </button>
-        </div>
-      </section>
 
       {/* Logistics & Recent Invoices Quick Table */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
