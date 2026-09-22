@@ -91,7 +91,7 @@ export const ResellerRoiCalculatorModal: React.FC<ResellerRoiCalculatorModalProp
             </div>
             <div>
               <h3 className="font-black text-sm sm:text-base flex items-center gap-2">
-                <span>ماشین‌حساب هوشمند سود بوتیک و آنلاین‌شاپ</span>
+                <span>ماشین‌حساب هوشمند سود فروشگاه و آنلاین‌شاپ</span>
                 <span className="bg-[#D4AF37] text-[#18181B] text-[10px] font-black px-2 py-0.5 rounded-full">
                   B2B Profit Estimator
                 </span>
@@ -239,7 +239,7 @@ export const ResellerRoiCalculatorModal: React.FC<ResellerRoiCalculatorModalProp
               </div>
 
               <div className="bg-stone-800/80 p-3 rounded-xl border border-stone-700">
-                <span className="text-[10px] text-stone-400 block">کل فروش در بوتیک:</span>
+                <span className="text-[10px] text-stone-400 block">کل فروش در فروشگاه:</span>
                 <span className="text-xs sm:text-sm font-black text-amber-200 mt-1 block">
                   {totalGrossRevenue.toLocaleString('fa-IR')} ت
                 </span>

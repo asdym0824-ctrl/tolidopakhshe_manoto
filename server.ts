@@ -21,18 +21,19 @@ function getGeminiAI(): GoogleGenAI | null {
   return aiClient;
 }
 
-// Resilient Gemini generator with automatic model fallback for 503 / high demand spikes
+// Resilient Gemini generator with per-model timeout and automatic fallback
 async function generateContentWithFallback(
   ai: GoogleGenAI, 
   prompt: string, 
-  config?: { responseMimeType?: string; systemInstruction?: string }
+  config?: { responseMimeType?: string; systemInstruction?: string; timeoutMs?: number }
 ): Promise<string | null> {
-  const modelsToTry = ['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+  const timeoutMs = config?.timeoutMs || 8000;
   let lastError: any = null;
 
   for (const model of modelsToTry) {
     try {
-      const response = await ai.models.generateContent({
+      const generatePromise = ai.models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -41,17 +42,22 @@ async function generateContentWithFallback(
         }
       });
 
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
+      );
+
+      const response: any = await Promise.race([generatePromise, timeoutPromise]);
+
       if (response && response.text) {
         return response.text;
       }
     } catch (err: any) {
       lastError = err;
-      console.warn(`Gemini model ${model} encountered transient issue: ${err.message || err}. Trying next fallback model...`);
-      // If error is 503 or 429, continue to next model in array
+      console.warn(`Gemini model ${model} issue (${err.message || err}). Trying next model...`);
     }
   }
 
-  console.error("All Gemini models encountered high demand or errors. Using local domain knowledge fallback.", lastError?.message || lastError);
+  console.warn("All Gemini models timed out or encountered errors. Using local domain knowledge fallback.");
   return null;
 }
 
@@ -60,6 +66,17 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // CORS and preflight headers
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
 
   // API Route: Health Check
   app.get("/api/health", (req, res) => {

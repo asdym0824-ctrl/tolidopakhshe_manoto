@@ -521,13 +521,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
               <div>
                 <label className="text-xs font-semibold text-stone-700 block mb-1">
-                  نام فروشگاه یا بوتیک (ویژه همکاران عمده):
+                  نام فروشگاه یا مجموعه (ویژه همکاران عمده):
                 </label>
                 <input
                   type="text"
                   value={customer.storeName}
                   onChange={(e) => setCustomer({ ...customer, storeName: e.target.value })}
-                  placeholder="مثال: بوتیک شیک‌پوشان"
+                  placeholder="مثال: فروشگاه شیک‌پوشان"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-800 bg-[#FAF7F2]"
                 />
               </div>

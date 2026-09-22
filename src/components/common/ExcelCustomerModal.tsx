@@ -68,7 +68,7 @@ export const ExcelCustomerModal: React.FC<ExcelCustomerModalProps> = ({
         const converted: Customer[] = rawJson.map((row, idx) => {
           // Normalize column keys
           const name = row['نام'] || row['نام مشتری'] || row['نام و نام خانوادگی'] || row['Name'] || row['name'] || `مشتری اکسل ${idx + 1}`;
-          const storeName = row['نام فروشگاه'] || row['فروشگاه'] || row['بوتیک'] || row['Store'] || row['store'] || `بوتیک ${name}`;
+          const storeName = row['نام فروشگاه'] || row['فروشگاه'] || row['Store'] || row['store'] || `فروشگاه ${name}`;
           let phone = String(row['موبایل'] || row['شماره تماس'] || row['تلفن'] || row['Phone'] || row['phone'] || '').trim();
           
           if (phone && !phone.startsWith('0') && phone.length === 10) {
@@ -126,7 +126,7 @@ export const ExcelCustomerModal: React.FC<ExcelCustomerModalProps> = ({
     const sampleData = [
       {
         'نام': 'محمدرضا کاظمی',
-        'نام فروشگاه': 'بوتیک رُز',
+        'نام فروشگاه': 'پوشاک کاظمی',
         'شماره تماس': '09121234567',
         'شهر': 'اصفهان',
         'استان': 'اصفهان',
@@ -170,7 +170,7 @@ export const ExcelCustomerModal: React.FC<ExcelCustomerModalProps> = ({
     const exportData = existingCustomers.map((c, i) => ({
       'ردیف': i + 1,
       'نام مشتری': c.name,
-      'فروشگاه / بوتیک': c.storeName,
+      'نام فروشگاه': c.storeName,
       'شماره تماس': c.phone,
       'استان': c.province,
       'شهر': c.city,
@@ -334,7 +334,7 @@ export const ExcelCustomerModal: React.FC<ExcelCustomerModalProps> = ({
                   <thead className="bg-[#24262C] text-stone-300 sticky top-0 border-b border-[#3A3D45]">
                     <tr>
                       <th className="p-2.5 font-bold">نام مشتری</th>
-                      <th className="p-2.5 font-bold">فروشگاه / بوتیک</th>
+                      <th className="p-2.5 font-bold">نام فروشگاه</th>
                       <th className="p-2.5 font-bold">شماره موبایل</th>
                       <th className="p-2.5 font-bold">شهر</th>
                       <th className="p-2.5 font-bold text-center">سقف چک</th>

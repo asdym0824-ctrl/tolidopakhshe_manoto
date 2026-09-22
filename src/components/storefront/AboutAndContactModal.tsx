@@ -15,6 +15,7 @@ import {
   Train
 } from 'lucide-react';
 import { BRAND_INFO } from '../../data/brandInfo';
+import { RubikaIcon, BaleIcon, EitaaIcon, TelegramIcon } from '../common/SocialIcons';
 
 interface AboutAndContactModalProps {
   isOpen: boolean;
@@ -209,6 +210,54 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
                         </div>
                       </a>
                     ))}
+                  </div>
+                </div>
+
+                {/* Official Online Channels & Messengers */}
+                <div className="pt-2 border-t border-stone-800">
+                  <span className="text-[11px] font-bold text-stone-300 block mb-2">
+                    کانال‌ها و پیام‌رسان‌های رسمی تولید و پخش من و تو:
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <a
+                      href={BRAND_INFO.telegramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-stone-900 hover:bg-sky-950/50 p-2.5 rounded-xl text-center font-bold text-sky-300 transition-all flex items-center justify-center gap-2 border border-sky-500/30 hover:border-sky-400"
+                    >
+                      <TelegramIcon className="w-5 h-5 shrink-0" />
+                      <span className="text-xs">کانال تلگرام</span>
+                    </a>
+
+                    <a
+                      href="https://rubika.ir/tolidopakhsh_manoto"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-stone-900 hover:bg-purple-950/50 p-2.5 rounded-xl text-center font-bold text-purple-300 transition-all flex items-center justify-center gap-2 border border-purple-500/30 hover:border-purple-400"
+                    >
+                      <RubikaIcon className="w-5 h-5 shrink-0" />
+                      <span className="text-xs">کانال روبیکا</span>
+                    </a>
+
+                    <a
+                      href="https://ble.ir/tolidopakhsh_manoto_dress"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-stone-900 hover:bg-emerald-950/50 p-2.5 rounded-xl text-center font-bold text-emerald-300 transition-all flex items-center justify-center gap-2 border border-emerald-500/30 hover:border-emerald-400"
+                    >
+                      <BaleIcon className="w-5 h-5 shrink-0" />
+                      <span className="text-xs">پیام‌رسان بله</span>
+                    </a>
+
+                    <a
+                      href="https://eitaa.com/tolidopakhsh_manoto"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-stone-900 hover:bg-orange-950/50 p-2.5 rounded-xl text-center font-bold text-orange-300 transition-all flex items-center justify-center gap-2 border border-orange-500/30 hover:border-orange-400"
+                    >
+                      <EitaaIcon className="w-5 h-5 shrink-0" />
+                      <span className="text-xs">کانال ایتا</span>
+                    </a>
                   </div>
                 </div>
               </div>

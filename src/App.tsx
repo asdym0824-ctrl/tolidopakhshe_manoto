@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ModuleTab, 
   Product, 
@@ -12,6 +12,7 @@ import {
   CustomerUser,
   SiteSettings,
   StorefrontBanner,
+  OccasionPromoPopupConfig,
   FabricSupplier,
   TailorWorkshop,
   ProductionBatch
@@ -34,6 +35,7 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
     id: 'usr-1',
     phone: '09131234567',
+    password: 'password123',
     fullName: 'حاج محمود کاظمی',
     storeName: 'پوشاک کاظمی اصفهان',
     province: 'اصفهان',
@@ -48,8 +50,9 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
     id: 'usr-2',
     phone: '09359876543',
+    password: 'password123',
     fullName: 'خانم سمیرا رضوانی',
-    storeName: 'بوتیک مانلی مشهد',
+    storeName: 'پوشاک مانلی مشهد',
     province: 'خراسان رضوی',
     city: 'مشهد',
     address: 'بلوار احمدآباد، نبش خیابان پاستور، مجتمع تجاری آلتون',
@@ -62,6 +65,7 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
     id: 'usr-3',
     phone: '09351112233',
+    password: 'password123',
     fullName: 'نیلوفر رضایی',
     province: 'تهران',
     city: 'تهران',
@@ -75,6 +79,7 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
     id: 'usr-4',
     phone: '09129876543',
+    password: 'password123',
     fullName: 'پریسا کاشانی',
     province: 'تهران',
     city: 'تهران',
@@ -88,6 +93,7 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
     id: 'usr-5',
     phone: '09173334455',
+    password: 'password123',
     fullName: 'زهرا دهقانی',
     province: 'فارس',
     city: 'شیراز',
@@ -105,7 +111,7 @@ export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
     id: 'banner-1',
     title: 'خرید مستقیم از کارگاه تولیدی • بدون واسطه بازار بزرگ',
     subtitle: 'ارسال سریع روزانه با باربری وطن و پیام‌گیر از میدان شوش به تمام شهرهای ایران با صدور آنی بیجک رسمی باربری',
-    badgeText: '✨ ویژه بنکداران و بوتیک‌داران',
+    badgeText: '✨ ویژه بنکداران و همکاران سراسر کشور',
     tagline: 'تضمین کیفیت دوخت ۵ لا، کش‌دوزی گنی و ثبات رنگ پارچه',
     buttonText: 'درخواست فاکتور و قیمت همکاری',
     buttonAction: 'wholesale_modal',
@@ -163,6 +169,20 @@ export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
   }
 ];
 
+export const DEFAULT_PROMO_POPUP: OccasionPromoPopupConfig = {
+  isActive: true,
+  occasionTitle: 'جشنواره حراج ویژه مناسبتی بازار بزرگ',
+  occasionSubtitle: 'تخفیف شگفت‌انگیز کارگاه تولیدی من و تو (اسدی) روی پرفروش‌ترین مدل فصل',
+  badgeText: '🔥 آفر استثنایی و محدود',
+  targetProductId: 'prod-1', // شلوار بگ کتان لایت تابستانه کمرکش
+  discountPercent: 25,
+  discountCouponCode: 'MANOTO-GOLD',
+  urgencyText: 'مهلت استفاده فقط تا پایان ساعت ۲۴:۰۰ امروز • تحویل فوری به باربری',
+  countdownHours: 14,
+  remainingPacksAlert: 6,
+  showOncePerSession: true,
+};
+
 const INITIAL_SITE_SETTINGS: SiteSettings = {
   brandName: 'پوشاک من و تو',
   brandSubtitle: 'تولید و پخش شلوار زنانه اسدی • بازار بزرگ تهران',
@@ -179,6 +199,7 @@ const INITIAL_SITE_SETTINGS: SiteSettings = {
   isRetailSaleActive: true,
   minFreeShippingToman: 5000000,
   midGridBanners: DEFAULT_STOREFRONT_BANNERS,
+  promoPopup: DEFAULT_PROMO_POPUP,
 };
 
 // Component Imports
@@ -194,9 +215,10 @@ import { FinanceModule } from './components/FinanceModule';
 import { MarketingAIModule } from './components/MarketingAIModule';
 import { StorefrontModule } from './components/StorefrontModule';
 import { LogisticsModule } from './components/LogisticsModule';
+import { OrderTrackingAdminModule } from './components/OrderTrackingAdminModule';
 import { RolesSettingsModule } from './components/RolesSettingsModule';
-import { MobileQuickActionFAB } from './components/common/MobileQuickActionFAB';
 import { QuickNaturalLanguageEntryModal } from './components/common/QuickNaturalLanguageEntryModal';
+import { AtelierGarmentLoadingScreen } from './components/common/AtelierGarmentLoadingScreen';
 
 // Storefront & Auth Imports
 import { StorefrontView } from './components/storefront/StorefrontView';
@@ -212,6 +234,9 @@ export default function App() {
   // Application Zone State: 'storefront' (Public Store) | 'admin_auth' | 'admin_dashboard'
   const [appZone, setAppZone] = useState<'storefront' | 'admin_auth' | 'admin_dashboard'>('storefront');
   
+  // Atelier Initial Garment Craft Loading Screen
+  const [isAppInitialLoading, setIsAppInitialLoading] = useState<boolean>(true);
+
   // Real Admin Authentication state backed by sessionStorage
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     try {
@@ -222,11 +247,44 @@ export default function App() {
   });
 
   // Admin Navigation State
-  const [currentTab, setCurrentTab] = useState<ModuleTab>('dashboard');
-  const [currentUserRole, setCurrentUserRole] = useState<UserRoleType>('super_admin');
+  const [currentUserRole, setCurrentUserRole] = useState<UserRoleType>(() => {
+    try {
+      const stored = sessionStorage.getItem('manoto_admin_role') as UserRoleType;
+      if (stored && (stored === 'super_admin' || stored === 'order_tracker' || stored === 'content_admin')) return stored;
+    } catch {}
+    return 'super_admin';
+  });
+  const [currentTab, setCurrentTab] = useState<ModuleTab>(() => {
+    try {
+      const storedRole = sessionStorage.getItem('manoto_admin_role');
+      if (storedRole === 'order_tracker') return 'order_tracking';
+      if (storedRole === 'content_admin') return 'inventory';
+    } catch {}
+    return 'dashboard';
+  });
 
-  // Domain Entity States
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  // Domain Entity States with LocalStorage Persistence for Products
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const stored = localStorage.getItem('manoto_products_catalog');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Could not load products from local storage:', e);
+    }
+    return INITIAL_PRODUCTS;
+  });
+
+  // Keep products synced to localStorage so newly added models persist across sessions
+  useEffect(() => {
+    try {
+      localStorage.setItem('manoto_products_catalog', JSON.stringify(products));
+    } catch (e) {
+      console.warn('Could not save products to local storage:', e);
+    }
+  }, [products]);
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
   const [checks, setChecks] = useState<CheckItem[]>(INITIAL_CHECKS);
@@ -278,6 +336,9 @@ export default function App() {
 
   // Reset to Default Factory Sample Data (Fix 4)
   const handleResetToSampleData = () => {
+    try {
+      localStorage.removeItem('manoto_products_catalog');
+    } catch {}
     setProducts(INITIAL_PRODUCTS);
     setCustomers(INITIAL_CUSTOMERS);
     setInvoices(INITIAL_INVOICES);
@@ -290,24 +351,55 @@ export default function App() {
   };
 
   // Admin Authentication handlers
-  const handleAdminAuthenticated = () => {
+  const handleAdminAuthenticated = (role: UserRoleType = 'super_admin') => {
     try {
       sessionStorage.setItem('manoto_admin_authenticated', 'true');
+      sessionStorage.setItem('manoto_admin_role', role);
     } catch (e) {
       console.warn('Session storage write error', e);
     }
     setIsAdminAuthenticated(true);
+    setCurrentUserRole(role);
+    if (role === 'order_tracker') {
+      setCurrentTab('order_tracking');
+    } else if (role === 'content_admin') {
+      setCurrentTab('inventory');
+    } else {
+      setCurrentTab('dashboard');
+    }
     setAppZone('admin_dashboard');
   };
 
   const handleAdminLogout = () => {
     try {
       sessionStorage.removeItem('manoto_admin_authenticated');
+      sessionStorage.removeItem('manoto_admin_role');
     } catch (e) {
       console.warn('Session storage remove error', e);
     }
     setIsAdminAuthenticated(false);
     setAppZone('storefront');
+  };
+
+  const handleUpdateOrderStatus = (
+    orderId: string, 
+    newStatus: StorefrontOrder['orderStatus'], 
+    carrierName?: string, 
+    waybillNumber?: string,
+    notes?: string
+  ) => {
+    setStorefrontOrders(prev => prev.map(ord => {
+      if (ord.id === orderId) {
+        return {
+          ...ord,
+          orderStatus: newStatus,
+          carrierName: carrierName !== undefined ? carrierName : ord.carrierName,
+          waybillNumber: waybillNumber !== undefined ? waybillNumber : ord.waybillNumber,
+          notes: notes ? (ord.notes ? `${ord.notes} | ${notes}` : notes) : ord.notes,
+        };
+      }
+      return ord;
+    }));
   };
 
   // Customer Account handlers
@@ -396,15 +488,15 @@ export default function App() {
 
   // Handlers for Inventory
   const handleAddProduct = (newProd: Product) => {
-    setProducts([newProd, ...products]);
+    setProducts(prev => [newProd, ...prev]);
   };
 
   const handleUpdateProduct = (updatedProd: Product) => {
-    setProducts(products.map(p => p.id === updatedProd.id ? updatedProd : p));
+    setProducts(prev => prev.map(p => p.id === updatedProd.id ? updatedProd : p));
   };
 
   const handleDeleteProduct = (productId: string) => {
-    setProducts(products.filter(p => p.id !== productId));
+    setProducts(prev => prev.filter(p => p.id !== productId));
   };
 
   const handleBulkUpdatePrices = (percentage: number, category?: string) => {
@@ -519,32 +611,48 @@ export default function App() {
   // 1. If currently in Public Storefront:
   if (appZone === 'storefront') {
     return (
-      <StorefrontView
-        products={products}
-        siteSettings={siteSettings}
-        orders={storefrontOrders}
-        onOrderPlaced={handleStorefrontOrderPlaced}
-        onSwitchToAdmin={() => {
-          if (isAdminAuthenticated) {
-            setAppZone('admin_dashboard');
-          } else {
-            setAppZone('admin_auth');
-          }
-        }}
-        customerUsers={customerUsers}
-        onRegisterCustomerUser={handleRegisterCustomerUser}
-        onUpdateCustomerUser={handleUpdateCustomerUser}
-      />
+      <>
+        {isAppInitialLoading && (
+          <AtelierGarmentLoadingScreen
+            minDurationMs={1800}
+            onFinish={() => setIsAppInitialLoading(false)}
+          />
+        )}
+        <StorefrontView
+          products={products}
+          siteSettings={siteSettings}
+          orders={storefrontOrders}
+          onOrderPlaced={handleStorefrontOrderPlaced}
+          onSwitchToAdmin={() => {
+            if (isAdminAuthenticated) {
+              setAppZone('admin_dashboard');
+            } else {
+              setAppZone('admin_auth');
+            }
+          }}
+          customerUsers={customerUsers}
+          onRegisterCustomerUser={handleRegisterCustomerUser}
+          onUpdateCustomerUser={handleUpdateCustomerUser}
+        />
+      </>
     );
   }
 
   // 2. If in Admin Auth Login Gate:
   if (appZone === 'admin_auth') {
     return (
-      <AdminAuthGate
-        onAuthenticated={handleAdminAuthenticated}
-        onBackToStorefront={() => setAppZone('storefront')}
-      />
+      <>
+        {isAppInitialLoading && (
+          <AtelierGarmentLoadingScreen
+            minDurationMs={1800}
+            onFinish={() => setIsAppInitialLoading(false)}
+          />
+        )}
+        <AdminAuthGate
+          onAuthenticated={handleAdminAuthenticated}
+          onBackToStorefront={() => setAppZone('storefront')}
+        />
+      </>
     );
   }
 
@@ -554,7 +662,13 @@ export default function App() {
 
   // 3. Admin Dashboard Zone
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#18181B] font-sans flex flex-col antialiased selection:bg-[#D4AF37] selection:text-[#18181B]" dir="rtl">
+    <div id="admin-panel-root" className="admin-panel min-h-screen bg-[#FAF7F2] text-[#18181B] flex flex-col antialiased selection:bg-[#D4AF37] selection:text-[#18181B]" dir="rtl">
+      {isAppInitialLoading && (
+        <AtelierGarmentLoadingScreen
+          minDurationMs={1800}
+          onFinish={() => setIsAppInitialLoading(false)}
+        />
+      )}
       
       {/* Global Admin Header */}
       <Header
@@ -565,7 +679,12 @@ export default function App() {
         checks={checks}
         invoices={invoices}
         currentUserRole={currentUserRole}
-        onSwitchUserRole={(role) => setCurrentUserRole(role as UserRoleType)}
+        onSwitchUserRole={(role) => {
+          try {
+            sessionStorage.setItem('manoto_admin_role', role);
+          } catch {}
+          setCurrentUserRole(role as UserRoleType);
+        }}
         onOpenQuickNewProduct={() => {
           setCurrentTab('inventory');
           setIsNewProductModalOpen(true);
@@ -577,6 +696,7 @@ export default function App() {
         onOpenQuickEntry={() => setIsQuickEntryModalOpen(true)}
         onOpenStorefront={() => setAppZone('storefront')}
         onLogout={handleAdminLogout}
+        onOpenLoginGate={() => setAppZone('admin_auth')}
         onOpenHelpModal={() => setIsAdminHelpOpen(true)}
         onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
       />
@@ -611,6 +731,7 @@ export default function App() {
               totalProductsCount={products.length}
               lowStockCount={lowStockCount}
               pendingChecksCount={checkAlertCount}
+              currentUserRole={currentUserRole}
             />
 
             {/* RBAC Guard Check */}
@@ -629,11 +750,11 @@ export default function App() {
                 </div>
                 <div className="pt-2">
                   <button
-                    onClick={() => setCurrentTab('dashboard')}
+                    onClick={() => setCurrentTab(activeRoleConfig.allowedTabs[0] || 'dashboard')}
                     className="inline-flex items-center gap-2 bg-[#18181B] text-[#FAF7F2] px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-stone-800 transition-colors shadow-xs cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    <span>بازگشت به داشبورد مجاز</span>
+                    <span>بازگشت به بخش مجاز</span>
                   </button>
                 </div>
               </div>
@@ -777,6 +898,16 @@ export default function App() {
                   />
                 )}
 
+                {/* View 8.5: Dedicated Order Tracking Admin Module */}
+                {currentTab === 'order_tracking' && (
+                  <OrderTrackingAdminModule
+                    orders={storefrontOrders}
+                    invoices={invoices}
+                    onUpdateOrderStatus={handleUpdateOrderStatus}
+                    isSuperAdminView={currentUserRole === 'super_admin'}
+                  />
+                )}
+
                 {/* View 9: Roles & Security Module */}
                 {currentTab === 'roles' && (
                   <RolesSettingsModule
@@ -801,26 +932,6 @@ export default function App() {
           </main>
         </div>
       </div>
-
-      {/* Floating Action Button (FAB) for Mobile Daily Usage */}
-      <MobileQuickActionFAB
-        currentUserRole={currentUserRole}
-        onOpenNewInvoice={() => {
-          setCurrentTab('sales');
-          setIsNewInvoiceModalOpen(true);
-        }}
-        onOpenNewProduct={() => {
-          setCurrentTab('inventory');
-          setIsNewProductModalOpen(true);
-        }}
-        onOpenNewCustomer={() => {
-          setCurrentTab('crm');
-        }}
-        onOpenNewBatch={() => {
-          setCurrentTab('production');
-        }}
-        onOpenQuickEntry={() => setIsQuickEntryModalOpen(true)}
-      />
 
       {/* Natural Language AI Quick Entry Modal */}
       <QuickNaturalLanguageEntryModal
@@ -895,10 +1006,11 @@ export default function App() {
         lowStockCount={lowStockCount}
         checkAlertCount={checkAlertCount}
         followUpCount={followUpCount}
+        currentUserRole={currentUserRole}
       />
 
-      {/* Footer */}
-      <footer className="mt-auto border-t border-[#E6DEC8] bg-[#FAF7F2] py-4 text-center text-xs text-[#8C6D37] mb-14 lg:mb-0">
+      {/* Footer (Hidden on mobile to eliminate clutter and save screen space) */}
+      <footer className="hidden lg:block mt-auto border-t border-[#E6DEC8] bg-[#FAF7F2] py-4 text-center text-xs text-[#8C6D37]">
         <p>سیستم یکپارچه مدیریت تولید و بنکداری پوشاک من و تو (اسدی) • بازار بزرگ تهران • پاساژ المهدی ۴، پلاک ۲۴۲</p>
       </footer>
 

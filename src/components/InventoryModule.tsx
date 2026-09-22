@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Package, 
   Plus, 
@@ -20,14 +21,88 @@ import {
   Boxes,
   Grid,
   List,
-  Flame,
   Clock,
-  ArrowRight,
-  ShieldAlert
+  ShieldAlert,
+  Star,
+  ShoppingBag,
+  Play,
+  CheckCircle2,
+  RefreshCw,
+  SlidersHorizontal,
+  EyeOff,
+  Palette,
+  DollarSign,
+  CheckCircle
 } from 'lucide-react';
 import { Product, PackSize, ProductSource, Invoice } from '../types';
 import { ImageUploader } from './common/ImageUploader';
 import { VideoUploader } from './common/VideoUploader';
+
+// Category fallback curated high-resolution images to guarantee no broken card on the site
+const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
+  'شلوار بگ': 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=80',
+  'شلوار نیم‌بگ': 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&auto=format&fit=crop&q=80',
+  'شلوار کارگو': 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&auto=format&fit=crop&q=80',
+  'شلوار کرپ مازراتی': 'https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=800&auto=format&fit=crop&q=80',
+  'شلوار لینن': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80',
+  'شلوار بوت‌کات': 'https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=800&auto=format&fit=crop&q=80',
+  'شلوار راحتی نخی': 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=800&auto=format&fit=crop&q=80',
+  'جاگر': 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=800&auto=format&fit=crop&q=80',
+  'لگ و ساپورت': 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=800&auto=format&fit=crop&q=80',
+  'داکرون اداری/اسپرت': 'https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=800&auto=format&fit=crop&q=80',
+  'اسلش اسپرت': 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=800&auto=format&fit=crop&q=80',
+  'دامن شلواری': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80',
+  'ست زنانه': 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&auto=format&fit=crop&q=80',
+};
+
+const POPULAR_CATEGORIES = [
+  'شلوار بگ',
+  'شلوار نیم‌بگ',
+  'شلوار کارگو',
+  'شلوار کرپ مازراتی',
+  'شلوار لینن',
+  'شلوار بوت‌کات',
+  'جاگر',
+  'لگ و ساپورت',
+  'داکرون اداری/اسپرت',
+  'شلوار راحتی نخی',
+  'اسلش اسپرت',
+  'دامن شلواری',
+  'ست زنانه',
+  'سایر (دسته جدید)',
+];
+
+const POPULAR_FABRICS = [
+  'کرپ مازراتی اعلا',
+  'لینن نچرال شسته‌شده',
+  'کتان لایت پنبه‌ای',
+  'داکرون تابستانه',
+  'غواصی گرم‌بالا',
+  'جین کاغذی نیل',
+  'نخ پنبه سوپر',
+];
+
+const POPULAR_COLORS = [
+  'مشکی',
+  'کرم استخوانی',
+  'طوسی روشن',
+  'سبز یشمی',
+  'سرمه‌ای',
+  'خاکی',
+  'نسکافه‌ای',
+  'سفید',
+  'ذغالی',
+  'شتری',
+  'موکا',
+  'آجری',
+];
+
+const POPULAR_SIZES = [
+  'فری‌سایز مناسب ۳۸ تا ۴۶',
+  'سایز ۱ و ۲ (۳۶ تا ۴۶)',
+  'سایزبندی ۳۸، ۴۰، ۴۲، ۴۴',
+  'سایز بزرگ ۴۴ تا ۵۲',
+];
 
 interface InventoryModuleProps {
   products: Product[];
@@ -63,50 +138,6 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isReorderAlertDismissed, setIsReorderAlertDismissed] = useState(false);
-
-  // Fix 4: Smart Reorder Point & Sales Velocity Calculations
-  const reorderIntelligence = useMemo(() => {
-    // Calculate 30-day velocity from invoices
-    const salesByProduct: { [prodId: string]: number } = {};
-    (invoices || []).forEach(inv => {
-      (inv?.items || []).forEach(item => {
-        if (item?.productId) {
-          salesByProduct[item.productId] = (salesByProduct[item.productId] || 0) + (item.totalUnits || 0);
-        }
-      });
-    });
-
-    return (products || []).map(product => {
-      const totalSold30Days = salesByProduct[product.id] || (product.isBestSeller ? 72 : 24);
-      const dailyVelocity = Math.max(0.4, Number((totalSold30Days / 30).toFixed(1)));
-      const currentStockUnits = (product.packStock * product.packSize) + product.singleStock;
-      const daysToStockout = Math.round(currentStockUnits / dailyVelocity);
-      
-      const isUrgent = daysToStockout <= 7 || product.packStock <= product.minPackStockAlert;
-      const isWarning = !isUrgent && daysToStockout <= 14;
-
-      // Recommended batch size (30 days demand + 20% safety margin)
-      const recommendedPacks = Math.max(10, Math.ceil((dailyVelocity * 30 * 1.2) / product.packSize));
-      const recommendedUnits = recommendedPacks * product.packSize;
-      const fabricMetersNeeded = Math.round(recommendedUnits * 1.15);
-
-      return {
-        product,
-        totalSold30Days,
-        dailyVelocity,
-        currentStockUnits,
-        daysToStockout,
-        isUrgent,
-        isWarning,
-        recommendedPacks,
-        recommendedUnits,
-        fabricMetersNeeded,
-      };
-    });
-  }, [products, invoices]);
-
-  const urgentReorderList = reorderIntelligence.filter(item => item.isUrgent || item.isWarning);
 
   // Edit form state
   const [editForm, setEditForm] = useState<any>(null);
@@ -166,136 +197,222 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     setEditForm(null);
   };
 
+  // Toast notification for actions
+  const [creationSuccessToast, setCreationSuccessToast] = useState<string | null>(null);
+
   // Bulk Price Modal State
   const [bulkPercent, setBulkPercent] = useState<number>(10);
   const [bulkCategory, setBulkCategory] = useState<string>('all');
 
-  // New Product Form State
-  const [formData, setFormData] = useState<{
-    name: string;
-    category: string;
-    fabricType: string;
-    packSize: PackSize;
-    source: ProductSource;
-    fabricCost: number;
-    tailoringCost: number;
-    trimsCost: number;
-    finishingCost: number;
-    partnerPurchaseCost: number;
-    partnerSupplierName: string;
-    fabricSupplierName: string;
-    tailorName: string;
-    baseWholesalePricePerUnit: number;
-    colleaguePricePerUnit: number;
-    packStock: number;
-    singleStock: number;
-    minPackStockAlert: number;
-    colors: string;
-    sizes: string;
-    image: string;
-    galleryImages: string[];
-    videoUrl?: string;
-    videoTitle?: string;
-    description: string;
-  }>({
-    name: '',
-    category: 'شلوار بگ',
-    fabricType: 'کتان لایت پنبه‌ای',
-    packSize: 6,
-    source: 'self_produced',
-    fabricCost: 80000,
-    tailoringCost: 35000,
-    trimsCost: 10000,
-    finishingCost: 7000,
-    partnerPurchaseCost: 210000,
-    partnerSupplierName: 'بنکداری برادران کاظمی (بازار)',
-    fabricSupplierName: 'پارچه‌سرای نساجی مولوی',
-    tailorName: 'کارگاه دوخت استاد رحمان',
-    baseWholesalePricePerUnit: 220000,
-    colleaguePricePerUnit: 195000,
-    packStock: 20,
-    singleStock: 0,
-    minPackStockAlert: 5,
-    colors: 'مشکی، کرم، طوسی، سرمه‌ای، خاکی',
-    sizes: 'فری‌سایز مناسب ۳۸ تا ۴۶',
-    image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop&q=80',
-    galleryImages: [],
-    videoUrl: '',
-    videoTitle: '',
-    description: 'تنخور ژورنالی فوق‌العاده راحت، پارچه بدون آبرفت، دوخت تمیز کارگاهی',
-  });
-
-  // Calculate live cost price based on source
-  const calculatedCostPrice = formData.source === 'self_produced'
-    ? formData.fabricCost + formData.tailoringCost + formData.trimsCost + formData.finishingCost
-    : formData.partnerPurchaseCost;
-
-  const calculatedBasePackPrice = formData.baseWholesalePricePerUnit * formData.packSize;
-  const calculatedColleaguePackPrice = formData.colleaguePricePerUnit * formData.packSize;
-  const profitMarginPercent = formData.baseWholesalePricePerUnit > 0
-    ? Math.round(((formData.baseWholesalePricePerUnit - calculatedCostPrice) / formData.baseWholesalePricePerUnit) * 100)
-    : 0;
+  // New Product Modal Tabs and Preview State
+  const [newProductTab, setNewProductTab] = useState<'info' | 'media' | 'costs' | 'pricing' | 'variants'>('info');
+  const [showLiveStorefrontPreview, setShowLiveStorefrontPreview] = useState<boolean>(true);
 
   // Auto SKU Generator function
   const generateSKU = (cat: string) => {
-    const prefixMap: { [k: string]: string } = {
+    const prefixMap: Record<string, string> = {
       'شلوار بگ': 'SH-BGR',
+      'شلوار نیم‌بگ': 'SH-NBG',
+      'شلوار کارگو': 'SH-CRG',
+      'شلوار کرپ مازراتی': 'SH-MZR',
+      'شلوار لینن': 'SH-LNN',
+      'شلوار بوت‌کات': 'SH-BTC',
       'شلوار راحتی نخی': 'SH-RHT',
       'جاگر': 'SH-JGR',
       'لگ و ساپورت': 'SH-LEG',
       'داکرون اداری/اسپرت': 'SH-DKR',
-      'شلوار کارگو': 'SH-CRG',
       'اسلش اسپرت': 'SH-SLS',
       'دامن شلواری': 'SH-DMN',
+      'ست زنانه': 'ST-ZNN',
     };
     const prefix = prefixMap[cat] || 'SH-MDL';
     const rand = Math.floor(100 + Math.random() * 900);
     return `${prefix}-${rand}`;
   };
 
+  // Initial New Product Form State
+  const initialNewProductFormState = {
+    name: '',
+    category: 'شلوار بگ',
+    customCategory: '',
+    sku: 'SH-BGR-842',
+    fabricType: 'کرپ مازراتی اعلا',
+    packSize: 6 as PackSize,
+    source: 'self_produced' as ProductSource,
+    fabricCost: 85000,
+    tailoringCost: 35000,
+    trimsCost: 12000,
+    finishingCost: 8000,
+    partnerPurchaseCost: 210000,
+    partnerSupplierName: 'بنکداری برادران کاظمی (بازار)',
+    fabricSupplierName: 'پارچه‌سرای نساجی مولوی (حاج محمود)',
+    tailorName: 'کارگاه دوخت استاد رحمان (خیابان خیام)',
+    baseWholesalePricePerUnit: 220000,
+    colleaguePricePerUnit: 195000,
+    allowRetailSale: true,
+    retailMarkupPercent: 35,
+    retailPricePerUnit: 345000,
+    packStock: 24,
+    singleStock: 0,
+    minPackStockAlert: 5,
+    colors: 'مشکی، کرم استخوانی، طوسی روشن، سبز یشمی، سرمه‌ای',
+    sizes: 'فری‌سایز مناسب ۳۸ تا ۴۶',
+    image: CATEGORY_FALLBACK_IMAGES['شلوار بگ'],
+    galleryImages: [] as string[],
+    videoUrl: '',
+    videoTitle: 'ویدیو معرفی و تنخور شلوار',
+    description: 'تنخور ژورنالی فوق‌العاده شیک، پارچه بدون آبرفت، دوخت تمیز کارگاهی با نخ پنج‌لا، کش کمر ۴ سانتی اعلا',
+    isNewArrival: true,
+    isBestSeller: false,
+  };
+
+  const [formData, setFormData] = useState(initialNewProductFormState);
+
+  // Initialize or reset form with dynamic SKU
+  const initNewProductForm = (customCategoryInitial?: string) => {
+    const selectedCat = customCategoryInitial || formData.category;
+    const autoSku = generateSKU(selectedCat);
+    const fallbackImg = CATEGORY_FALLBACK_IMAGES[selectedCat] || CATEGORY_FALLBACK_IMAGES['شلوار بگ'];
+    setFormData({
+      ...initialNewProductFormState,
+      category: selectedCat,
+      sku: autoSku,
+      image: fallbackImg,
+    });
+    setNewProductTab('info');
+  };
+
+  // Live calculation of cost price based on source
+  const calculatedCostPrice = formData.source === 'self_produced'
+    ? (Number(formData.fabricCost) || 0) + 
+      (Number(formData.tailoringCost) || 0) + 
+      (Number(formData.trimsCost) || 0) + 
+      (Number(formData.finishingCost) || 0)
+    : (Number(formData.partnerPurchaseCost) || 0);
+
+  const calculatedBasePackPrice = (Number(formData.baseWholesalePricePerUnit) || 0) * (Number(formData.packSize) || 6);
+  const calculatedColleaguePackPrice = (Number(formData.colleaguePricePerUnit) || 0) * (Number(formData.packSize) || 6);
+  
+  const profitMarginPercent = formData.baseWholesalePricePerUnit > 0
+    ? Math.round(((formData.baseWholesalePricePerUnit - calculatedCostPrice) / formData.baseWholesalePricePerUnit) * 100)
+    : 0;
+
+  // Toggle quick color chips
+  const toggleColorInForm = (colorName: string) => {
+    const currentList = formData.colors.split(/[،,]/).map(s => s.trim()).filter(Boolean);
+    let updated: string[];
+    if (currentList.includes(colorName)) {
+      updated = currentList.filter(c => c !== colorName);
+    } else {
+      updated = [...currentList, colorName];
+    }
+    setFormData({ ...formData, colors: updated.join('، ') });
+  };
+
+  // Change category handler with intelligent fallback picture and SKU
+  const handleCategoryChange = (newCat: string) => {
+    const isCustom = newCat === 'سایر (دسته جدید)';
+    const targetCat = isCustom ? (formData.customCategory || 'شلوار مجلسی') : newCat;
+    const newSku = generateSKU(targetCat);
+    const fallbackImage = CATEGORY_FALLBACK_IMAGES[newCat] || CATEGORY_FALLBACK_IMAGES['شلوار بگ'];
+
+    setFormData(prev => ({
+      ...prev,
+      category: newCat,
+      sku: newSku,
+      image: (!prev.image || Object.values(CATEGORY_FALLBACK_IMAGES).includes(prev.image)) ? fallbackImage : prev.image,
+    }));
+  };
+
+  // Handle final product creation
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    const newSku = generateSKU(formData.category);
-    const colorArray = formData.colors.split('،').map(s => s.trim()).filter(Boolean);
+
+    const finalCategory = formData.category === 'سایر (دسته جدید)' && formData.customCategory.trim()
+      ? formData.customCategory.trim()
+      : formData.category;
+
+    const finalSku = formData.sku.trim() || generateSKU(finalCategory);
+
+    const colorArray = formData.colors
+      .split(/[،,]/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const finalImage = formData.image.trim() ||
+      CATEGORY_FALLBACK_IMAGES[finalCategory] ||
+      CATEGORY_FALLBACK_IMAGES['شلوار بگ'] ||
+      'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=80';
+
+    const wholesaleUnitPrice = Math.max(0, Number(formData.baseWholesalePricePerUnit) || 0);
+    const packSize = Number(formData.packSize) || 6;
+    const wholesalePackPrice = wholesaleUnitPrice * packSize;
+    const colleagueUnitPrice = Math.max(0, Number(formData.colleaguePricePerUnit) || Math.max(wholesaleUnitPrice - 15000, 10000));
+    const colleaguePackPrice = colleagueUnitPrice * packSize;
+
+    const defaultRetailMarkup = Number(formData.retailMarkupPercent) || 35;
+    const finalRetailPrice = formData.allowRetailSale
+      ? (Number(formData.retailPricePerUnit) > 0
+          ? Number(formData.retailPricePerUnit)
+          : Math.round((wholesaleUnitPrice * (1 + defaultRetailMarkup / 100)) / 5000) * 5000)
+      : undefined;
+
+    const packStock = Math.max(0, Number(formData.packStock) || 0);
+    const singleStock = Math.max(0, Number(formData.singleStock) || 0);
+
+    let todayStr = '۱۴۰۳/۰۷/۰۱';
+    try {
+      todayStr = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    } catch {}
 
     const newProduct: Product = {
       id: `prod-${Date.now()}`,
-      sku: newSku,
-      name: formData.name || `مدل ${formData.category} ${formData.fabricType}`,
-      category: formData.category,
-      image: formData.image || 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&auto=format&fit=crop&q=80',
-      galleryImages: formData.galleryImages || [],
+      sku: finalSku,
+      name: formData.name.trim() || `مدل ${finalCategory} ${formData.fabricType}`,
+      category: finalCategory,
+      image: finalImage,
+      galleryImages: formData.galleryImages && formData.galleryImages.length > 0 ? formData.galleryImages : [finalImage],
       videoUrl: formData.videoUrl?.trim() || undefined,
       videoTitle: formData.videoTitle?.trim() || undefined,
-      fabricCost: formData.source === 'self_produced' ? formData.fabricCost : 0,
-      tailoringCost: formData.source === 'self_produced' ? formData.tailoringCost : 0,
-      trimsCost: formData.source === 'self_produced' ? formData.trimsCost : 0,
-      finishingCost: formData.source === 'self_produced' ? formData.finishingCost : 0,
+      fabricCost: formData.source === 'self_produced' ? Number(formData.fabricCost) || 0 : 0,
+      tailoringCost: formData.source === 'self_produced' ? Number(formData.tailoringCost) || 0 : 0,
+      trimsCost: formData.source === 'self_produced' ? Number(formData.trimsCost) || 0 : 0,
+      finishingCost: formData.source === 'self_produced' ? Number(formData.finishingCost) || 0 : 0,
       totalCostPrice: calculatedCostPrice,
-      packSize: formData.packSize,
-      baseWholesalePricePerUnit: formData.baseWholesalePricePerUnit,
-      baseWholesalePricePerPack: calculatedBasePackPrice,
-      colleaguePricePerUnit: formData.colleaguePricePerUnit,
-      colleaguePricePerPack: calculatedColleaguePackPrice,
-      retailPricePerUnit: Math.round(formData.baseWholesalePricePerUnit * 1.7),
-      packStock: Number(formData.packStock) || 0,
-      singleStock: Number(formData.singleStock) || 0,
+      packSize: packSize as PackSize,
+      baseWholesalePricePerUnit: wholesaleUnitPrice,
+      baseWholesalePricePerPack: wholesalePackPrice,
+      colleaguePricePerUnit: colleagueUnitPrice,
+      colleaguePricePerPack: colleaguePackPrice,
+      allowRetailSale: formData.allowRetailSale,
+      retailMarkupPercent: defaultRetailMarkup,
+      retailPricePerUnit: finalRetailPrice,
+      packStock: packStock,
+      singleStock: singleStock,
       minPackStockAlert: Number(formData.minPackStockAlert) || 5,
       source: formData.source,
       partnerSupplierName: formData.source === 'partner_sourced' ? formData.partnerSupplierName : undefined,
       fabricSupplierName: formData.source === 'self_produced' ? formData.fabricSupplierName : undefined,
       tailorName: formData.source === 'self_produced' ? formData.tailorName : undefined,
-      fabricType: formData.fabricType,
-      colors: colorArray.length > 0 ? colorArray : ['مشکی', 'طوسی', 'کرم'],
-      sizes: formData.sizes,
-      description: formData.description,
-      tags: [formData.category, formData.source === 'self_produced' ? 'تولید_خود' : 'همکاری'],
-      createdAt: '۱۴۰۳/۰۳/۰۵',
-      updatedAt: '۱۴۰۳/۰۳/۰۵',
+      fabricType: formData.fabricType.trim() || 'کرپ مازراتی اعلا',
+      colors: colorArray.length > 0 ? colorArray : ['مشکی', 'طوسی روشن', 'کرم'],
+      sizes: formData.sizes.trim() || 'فری‌سایز مناسب ۳۸ تا ۴۶',
+      description: formData.description.trim() || 'تنخور ژورنالی فوق‌العاده راحت، دوخت تمیز کارگاهی با نخ پنج‌لا، کش کمر ۴ سانتی اعلا',
+      tags: [finalCategory, formData.source === 'self_produced' ? 'تولید_خود' : 'همکاری', 'ویترین_سایت'],
+      rating: 5.0,
+      reviewCount: 1,
+      isNewArrival: formData.isNewArrival,
+      isBestSeller: formData.isBestSeller,
+      createdAt: todayStr,
+      updatedAt: todayStr,
     };
 
     onAddProduct(newProduct);
     setIsNewProductModalOpen(false);
+    setCreationSuccessToast(`مدل جدید «${newProduct.name}» با کد کاتالوگ ${newProduct.sku} با موفقیت در انبار و ویترین سایت ثبت شد.`);
+    setTimeout(() => {
+      setCreationSuccessToast(null);
+    }, 6000);
   };
 
   // Quick Stock adjustment
@@ -322,6 +439,24 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
   return (
     <div id="inventory-module" className="space-y-5 animate-in fade-in duration-200">
       
+      {/* Creation Success Toast Notification */}
+      {creationSuccessToast && (
+        <div className="bg-emerald-900 text-emerald-50 px-4 py-3 rounded-2xl border border-emerald-700 shadow-md flex items-center justify-between animate-in slide-in-from-top-3 duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="p-1.5 bg-emerald-800 text-emerald-200 rounded-xl">
+              <CheckCircle className="w-5 h-5" />
+            </span>
+            <span className="text-xs sm:text-sm font-bold">{creationSuccessToast}</span>
+          </div>
+          <button 
+            onClick={() => setCreationSuccessToast(null)}
+            className="text-emerald-300 hover:text-white text-xs px-2 py-1 rounded-lg"
+          >
+            بستن
+          </button>
+        </div>
+      )}
+
       {/* Top Header with Stats and Main Action Buttons */}
       <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -334,9 +469,6 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                 <h2 className="text-lg font-black text-stone-900">
                   انبارداری و مدیریت کالا (سیستم پکی و بهای تمام‌شده)
                 </h2>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  ثبت با کد کاتالوگ خودکار، محاسبه دقیق هزینه پارچه و خیاط، قیمت‌گذاری پک‌های ۴، ۶، ۸ و ۱۲ تایی
-                </p>
               </div>
             </div>
           </div>
@@ -344,21 +476,28 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
             <button
-              id="btn-open-bulk-price-modal"
-              onClick={() => setIsBulkModalOpen(true)}
-              className="text-xs bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
-            >
-              <Percent className="w-4 h-4" />
-              <span>تغییر درصدی قیمت‌ها (تورم پارچه)</span>
-            </button>
-
-            <button
               id="btn-open-new-product-modal"
-              onClick={() => setIsNewProductModalOpen(true)}
-              className="text-xs bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+              onClick={() => {
+                initNewProductForm();
+                setIsNewProductModalOpen(true);
+              }}
+              className="relative group bg-[#18181B] hover:bg-black text-[#FAF7F2] border border-[#D4AF37]/50 hover:border-[#D4AF37] px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-[0_2px_10px_rgba(24,24,27,0.12)] hover:shadow-[0_4px_16px_rgba(212,175,55,0.22)] active:scale-98 flex items-center gap-2.5 cursor-pointer"
+              title="ثبت مدل جدید در ویترین سایت و انبار با تنظیم دقیق مشخصات، عکس، ویدیو، قیمت عمده و تکی"
             >
-              <Plus className="w-4 h-4" />
-              <span>ثبت مدل و کاتالوگ جدید</span>
+              <span className="p-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded-lg group-hover:bg-[#D4AF37] group-hover:text-[#18181B] transition-colors">
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+              </span>
+              <div className="flex flex-col text-right leading-tight">
+                <span className="text-xs font-black text-white flex items-center gap-1.5">
+                  ثبت مدل و کاتالوگ جدید
+                </span>
+                <span className="text-[9.5px] text-[#D4AF37] font-medium">
+                  طراحی تخصصی برای ویترین و انبار
+                </span>
+              </div>
+              <span className="hidden sm:inline-flex bg-white/10 text-white/90 text-[10px] font-mono px-2 py-0.5 rounded-md border border-white/10">
+                + جدید
+              </span>
             </button>
           </div>
         </div>
@@ -389,104 +528,6 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Fix 4: Smart Reorder Point & Cutting Recommendations Alert Banner */}
-      {!isReorderAlertDismissed && urgentReorderList.length > 0 && (
-        <div className="bg-gradient-to-l from-stone-900 via-[#18181B] to-stone-900 text-[#FAF7F2] p-5 rounded-2xl border border-stone-800 shadow-md space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <span className="p-2 bg-amber-500/20 text-[#D4AF37] rounded-xl border border-amber-500/30">
-                <Flame className="w-5 h-5 text-[#D4AF37]" />
-              </span>
-              <div>
-                <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
-                  <span>سیستم هوشمند پیش‌بینی نقطه سفارش مجدد و تیراژ برش (Smart Reorder Alerts)</span>
-                  <span className="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">
-                    {urgentReorderList.length} مدل نیازمند اقدام فوری
-                  </span>
-                </h3>
-                <p className="text-xs text-stone-300 mt-0.5">
-                  بر اساس سرعت فروش ۳۰ روز اخیر، موجودی مدل‌های زیر به زودی به صفر می‌رسد:
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {onNavigateToProduction && (
-                <button
-                  onClick={onNavigateToProduction}
-                  className="bg-[#D4AF37] hover:bg-amber-500 text-stone-950 font-black text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
-                >
-                  <Scissors className="w-4 h-4" />
-                  <span>انتقال به صف برش و کارگاه‌ها</span>
-                </button>
-              )}
-              <button
-                onClick={() => setIsReorderAlertDismissed(true)}
-                className="text-stone-400 hover:text-stone-200 text-xs px-2 py-1 rounded"
-              >
-                بستن
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {urgentReorderList.slice(0, 3).map((item) => (
-              <div 
-                key={item.product.id}
-                className="bg-stone-800/80 p-3.5 rounded-xl border border-stone-700/80 flex flex-col justify-between space-y-2.5"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src={item.product.image} 
-                        alt={item.product.name} 
-                        className="w-10 h-10 rounded-lg object-cover border border-stone-700 shrink-0" 
-                      />
-                      <div>
-                        <h4 className="font-bold text-xs text-white line-clamp-1">{item.product.name}</h4>
-                        <span className="text-[10px] text-stone-400 font-mono">{item.product.sku} • {item.product.fabricType}</span>
-                      </div>
-                    </div>
-
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
-                      item.isUrgent ? 'bg-rose-500 text-white' : 'bg-amber-500 text-stone-950'
-                    }`}>
-                      {item.daysToStockout <= 0 ? 'موجودی صفر!' : `${item.daysToStockout} روز تا اتمام`}
-                    </span>
-                  </div>
-
-                  <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px] bg-stone-900/60 p-2 rounded-lg border border-stone-800">
-                    <div>
-                      <span className="text-stone-400">موجودی فعلی: </span>
-                      <strong className="text-white">{item.product.packStock} پک</strong>
-                    </div>
-                    <div>
-                      <span className="text-stone-400">سرعت فروش: </span>
-                      <strong className="text-amber-300">{item.dailyVelocity} عدد/روز</strong>
-                    </div>
-                    <div className="col-span-2 pt-1 border-t border-stone-800 flex justify-between text-[#D4AF37]">
-                      <span>پیشنهاد تیراژ برش: <strong>{item.recommendedPacks} پک ({item.recommendedUnits} عدد)</strong></span>
-                      <span>پارچه: <strong>{item.fabricMetersNeeded}m</strong></span>
-                    </div>
-                  </div>
-                </div>
-
-                {onNavigateToProduction && (
-                  <button
-                    onClick={onNavigateToProduction}
-                    className="w-full bg-stone-700 hover:bg-stone-600 text-white font-bold text-[10px] py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
-                  >
-                    <span>ثبت در برنامه تولید کارگاه</span>
-                    <ArrowRight className="w-3 h-3 text-[#D4AF37]" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-3.5 rounded-xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
@@ -841,9 +882,19 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       )}
 
       {/* MODAL 1: Bulk Price Inflation Updater (افزایش درصدی دسته‌جمعی قیمت‌ها) */}
-      {isBulkModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-200 animate-in zoom-in-95 duration-150">
+      {isBulkModalOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          id="modal-bulk-price-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsBulkModalOpen(false);
+          }}
+          className="fixed inset-0 z-[9999] bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150"
+          dir="rtl"
+        >
+          <div 
+            id="modal-bulk-price-card"
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-200 animate-in zoom-in-95 duration-150 my-auto"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
               <div className="flex items-center gap-2">
                 <span className="p-2 bg-amber-100 text-amber-800 rounded-xl">
@@ -924,306 +975,984 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* MODAL 2: Add New Product / کاتالوگ با فرمول دقیق بهای تمام شده */}
-      {isNewProductModalOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-stone-200 my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-              <div>
-                <h3 className="text-base font-bold text-stone-900">
-                  ثبت مدل جدید و محاسبه بهای تمام‌شده
-                </h3>
-                <p className="text-xs text-stone-500">
-                  تولید خودکار کد کاتالوگ (SKU) و تنظیم قیمت‌های چندسطحی پک
-                </p>
+      {/* MODAL 2: Add New Product / کاتالوگ با فرمول دقیق بهای تمام شده و ویترین آنلاین */}
+      {isNewProductModalOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          id="modal-new-product-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsNewProductModalOpen(false);
+          }}
+          className="fixed inset-0 z-[9999] bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+          dir="rtl"
+        >
+          <div 
+            id="modal-new-product-card"
+            className="bg-white rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-stone-200 my-auto max-h-[92vh] flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-200"
+          >
+            
+            {/* Modal Header */}
+            <div className="flex flex-wrap items-center justify-between pb-3 sm:pb-4 border-b border-stone-100 gap-2 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-500/10 text-amber-900 rounded-2xl border border-amber-200/60">
+                  <Package className="w-5 h-5 text-amber-800" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-stone-900">
+                      ثبت مدل جدید و انتشار در ویترین و انبار
+                    </h3>
+                    <span className="hidden sm:inline-flex bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      تولید و پخش من و تو
+                    </span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
+                    تنظیم تخصصی مشخصات فنی، رنگ‌بندی، بهای تمام‌شده، قیمت عمده، تکی و ژورنال مدل
+                  </p>
+                </div>
               </div>
-              <button onClick={() => setIsNewProductModalOpen(false)} className="text-stone-400 hover:text-stone-700 text-sm font-bold">
-                ✕
+
+              {/* SKU & Preview Toggles & Close */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-stone-100 rounded-xl px-2.5 py-1.5 border border-stone-200 text-xs">
+                  <span className="text-[10px] text-stone-500 ml-1.5">کد SKU:</span>
+                  <span className="font-mono font-bold text-stone-900">{formData.sku}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const finalCat = formData.category === 'سایر (دسته جدید)' ? (formData.customCategory || 'شلوار') : formData.category;
+                      setFormData({ ...formData, sku: generateSKU(finalCat) });
+                    }}
+                    title="تولید مجدد کد کاتالوگ"
+                    className="mr-1.5 p-1 hover:bg-stone-200 rounded-md text-stone-600 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLiveStorefrontPreview(!showLiveStorefrontPreview)}
+                  className={`text-xs px-2.5 py-1.5 rounded-xl border flex items-center gap-1 transition-all ${
+                    showLiveStorefrontPreview
+                      ? 'bg-amber-50 text-amber-900 border-amber-300 font-bold'
+                      : 'bg-stone-50 text-stone-600 border-stone-200'
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">پیش‌نمایش کارت ویترین</span>
+                </button>
+
+                <button 
+                  onClick={() => setIsNewProductModalOpen(false)} 
+                  className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-900 flex items-center justify-center font-bold text-sm transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Step Tabs Navigation */}
+            <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 border-b border-stone-100 shrink-0 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setNewProductTab('info')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  newProductTab === 'info'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>۱. مشخصات و دسته‌بندی</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewProductTab('media')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  newProductTab === 'media'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>۲. عکس و ویدیو تنخور</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewProductTab('costs')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  newProductTab === 'costs'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                <Scissors className="w-3.5 h-3.5" />
+                <span>۳. بهای تمام‌شده و کارگاه</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewProductTab('pricing')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  newProductTab === 'pricing'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>۴. قیمت‌گذاری و فروش تکی</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewProductTab('variants')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  newProductTab === 'variants'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                <Palette className="w-3.5 h-3.5" />
+                <span>۵. رنگ، سایز و موجودی</span>
               </button>
             </div>
 
-            <form onSubmit={handleCreateProduct} className="space-y-4 my-4">
+            {/* Modal Body with Form & Live Preview */}
+            <form onSubmit={handleCreateProduct} className="flex-1 overflow-y-auto py-3 space-y-4 pr-1">
               
-              {/* Product Basic Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">نام مدل کالا:</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="مثال: شلوار بگ کتان لایت تابستانه"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200 outline-none focus:border-amber-500"
-                  />
+              <div className={`grid grid-cols-1 ${showLiveStorefrontPreview ? 'lg:grid-cols-12 gap-5' : 'gap-4'}`}>
+                
+                {/* Form Fields Column */}
+                <div className={showLiveStorefrontPreview ? 'lg:col-span-8 space-y-4' : 'space-y-4'}>
+                  
+                  {/* TAB 1: مشخصات و دسته‌بندی */}
+                  {newProductTab === 'info' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      
+                      {/* Name & Auto-naming */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-bold text-stone-800">
+                            نام مدل و کاتالوگ کالا: <span className="text-rose-600">*</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cat = formData.category === 'سایر (دسته جدید)' ? (formData.customCategory || 'شلوار') : formData.category;
+                              setFormData({
+                                ...formData,
+                                name: `${cat} ${formData.fabricType} زنانه مدل پرفروش`,
+                              });
+                            }}
+                            className="text-[11px] text-amber-700 hover:text-amber-900 font-bold flex items-center gap-1"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            پیشنهاد نام خودکار
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          placeholder="مثال: شلوار بگ کرپ مازراتی اعلا دمپا پاکتی"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full bg-stone-50 text-sm font-bold p-3 rounded-xl border border-stone-200 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                        />
+                      </div>
+
+                      {/* Category & Custom Category */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            دسته‌بندی تخصصی پوشاک:
+                          </label>
+                          <select
+                            value={formData.category}
+                            onChange={(e) => handleCategoryChange(e.target.value)}
+                            className="w-full bg-stone-50 text-xs font-bold p-2.5 rounded-xl border border-stone-200 outline-none focus:border-stone-900"
+                          >
+                            {POPULAR_CATEGORIES.map(cat => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {formData.category === 'سایر (دسته جدید)' ? (
+                          <div>
+                            <label className="block text-xs font-bold text-stone-800 mb-1">
+                              نام دسته‌بندی جدید:
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="مثال: شلوار مام‌استایل، شلوار سندبادی..."
+                              value={formData.customCategory}
+                              onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                              className="w-full bg-stone-50 text-xs font-bold p-2.5 rounded-xl border border-amber-300 outline-none focus:border-stone-900"
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-xs font-bold text-stone-800 mb-1">
+                              واحد فروش پکی (پیش‌فرض عمده):
+                            </label>
+                            <select
+                              value={formData.packSize}
+                              onChange={(e) => setFormData({ ...formData, packSize: Number(e.target.value) as PackSize })}
+                              className="w-full bg-amber-50/80 text-xs font-bold p-2.5 rounded-xl border border-amber-200 text-amber-950 outline-none"
+                            >
+                              <option value={4}>پک ۴ عددی (نیم‌جین سبک)</option>
+                              <option value={6}>پک ۶ عددی (استاندارد پرفروش بازار)</option>
+                              <option value={8}>پک ۸ عددی</option>
+                              <option value={12}>پک ۱۲ عددی (یک جین کامل)</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Fabric Type and Quick Chips */}
+                      <div>
+                        <label className="block text-xs font-bold text-stone-800 mb-1">
+                          جنس پارچه و متریال:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.fabricType}
+                          onChange={(e) => setFormData({ ...formData, fabricType: e.target.value })}
+                          placeholder="مثال: کرپ مازراتی نخ ۳۲۰ گرمی اعلا"
+                          className="w-full bg-stone-50 text-xs font-medium p-2.5 rounded-xl border border-stone-200 outline-none focus:border-stone-900 mb-2"
+                        />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] text-stone-500 ml-1">پیشنهاد سریع:</span>
+                          {POPULAR_FABRICS.map(fabric => (
+                            <button
+                              key={fabric}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, fabricType: fabric })}
+                              className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all ${
+                                formData.fabricType === fabric
+                                  ? 'bg-stone-900 text-white border-stone-900 font-bold'
+                                  : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
+                              }`}
+                            >
+                              {fabric}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label className="block text-xs font-bold text-stone-800 mb-1">
+                          توضیحات و ویژگی‌های تنخور ژورنالی (نمایش در صفحه محصول):
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          placeholder="ویژگی‌های خاص دوخت، کش کمر، دمپا، جیب‌ها و ضمانت عدم آبرفت..."
+                          className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200 outline-none focus:border-stone-900 leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Storefront Badges */}
+                      <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 flex flex-wrap items-center gap-4">
+                        <span className="text-xs font-bold text-stone-800">نشان‌های ویژه در ویترین:</span>
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-stone-700">
+                          <input
+                            type="checkbox"
+                            checked={formData.isNewArrival}
+                            onChange={(e) => setFormData({ ...formData, isNewArrival: e.target.checked })}
+                            className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                          />
+                          <span>نشان مدل جدید (New Arrival)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-stone-700">
+                          <input
+                            type="checkbox"
+                            checked={formData.isBestSeller}
+                            onChange={(e) => setFormData({ ...formData, isBestSeller: e.target.checked })}
+                            className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                          />
+                          <span>نشان پرفروش‌ترین‌ها (Best Seller)</span>
+                        </label>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('media')}
+                          className="text-xs bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                        >
+                          <span>مرحله بعدی: عکس و ویدیو</span>
+                          <span>←</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: ژورنال و ویدیو تنخور */}
+                  {newProductTab === 'media' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      
+                      {/* Curated Fallback Picker if user wants fast setup */}
+                      <div className="p-3 bg-amber-50/60 rounded-2xl border border-amber-200/80">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                            انتخاب سریع تصویر ژورنالی استاندارد بدون نیاز به عکاسی مجدد:
+                          </span>
+                          <span className="text-[10px] text-amber-800 font-medium">کیفیت بالا و بدون واترمارک</span>
+                        </div>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                          {Object.entries(CATEGORY_FALLBACK_IMAGES).slice(0, 6).map(([catName, imgUrl]) => (
+                            <button
+                              key={catName}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, image: imgUrl })}
+                              className={`group relative rounded-xl overflow-hidden aspect-square border-2 transition-all ${
+                                formData.image === imgUrl
+                                  ? 'border-amber-600 ring-2 ring-amber-400'
+                                  : 'border-transparent hover:border-stone-300'
+                              }`}
+                            >
+                              <img
+                                src={imgUrl}
+                                alt={catName}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                referrerPolicy="no-referrer"
+                              />
+                              <span className="absolute inset-x-0 bottom-0 bg-black/70 text-white text-[9px] py-0.5 text-center truncate px-1">
+                                {catName}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Main Image Uploader */}
+                      <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200">
+                        <ImageUploader
+                          id="new-product-image-uploader"
+                          label="عکس اصلی مدل و کاتالوگ ژورنالی:"
+                          value={formData.image}
+                          onChange={(url) => setFormData({ ...formData, image: url })}
+                          galleryValues={formData.galleryImages}
+                          onGalleryChange={(imgs) => setFormData({ ...formData, galleryImages: imgs })}
+                          allowGallery={true}
+                          helpText="می‌توانید عکس پوشاک را آپلود نموده یا آدرس تصویر ژورنالی را قرار دهید."
+                        />
+                      </div>
+
+                      {/* Video Uploader */}
+                      <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200">
+                        <VideoUploader
+                          id="new-product-video-uploader"
+                          label="ویدیو معرفی و تست تنخور ژورنالی (پخش در ویترین سایت):"
+                          value={formData.videoUrl || ''}
+                          onChange={(vUrl) => setFormData({ ...formData, videoUrl: vUrl })}
+                          videoTitle={formData.videoTitle || ''}
+                          onTitleChange={(title) => setFormData({ ...formData, videoTitle: title })}
+                          helpText="ویدیو کوتاه ۱۰ تا ۳۰ ثانیه‌ای از ریزش پارچه و تنخور در تن مانکن یا رگال فروشگاهی."
+                        />
+                      </div>
+
+                      <div className="flex justify-between pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('info')}
+                          className="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-2 rounded-xl transition-all"
+                        >
+                          → مرحله قبلی
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('costs')}
+                          className="text-xs bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                        >
+                          <span>مرحله بعدی: بهای تمام‌شده</span>
+                          <span>←</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 3: بهای تمام‌شده و کارگاه */}
+                  {newProductTab === 'costs' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      
+                      {/* Sourcing Mode Switcher */}
+                      <div className="grid grid-cols-2 gap-2 p-1.5 bg-stone-100 rounded-2xl border border-stone-200">
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, source: 'self_produced' })}
+                          className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                            formData.source === 'self_produced'
+                              ? 'bg-white text-stone-900 shadow-xs'
+                              : 'text-stone-600 hover:text-stone-900'
+                          }`}
+                        >
+                          <Scissors className="w-3.5 h-3.5 text-amber-700" />
+                          <span>تولید کارگاه خودمان (برش و دوخت)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, source: 'partner_sourced' })}
+                          className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                            formData.source === 'partner_sourced'
+                              ? 'bg-white text-stone-900 shadow-xs'
+                              : 'text-stone-600 hover:text-stone-900'
+                          }`}
+                        >
+                          <Building2 className="w-3.5 h-3.5 text-purple-700" />
+                          <span>خرید همکاری از همکاران بازار</span>
+                        </button>
+                      </div>
+
+                      {/* Self Produced Cost Breakdown */}
+                      {formData.source === 'self_produced' ? (
+                        <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-stone-200">
+                            <span className="text-xs font-black text-stone-800">
+                              اجزای محاسبه بهای تمام‌شده برای هر ۱ عدد:
+                            </span>
+                            <span className="text-xs font-black text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg">
+                              بهای تمام‌شده کل: {calculatedCostPrice.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-600 block mb-1">هزینه پارچه:</label>
+                              <input
+                                type="number"
+                                value={formData.fabricCost}
+                                onChange={(e) => setFormData({ ...formData, fabricCost: Number(e.target.value) })}
+                                className="w-full bg-white text-xs p-2.5 rounded-xl border border-stone-200 text-center font-bold"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-600 block mb-1">اجرت دوخت خیاط:</label>
+                              <input
+                                type="number"
+                                value={formData.tailoringCost}
+                                onChange={(e) => setFormData({ ...formData, tailoringCost: Number(e.target.value) })}
+                                className="w-full bg-white text-xs p-2.5 rounded-xl border border-stone-200 text-center font-bold"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-600 block mb-1">خرج‌کار و ملزومات:</label>
+                              <input
+                                type="number"
+                                value={formData.trimsCost}
+                                onChange={(e) => setFormData({ ...formData, trimsCost: Number(e.target.value) })}
+                                className="w-full bg-white text-xs p-2.5 rounded-xl border border-stone-200 text-center font-bold"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-600 block mb-1">تکمیل، اتو و بسته‌بندی:</label>
+                              <input
+                                type="number"
+                                value={formData.finishingCost}
+                                onChange={(e) => setFormData({ ...formData, finishingCost: Number(e.target.value) })}
+                                className="w-full bg-white text-xs p-2.5 rounded-xl border border-stone-200 text-center font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-stone-200/60">
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-600 block mb-1">تأمین‌کننده پارچه (طاقه‌ای):</label>
+                              <input
+                                type="text"
+                                value={formData.fabricSupplierName}
+                                onChange={(e) => setFormData({ ...formData, fabricSupplierName: e.target.value })}
+                                className="w-full bg-white text-xs p-2 rounded-xl border border-stone-200"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-600 block mb-1">کارگاه دوخت و خیاط:</label>
+                              <input
+                                type="text"
+                                value={formData.tailorName}
+                                onChange={(e) => setFormData({ ...formData, tailorName: e.target.value })}
+                                className="w-full bg-white text-xs p-2 rounded-xl border border-stone-200"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-purple-50/70 rounded-2xl border border-purple-200 space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-purple-200">
+                            <span className="text-xs font-black text-purple-950">
+                              خرید عمده از همکار بازار:
+                            </span>
+                            <span className="text-xs font-black text-purple-900 bg-purple-100 px-2.5 py-1 rounded-lg">
+                              قیمت خرید هر عدد: {formData.partnerPurchaseCost.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-700 block mb-1">
+                                قیمت خرید همکاری نقدی از بنکدار (هر ۱ عدد):
+                              </label>
+                              <input
+                                type="number"
+                                value={formData.partnerPurchaseCost}
+                                onChange={(e) => setFormData({ ...formData, partnerPurchaseCost: Number(e.target.value) })}
+                                className="w-full bg-white text-xs font-black p-2.5 rounded-xl border border-purple-300 text-purple-950 text-center"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-700 block mb-1">
+                                نام همکار / بنکداری طرف قرارداد:
+                              </label>
+                              <input
+                                type="text"
+                                value={formData.partnerSupplierName}
+                                onChange={(e) => setFormData({ ...formData, partnerSupplierName: e.target.value })}
+                                className="w-full bg-white text-xs p-2.5 rounded-xl border border-purple-200"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('media')}
+                          className="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-2 rounded-xl transition-all"
+                        >
+                          → مرحله قبلی
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('pricing')}
+                          className="text-xs bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                        >
+                          <span>مرحله بعدی: قیمت‌گذاری و فروش</span>
+                          <span>←</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 4: قیمت‌گذاری و فروش تکی */}
+                  {newProductTab === 'pricing' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      
+                      {/* Wholesale Tiers */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                          <label className="block text-xs font-bold text-stone-800">
+                            قیمت فروش عمده عادی (به ازای هر ۱ عدد):
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.baseWholesalePricePerUnit}
+                            onChange={(e) => setFormData({ ...formData, baseWholesalePricePerUnit: Number(e.target.value) })}
+                            className="w-full bg-white text-sm font-black p-2.5 rounded-xl border border-stone-300 text-stone-900 focus:border-stone-900 outline-none"
+                          />
+                          <div className="flex items-center justify-between text-[11px] text-stone-600 pt-1">
+                            <span>قیمت کل پک {formData.packSize} تایی:</span>
+                            <span className="font-bold text-stone-900">
+                              {calculatedBasePackPrice.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+                          <div className="text-[11px] font-bold flex items-center justify-between pt-1 border-t border-stone-200/80">
+                            <span>حاشیه سود ناخالص کارگاه:</span>
+                            <span className={profitMarginPercent >= 15 ? 'text-emerald-700' : 'text-amber-700'}>
+                              {profitMarginPercent}٪ ({((formData.baseWholesalePricePerUnit - calculatedCostPrice) * formData.packSize).toLocaleString('fa-IR')} ت در هر پک)
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2">
+                          <label className="block text-xs font-bold text-emerald-950">
+                            قیمت همکاری هم‌صنف بازار (تخفیف تیراژ):
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.colleaguePricePerUnit}
+                            onChange={(e) => setFormData({ ...formData, colleaguePricePerUnit: Number(e.target.value) })}
+                            className="w-full bg-white text-sm font-black p-2.5 rounded-xl border border-emerald-300 text-emerald-900 focus:border-emerald-600 outline-none"
+                          />
+                          <div className="flex items-center justify-between text-[11px] text-emerald-800 pt-1">
+                            <span>قیمت کل پک همکاری:</span>
+                            <span className="font-bold text-emerald-950">
+                              {calculatedColleaguePackPrice.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-emerald-700 pt-1 border-t border-emerald-200/80">
+                            تخفیف ویژه همکار: {(formData.baseWholesalePricePerUnit - formData.colleaguePricePerUnit).toLocaleString('fa-IR')} ت به ازای هر عدد
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Retail Sale Configuration */}
+                      <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.allowRetailSale}
+                              onChange={(e) => setFormData({ ...formData, allowRetailSale: e.target.checked })}
+                              className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                            />
+                            <span className="text-xs font-bold text-amber-950">
+                              امکان فروش تکی در ویترین سایت (برای خریداران شخصی آنلاین)
+                            </span>
+                          </label>
+                          <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full">
+                            افزایش فروش آنلاین
+                          </span>
+                        </div>
+
+                        {formData.allowRetailSale && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-200/70">
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-700 block mb-1">
+                                درصد سود خرده‌فروشی نسبت به عمده:
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={formData.retailMarkupPercent}
+                                  onChange={(e) => {
+                                    const markup = Number(e.target.value);
+                                    const calculated = Math.round((formData.baseWholesalePricePerUnit * (1 + markup / 100)) / 5000) * 5000;
+                                    setFormData({
+                                      ...formData,
+                                      retailMarkupPercent: markup,
+                                      retailPricePerUnit: calculated,
+                                    });
+                                  }}
+                                  className="w-20 bg-white text-xs font-bold p-2 rounded-xl border border-stone-300 text-center"
+                                />
+                                <span className="text-xs text-stone-600">درصد (پیشنهاد استاندارد: ۳۵٪)</span>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[11px] font-bold text-stone-700 block mb-1">
+                                قیمت فروش تکی به ازای هر عدد:
+                              </label>
+                              <input
+                                type="number"
+                                value={formData.retailPricePerUnit}
+                                onChange={(e) => setFormData({ ...formData, retailPricePerUnit: Number(e.target.value) })}
+                                className="w-full bg-white text-sm font-black p-2 rounded-xl border border-amber-300 text-stone-900"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('costs')}
+                          className="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-2 rounded-xl transition-all"
+                        >
+                          → مرحله قبلی
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('variants')}
+                          className="text-xs bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                        >
+                          <span>مرحله بعدی: رنگ، سایز و موجودی</span>
+                          <span>←</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 5: رنگ، سایز و موجودی */}
+                  {newProductTab === 'variants' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      
+                      {/* Color Palette Multi-selector */}
+                      <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-stone-800">
+                            رنگ‌بندی موجود (کلیک روی هر رنگ برای افزودن/حذف سریع):
+                          </label>
+                          <span className="text-[10px] text-stone-500">جدا شده با ویرگول</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={formData.colors}
+                          onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                          className="w-full bg-white text-xs font-medium p-2.5 rounded-xl border border-stone-300 outline-none focus:border-stone-900 mb-2"
+                        />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {POPULAR_COLORS.map(cName => {
+                            const isSelected = formData.colors.includes(cName);
+                            return (
+                              <button
+                                key={cName}
+                                type="button"
+                                onClick={() => toggleColorInForm(cName)}
+                                className={`text-[11px] px-2.5 py-1 rounded-xl border transition-all flex items-center gap-1 ${
+                                  isSelected
+                                    ? 'bg-stone-900 text-white border-stone-900 font-bold shadow-xs'
+                                    : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-200'
+                                }`}
+                              >
+                                {isSelected ? <Check className="w-3 h-3 text-amber-400" /> : <Plus className="w-3 h-3 text-stone-400" />}
+                                <span>{cName}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Sizes with Quick Suggestions */}
+                      <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                        <label className="block text-xs font-bold text-stone-800">
+                          سایزبندی کالا:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.sizes}
+                          onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
+                          className="w-full bg-white text-xs font-medium p-2.5 rounded-xl border border-stone-300 outline-none focus:border-stone-900 mb-2"
+                        />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {POPULAR_SIZES.map(sOption => (
+                            <button
+                              key={sOption}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, sizes: sOption })}
+                              className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all ${
+                                formData.sizes === sOption
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300 font-bold'
+                                  : 'bg-white hover:bg-stone-100 text-stone-600 border-stone-200'
+                              }`}
+                            >
+                              {sOption}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Stock Counts */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200">
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            موجودی پک در انبار:
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={formData.packStock}
+                            onChange={(e) => setFormData({ ...formData, packStock: Number(e.target.value) })}
+                            className="w-full bg-white text-sm font-black p-2.5 rounded-xl border border-stone-300 text-center"
+                          />
+                          <span className="text-[10px] text-stone-500 block mt-1 text-center">
+                            معادل {(formData.packStock * formData.packSize).toLocaleString('fa-IR')} عدد
+                          </span>
+                        </div>
+
+                        <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200">
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            موجودی تکی انبار:
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={formData.singleStock}
+                            onChange={(e) => setFormData({ ...formData, singleStock: Number(e.target.value) })}
+                            className="w-full bg-white text-sm font-black p-2.5 rounded-xl border border-stone-300 text-center"
+                          />
+                          <span className="text-[10px] text-stone-500 block mt-1 text-center">
+                            جهت سفارشات تک‌فروشی آنلاین
+                          </span>
+                        </div>
+
+                        <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200">
+                          <label className="block text-xs font-bold text-stone-800 mb-1">
+                            هشدار کسری انبار (حداقل پک):
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={formData.minPackStockAlert}
+                            onChange={(e) => setFormData({ ...formData, minPackStockAlert: Number(e.target.value) })}
+                            className="w-full bg-white text-sm font-black p-2.5 rounded-xl border border-stone-300 text-center text-amber-800"
+                          />
+                          <span className="text-[10px] text-stone-500 block mt-1 text-center">
+                            آستانه اخطار به انباردار
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewProductTab('pricing')}
+                          className="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-2 rounded-xl transition-all"
+                        >
+                          → مرحله قبلی
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">دسته‌بندی:</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200 outline-none"
+                {/* Live Storefront Card Preview Column */}
+                {showLiveStorefrontPreview && (
+                  <div className="lg:col-span-4 bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col items-center">
+                    <div className="w-full flex items-center justify-between pb-2 mb-3 border-b border-stone-200">
+                      <span className="text-xs font-black text-stone-800 flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-amber-700" />
+                        پیش‌نمایش کارت در ویترین سایت
+                      </span>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-2 py-0.5 rounded-full">
+                        آماده نمایش
+                      </span>
+                    </div>
+
+                    {/* Exact Card Preview */}
+                    <div className="w-full max-w-[260px] bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-sm relative transition-all hover:shadow-md">
+                      
+                      {/* Image Frame */}
+                      <div className="relative aspect-3/4 bg-stone-100 overflow-hidden">
+                        <img
+                          src={formData.image || CATEGORY_FALLBACK_IMAGES['شلوار بگ']}
+                          alt={formData.name || 'مدل جدید'}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+
+                        {/* Badges */}
+                        <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
+                          {formData.isNewArrival && (
+                            <span className="bg-[#18181B] text-[#FAF7F2] text-[9px] font-bold px-2 py-0.5 rounded-md border border-[#D4AF37]/50">
+                              جدید
+                            </span>
+                          )}
+                          {formData.isBestSeller && (
+                            <span className="bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
+                              پرفروش
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Pack Badge */}
+                        <span className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
+                          پک {formData.packSize} عددی
+                        </span>
+
+                        {formData.videoUrl && (
+                          <span className="absolute top-2 left-2 bg-rose-600 text-white p-1 rounded-full shadow-xs">
+                            <Play className="w-2.5 h-2.5 fill-current" />
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-3 text-right">
+                        <div className="flex items-center justify-between text-[10px] text-stone-500 mb-1">
+                          <span>{formData.category}</span>
+                          <span className="font-mono text-stone-400">{formData.sku}</span>
+                        </div>
+
+                        <h4 className="text-xs font-bold text-stone-900 line-clamp-1 mb-1">
+                          {formData.name || `مدل ${formData.category}`}
+                        </h4>
+
+                        <p className="text-[10px] text-stone-500 line-clamp-1 mb-2">
+                          {formData.fabricType} • {formData.sizes}
+                        </p>
+
+                        {/* Price Info */}
+                        <div className="pt-2 border-t border-stone-100">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-[10px] text-stone-500">عمده (هر عدد):</span>
+                            <span className="text-xs font-black text-stone-900">
+                              {formData.baseWholesalePricePerUnit.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+
+                          {formData.allowRetailSale && formData.retailPricePerUnit && (
+                            <div className="flex items-baseline justify-between mt-1 text-[10px] text-amber-800">
+                              <span>تک‌فروشی آنلاین:</span>
+                              <span className="font-bold">
+                                {Number(formData.retailPricePerUnit).toLocaleString('fa-IR')} ت
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-stone-500 text-center mt-3 leading-relaxed">
+                      این مدل به صورت خودکار با فرمت بالا در کاتالوگ آنلاین و سیستم انبارداری «من و تو» قرار می‌گیرد.
+                    </p>
+                  </div>
+                )}
+
+              </div>
+
+              {/* Modal Footer Controls */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-stone-100 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-stone-500">کد اختصاصی:</span>
+                  <span className="font-mono text-xs font-black bg-stone-100 text-stone-800 px-2.5 py-1 rounded-lg border border-stone-200">
+                    {formData.sku}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsNewProductModalOpen(false)}
+                    className="text-xs px-4 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl font-medium transition-colors"
                   >
-                    <option value="شلوار بگ">شلوار بگ</option>
-                    <option value="شلوار راحتی نخی">شلوار راحتی نخی</option>
-                    <option value="جاگر">جاگر</option>
-                    <option value="لگ و ساپورت">لگ و ساپورت</option>
-                    <option value="داکرون اداری/اسپرت">داکرون اداری/اسپرت</option>
-                    <option value="شلوار کارگو">شلوار کارگو</option>
-                    <option value="اسلش اسپرت">اسلش اسپرت</option>
-                    <option value="دامن شلواری">دامن شلواری</option>
-                  </select>
-                </div>
-              </div>
+                    انصراف
+                  </button>
 
-              {/* Source & Pack Size */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">منبع تامین کالا:</label>
-                  <select
-                    value={formData.source}
-                    onChange={(e) => setFormData({ ...formData, source: e.target.value as ProductSource })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200 outline-none"
+                  <button
+                    type="submit"
+                    className="bg-[#18181B] hover:bg-black text-[#FAF7F2] border border-[#D4AF37] px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-98 flex items-center gap-2 cursor-pointer"
                   >
-                    <option value="self_produced">تولید کارگاه خودمان (خرید پارچه و خیاط)</option>
-                    <option value="partner_sourced">خرید همکاری از همکاران بازار</option>
-                  </select>
+                    <CheckCircle className="w-4 h-4 text-[#D4AF37]" />
+                    <span>ثبت نهایی و انتشار در سایت و انبار</span>
+                  </button>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">واحد فروش (پک چندتایی):</label>
-                  <select
-                    value={formData.packSize}
-                    onChange={(e) => setFormData({ ...formData, packSize: Number(e.target.value) as PackSize })}
-                    className="w-full bg-amber-50 text-xs font-bold p-2.5 rounded-xl border border-amber-200 text-amber-900 outline-none"
-                  >
-                    <option value={4}>پک ۴ عددی</option>
-                    <option value={6}>پک ۶ عددی (استاندارد)</option>
-                    <option value={8}>پک ۸ عددی</option>
-                    <option value={12}>پک ۱۲ عددی (جین کامل)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">جنس پارچه:</label>
-                  <input
-                    type="text"
-                    value={formData.fabricType}
-                    onChange={(e) => setFormData({ ...formData, fabricType: e.target.value })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200 outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Cost Calculation Box */}
-              {formData.source === 'self_produced' ? (
-                <div className="p-3.5 bg-stone-100/80 rounded-xl border border-stone-200 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-bold text-stone-800">
-                    <span>فرمول محاسبه بهای تمام شده به ازای هر ۱ عدد:</span>
-                    <span className="text-amber-800 font-black">
-                      بهای تمام‌شده: {calculatedCostPrice.toLocaleString('fa-IR')} تومان
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                    <div>
-                      <span className="text-[11px] text-stone-500 block mb-0.5">هزینه پارچه (هر عدد):</span>
-                      <input
-                        type="number"
-                        value={formData.fabricCost}
-                        onChange={(e) => setFormData({ ...formData, fabricCost: Number(e.target.value) })}
-                        className="w-full bg-white text-xs p-2 rounded-lg border border-stone-200 text-center font-bold"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-stone-500 block mb-0.5">دستمزد خیاط/برش:</span>
-                      <input
-                        type="number"
-                        value={formData.tailoringCost}
-                        onChange={(e) => setFormData({ ...formData, tailoringCost: Number(e.target.value) })}
-                        className="w-full bg-white text-xs p-2 rounded-lg border border-stone-200 text-center font-bold"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-stone-500 block mb-0.5">خرج‌کار (کش، نخ):</span>
-                      <input
-                        type="number"
-                        value={formData.trimsCost}
-                        onChange={(e) => setFormData({ ...formData, trimsCost: Number(e.target.value) })}
-                        className="w-full bg-white text-xs p-2 rounded-lg border border-stone-200 text-center font-bold"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-stone-500 block mb-0.5">بسته‌بندی و اتو:</span>
-                      <input
-                        type="number"
-                        value={formData.finishingCost}
-                        onChange={(e) => setFormData({ ...formData, finishingCost: Number(e.target.value) })}
-                        className="w-full bg-white text-xs p-2 rounded-lg border border-stone-200 text-center font-bold"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 bg-purple-50 rounded-xl border border-purple-200 space-y-2">
-                  <span className="text-xs font-bold text-purple-900 block">اطلاعات خرید از همکار بازار:</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-[11px] text-stone-600 block mb-0.5">قیمت خرید هر عدد از همکار:</span>
-                      <input
-                        type="number"
-                        value={formData.partnerPurchaseCost}
-                        onChange={(e) => setFormData({ ...formData, partnerPurchaseCost: Number(e.target.value) })}
-                        className="w-full bg-white text-xs p-2 rounded-lg border border-purple-200 text-center font-bold"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-stone-600 block mb-0.5">نام همکار / بنکدار:</span>
-                      <input
-                        type="text"
-                        value={formData.partnerSupplierName}
-                        onChange={(e) => setFormData({ ...formData, partnerSupplierName: e.target.value })}
-                        className="w-full bg-white text-xs p-2 rounded-lg border border-purple-200"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Pricing Tiers & Margins */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
-                  <label className="block text-xs font-bold text-stone-800 mb-1">
-                    قیمت فروش عمده عادی (به ازای هر عدد):
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.baseWholesalePricePerUnit}
-                    onChange={(e) => setFormData({ ...formData, baseWholesalePricePerUnit: Number(e.target.value) })}
-                    className="w-full bg-white text-sm font-black p-2 rounded-lg border border-stone-300 text-stone-900"
-                  />
-                  <div className="mt-1.5 flex items-center justify-between text-[11px] text-stone-500">
-                    <span>قیمت کل هر پک {formData.packSize} تایی:</span>
-                    <span className="font-bold text-stone-800">
-                      {calculatedBasePackPrice.toLocaleString('fa-IR')} ت
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[11px] text-emerald-700 font-bold">
-                    حاشیه سود ناخالص: {profitMarginPercent}٪
-                  </div>
-                </div>
-
-                <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
-                  <label className="block text-xs font-bold text-emerald-900 mb-1">
-                    قیمت همکاری هم‌صنف (تخفیف ویژه):
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.colleaguePricePerUnit}
-                    onChange={(e) => setFormData({ ...formData, colleaguePricePerUnit: Number(e.target.value) })}
-                    className="w-full bg-white text-sm font-black p-2 rounded-lg border border-emerald-300 text-emerald-900"
-                  />
-                  <div className="mt-1.5 flex items-center justify-between text-[11px] text-emerald-700">
-                    <span>قیمت کل هر پک همکاری:</span>
-                    <span className="font-bold text-emerald-900">
-                      {calculatedColleaguePackPrice.toLocaleString('fa-IR')} ت
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[11px] text-stone-500">
-                    تفاوت قیمت: {(formData.baseWholesalePricePerUnit - formData.colleaguePricePerUnit).toLocaleString('fa-IR')} تومان به ازای هر عدد
-                  </div>
-                </div>
-              </div>
-
-              {/* Stock Input & Attributes */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">تعداد پک اولیه در انبار:</label>
-                  <input
-                    type="number"
-                    value={formData.packStock}
-                    onChange={(e) => setFormData({ ...formData, packStock: Number(e.target.value) })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">رنگ‌بندی (جدا شده با ویرگول):</label>
-                  <input
-                    type="text"
-                    value={formData.colors}
-                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">سایزبندی:</label>
-                  <input
-                    type="text"
-                    value={formData.sizes}
-                    onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                    className="w-full bg-stone-50 text-xs p-2.5 rounded-xl border border-stone-200"
-                  />
-                </div>
-              </div>
-
-              {/* Image Uploader & Gallery */}
-              <div className="pt-1">
-                <ImageUploader
-                  id="new-product-image-uploader"
-                  label="عکس اصلی مدل و کاتالوگ ژورنالی:"
-                  value={formData.image}
-                  onChange={(url) => setFormData({ ...formData, image: url })}
-                  galleryValues={formData.galleryImages}
-                  onGalleryChange={(imgs) => setFormData({ ...formData, galleryImages: imgs })}
-                  allowGallery={true}
-                  helpText="عکس پوشاک را آپلود کنید یا از بین ژورنال‌های آماده بازار مدل انتخاب کنید."
-                />
-              </div>
-
-              {/* Video Uploader for Storefront showcase */}
-              <div className="pt-1">
-                <VideoUploader
-                  id="new-product-video-uploader"
-                  label="ویدیو معرفی و تنخور ژورنالی (نمایش در ویترین سایت):"
-                  value={formData.videoUrl || ''}
-                  onChange={(vUrl) => setFormData({ ...formData, videoUrl: vUrl })}
-                  videoTitle={formData.videoTitle || ''}
-                  onTitleChange={(title) => setFormData({ ...formData, videoTitle: title })}
-                  helpText="افزودن ویدیو تنخور و تست پارچه، اعتماد خریداران عمده و تکی ویترین سایت را به شدت افزایش می‌دهد."
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-stone-100">
-                <button
-                  type="button"
-                  onClick={() => setIsNewProductModalOpen(false)}
-                  className="text-xs px-4 py-2.5 text-stone-600 hover:bg-stone-100 rounded-xl font-medium"
-                >
-                  انصراف
-                </button>
-                <button
-                  type="submit"
-                  className="text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-colors shadow-xs"
-                >
-                  ثبت در انبار و صدور کد SKU خودکار
-                </button>
               </div>
 
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL 3: View Product Details */}
-      {selectedProductForDetails && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-stone-200">
+      {selectedProductForDetails && typeof document !== 'undefined' && createPortal(
+        <div 
+          id="modal-product-details-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedProductForDetails(null);
+          }}
+          className="fixed inset-0 z-[9999] bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150"
+          dir="rtl"
+        >
+          <div 
+            id="modal-product-details-card"
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-stone-200 my-auto max-h-[90vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
               <div className="flex items-center gap-2">
                 <span className="font-mono bg-stone-100 text-stone-900 font-bold px-2 py-0.5 rounded text-xs">
@@ -1233,7 +1962,13 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                   {selectedProductForDetails.name}
                 </h3>
               </div>
-              <button onClick={() => setSelectedProductForDetails(null)} className="text-stone-400 hover:text-stone-700">✕</button>
+              <button 
+                type="button"
+                onClick={() => setSelectedProductForDetails(null)} 
+                className="text-stone-400 hover:text-stone-700 p-1 cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
 
             <div className="my-4 space-y-3 text-xs">
@@ -1294,20 +2029,35 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
 
             <div className="flex justify-end pt-3 border-t border-stone-100">
               <button
+                type="button"
                 onClick={() => setSelectedProductForDetails(null)}
-                className="text-xs bg-stone-900 text-white font-bold px-4 py-2 rounded-xl"
+                className="text-xs bg-stone-900 text-white font-bold px-4 py-2 rounded-xl cursor-pointer"
               >
                 بستن
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL 4: Full Product Editor (ویرایش مشخصات، قیمت، خرده‌فروشی و موجودی کالا) */}
-      {editingProduct && editForm && (
-        <div className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150 my-8">
+      {editingProduct && editForm && typeof document !== 'undefined' && createPortal(
+        <div 
+          id="modal-product-editor-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingProduct(null);
+              setEditForm(null);
+            }
+          }}
+          className="fixed inset-0 z-[9999] bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150"
+          dir="rtl"
+        >
+          <div 
+            id="modal-product-editor-card"
+            className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150 my-auto max-h-[90vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
               <div className="flex items-center gap-2.5">
                 <span className="p-2 bg-blue-100 text-blue-800 rounded-xl">
@@ -1323,11 +2073,12 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setEditingProduct(null);
                   setEditForm(null);
                 }}
-                className="text-stone-400 hover:text-stone-700 text-lg p-1"
+                className="text-stone-400 hover:text-stone-700 text-lg p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -1521,13 +2272,13 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
               <div className="pt-1">
                 <ImageUploader
                   id="edit-product-image-uploader"
-                  label="تصویر شاخص و کاتالوگ ژورنالی:"
+                  label="تصویر شاخص و کاتالوگ ژورنالی (امکان ویرایش عکس):"
                   value={editForm.image}
-                  onChange={(url) => setEditForm({ ...editForm, image: url })}
+                  onChange={(url) => setEditForm({ ...editForm, image: url || editingProduct.image })}
                   galleryValues={editForm.galleryImages || []}
                   onGalleryChange={(imgs) => setEditForm({ ...editForm, galleryImages: imgs })}
                   allowGallery={true}
-                  helpText="تصویر جدید را از گوشی/سیستم آپلود کنید یا کاتالوگ آماده انتخاب کنید."
+                  helpText="امکان ویرایش عکس در صورت تمایل وجود دارد؛ چنانچه عکس جدیدی وارد نکنید، تصویر فعلی کالا در سایت بدون تغییر حفظ خواهد شد."
                 />
               </div>
 
@@ -1600,7 +2351,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

@@ -77,36 +77,33 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-[#E6DEC8] p-4 sm:p-5 shadow-xs space-y-4" dir="rtl">
+    <div className="bg-white/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#EAE4D9] p-3 sm:p-4 shadow-xs space-y-2.5" dir="rtl">
       
-      {/* Header with Title & Context */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E6DEC8]/60 pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs">
-            <Layers className="w-4 h-4" />
+      {/* Header with Title & Context - Compact & Clean */}
+      <div className="flex items-center justify-between gap-2 border-b border-[#EAE4D9]/80 pb-2.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs shrink-0">
+            <Layers className="w-3.5 h-3.5" />
           </div>
-          <div>
-            <h3 className="font-black text-stone-900 text-sm sm:text-base flex items-center gap-2">
-              <span>انتخاب دسته‌بندی و کالکشن تخصصی</span>
-              <span className="text-[10px] font-bold bg-[#FAF7F2] border border-[#DDD5C0] text-stone-600 px-2 py-0.5 rounded-full">
-                کلیک برای تفکیک سریع
-              </span>
+          <div className="flex items-center gap-2 truncate">
+            <h3 className="font-black text-stone-900 text-xs sm:text-sm">
+              دسته‌بندی مدل‌ها
             </h3>
-            <p className="text-[11px] text-stone-500">
-              با انتخاب هر دسته، محصولات همان رسته با قابلیت فیلتر قیمت و خرید تکی نمایش داده می‌شود
-            </p>
+            <span className="hidden sm:inline-block text-[10px] font-bold bg-[#FAF8F5] border border-[#EAE4D9] text-stone-500 px-2 py-0.5 rounded-full">
+              تفکیک سریع
+            </span>
           </div>
         </div>
 
         {/* Selected Category Pill info */}
-        <div className="text-xs font-bold text-stone-600 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#DDD5C0] self-start sm:self-auto flex items-center gap-1.5">
-          <span>دسته فعال:</span>
+        <div className="text-[11px] font-bold text-stone-600 bg-[#FAF8F5] px-2.5 py-1 rounded-xl border border-[#EAE4D9] shrink-0 flex items-center gap-1.5">
+          <span className="text-stone-400 hidden xs:inline text-[10px]">دسته فعال:</span>
           <span className="text-[#18181B] font-black">{selectedCategory}</span>
         </div>
       </div>
 
-      {/* Interactive Category Grid / Cards */}
-      <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+      {/* Interactive Category Grid / Cards - Compact & Snappy */}
+      <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-2">
         {categories.map((cat) => {
           const isSelected = selectedCategory === cat;
           const config = categoryConfig[cat] || {
@@ -129,72 +126,50 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
               key={cat}
               type="button"
               id={`cat-card-${cat.replace(/\s+/g, '-').replace(/\//g, '-')}`}
+              role="button"
+              aria-pressed={isSelected}
               onClick={() => onSelectCategory(cat)}
-              className={`group relative text-right p-3 rounded-2xl border transition-all flex flex-col justify-between overflow-hidden text-right h-full min-h-[120px] active:scale-[0.98] ${
+              className={`group relative text-right p-2 sm:p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 overflow-hidden active:scale-[0.98] cursor-pointer ${
                 isSelected
-                  ? 'bg-[#18181B] text-[#FAF7F2] border-[#18181B] shadow-md ring-2 ring-[#D4AF37]/40 -translate-y-0.5'
-                  : 'bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] text-stone-800 border-[#E6DEC8] hover:border-[#8C6D37]/50 hover:shadow-xs'
+                  ? 'bg-[#18181B] text-[#FAF7F2] border-[#18181B] shadow-xs ring-1.5 ring-[#D4AF37]/50'
+                  : 'bg-[#FAF8F5]/90 hover:bg-[#FAF8F5] text-stone-800 border-[#EAE4D9] hover:border-[#8C6D37]/40 hover:shadow-2xs'
               }`}
             >
-              {/* Background Accent Subtle Decor */}
-              {isSelected && (
-                <div className="absolute top-0 left-0 w-20 h-20 bg-[#D4AF37]/10 rounded-full blur-xl pointer-events-none -translate-x-6 -translate-y-6" />
-              )}
-
-              {/* Top Row: Thumbnail / Icon & Badge */}
-              <div className="flex items-start justify-between gap-1.5 w-full">
+              <div className="flex items-center gap-2 min-w-0">
                 {sampleImage ? (
-                  <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-black/10 bg-white flex-shrink-0 shadow-2xs">
+                  <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden border border-black/10 bg-white shrink-0 shadow-2xs">
                     <img 
                       src={sampleImage} 
                       alt={cat} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                     />
                   </div>
                 ) : (
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-[#FAF7F2]/20 text-[#D4AF37]' : config.iconBg
                   }`}>
-                    <Tag className="w-4 h-4" />
+                    <Tag className="w-3.5 h-3.5" />
                   </div>
                 )}
 
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md whitespace-nowrap ${
-                  isSelected 
-                    ? 'bg-[#D4AF37] text-[#18181B]' 
-                    : 'bg-white/80 border border-[#DDD5C0] text-stone-600'
-                }`}>
-                  {count} مدل
-                </span>
-              </div>
-
-              {/* Middle: Title & Description */}
-              <div className="mt-2 space-y-0.5 flex-1">
-                <div className="flex items-center gap-1">
-                  <h4 className={`font-black text-xs sm:text-[13px] leading-tight ${
+                <div className="min-w-0">
+                  <span className={`block font-black text-[11px] sm:text-xs truncate leading-tight ${
                     isSelected ? 'text-[#FAF7F2]' : 'text-stone-900 group-hover:text-[#8C6D37]'
                   }`}>
                     {cat}
-                  </h4>
+                  </span>
+                  <span className={`text-[9px] font-bold block truncate leading-tight mt-0.5 ${
+                    isSelected ? 'text-[#D4AF37]' : 'text-stone-500'
+                  }`}>
+                    {count} مدل
+                  </span>
                 </div>
-                <p className={`text-[10px] line-clamp-1 leading-snug ${
-                  isSelected ? 'text-stone-300' : 'text-stone-500'
-                }`}>
-                  {config.description}
-                </p>
               </div>
 
-              {/* Bottom: Interactive Indicator */}
-              <div className="mt-2 pt-1.5 border-t border-black/5 flex items-center justify-between text-[10px] font-bold w-full">
-                <span className={isSelected ? 'text-[#D4AF37]' : 'text-stone-500 group-hover:text-stone-800'}>
-                  {isSelected ? '✓ در حال نمایش' : 'مشاهده اجناس'}
-                </span>
-                <ChevronLeft className={`w-3 h-3 transition-transform ${
-                  isSelected ? 'text-[#D4AF37] -translate-x-0.5' : 'text-stone-400 group-hover:-translate-x-0.5'
-                }`} />
-              </div>
-
+              <ChevronLeft className={`w-3.5 h-3.5 shrink-0 transition-transform ${
+                isSelected ? 'text-[#D4AF37]' : 'text-stone-400 group-hover:-translate-x-0.5'
+              }`} />
             </button>
           );
         })}

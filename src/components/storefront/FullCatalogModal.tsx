@@ -19,9 +19,12 @@ import {
   ChevronDown,
   Layers,
   ArrowUpDown,
-  Tag
+  Tag,
+  Ruler
 } from 'lucide-react';
 import { BRAND_INFO } from '../../data/brandInfo';
+import { WomenSizeGuideModal } from './WomenSizeGuideModal';
+import { FabricCareModal } from './FabricCareModal';
 
 interface FullCatalogModalProps {
   isOpen: boolean;
@@ -54,6 +57,8 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
   const [customColumns, setCustomColumns] = useState<'auto' | '2' | '3' | '4' | '6'>('auto');
   const [addedItemIds, setAddedItemIds] = useState<{ [key: string]: boolean }>({});
   const [selectedColors, setSelectedColors] = useState<{ [key: string]: string }>({});
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [isFabricCareOpen, setIsFabricCareOpen] = useState(false);
 
   // Reset or initialize on open
   useEffect(() => {
@@ -235,8 +240,28 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
             </div>
           </div>
 
-          {/* Left: Cart & Close Buttons */}
-          <div className="flex items-center gap-2">
+          {/* Left: Size Guide, Fabric Care, Cart & Close Buttons */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setIsSizeGuideOpen(true)}
+              className="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 rounded-xl font-bold text-xs flex items-center gap-1 transition-all shadow-2xs cursor-pointer"
+              title="جدول سایزبندی شلوار و پوشاک بانوان"
+            >
+              <Ruler className="w-3.5 h-3.5 text-rose-700" />
+              <span className="hidden md:inline">جدول سایز زنانه</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFabricCareOpen(true)}
+              className="px-2.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl font-bold text-xs flex items-center gap-1 transition-all shadow-2xs cursor-pointer"
+              title="راهنمای بافت پارچه و شستشو"
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-700" />
+              <span className="hidden md:inline">شناسنامه پارچه</span>
+            </button>
+
             <button
               type="button"
               onClick={onOpenCart}
@@ -668,6 +693,18 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
           تماس با واحد فروش: {BRAND_INFO.primaryPhoneDisplay}
         </a>
       </footer>
+
+      {/* Embedded Women Size Guide Modal */}
+      <WomenSizeGuideModal
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+      />
+
+      {/* Embedded Fabric Care Modal */}
+      <FabricCareModal
+        isOpen={isFabricCareOpen}
+        onClose={() => setIsFabricCareOpen(false)}
+      />
 
     </div>
   );

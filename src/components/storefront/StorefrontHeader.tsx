@@ -16,7 +16,8 @@ import {
   X,
   Package,
   Layers,
-  ArrowLeft
+  ArrowLeft,
+  Menu
 } from 'lucide-react';
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
@@ -54,6 +55,7 @@ interface StorefrontHeaderProps {
   products?: Product[];
   onSelectProduct?: (product: Product) => void;
   onScrollToCatalog?: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
@@ -72,7 +74,8 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   onOpenCustomerAuthOrPortal,
   products = [],
   onSelectProduct,
-  onScrollToCatalog
+  onScrollToCatalog,
+  onOpenMobileMenu
 }) => {
   const [isDesktopFocused, setIsDesktopFocused] = useState(false);
   const [isMobileFocused, setIsMobileFocused] = useState(false);
@@ -136,32 +139,31 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   const quickSearchSuggestions = ['شلوار بگ', 'کتان', 'مازراتی', 'کارگو', 'اسلش', 'پنبه سوپر', 'لگ'];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E6DEC8] shadow-xs" dir="rtl">
+    <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE4D9] shadow-[0_2px_10px_rgba(24,24,27,0.03)] w-full max-w-full" dir="rtl">
       
       {/* Top Announcement & Quick Contact Bar */}
-      <div className="bg-[#18181B] text-[#FAF7F2] text-[11px] py-1.5 px-3 sm:px-4 border-b border-stone-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <span className="bg-[#B89B58] text-[#18181B] font-black px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] tracking-wide whitespace-nowrap flex-shrink-0">
+      <div className="bg-[#141416] text-[#FAF8F5] text-[11px] py-1.5 px-2.5 sm:px-4 border-b border-stone-800 w-full overflow-hidden">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-4">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="bg-[#C5A059] text-[#141416] font-black px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] tracking-wide whitespace-nowrap shrink-0">
               تولید و پخش مستقیم
             </span>
-            <span className="text-[#E6DEC8] truncate text-[10px] sm:text-[11px]">
-              پاساژ المهدی ۴، پلاک ۲۴۲ • ارسال عمده و تک به سراسر ایران
+            <span className="text-[#EAE4D9] truncate text-[9.5px] sm:text-[11px]">
+              پاساژ المهدی ۴، پلاک ۲۴۲ • ارسال سراسری
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4 text-stone-300 text-[10px] sm:text-[11px] flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 text-stone-300 text-[10px] sm:text-[11px] shrink-0">
             {/* Quick Telegram */}
             <a
               href={BRAND_INFO.telegramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#D4AF37] hover:text-amber-200 font-bold flex items-center gap-1 transition-colors"
+              className="text-[#D4AF37] hover:text-amber-200 font-bold flex items-center gap-1 transition-colors p-0.5"
               title="کانال تلگرام تولیدی"
             >
               <Send className="w-3 h-3 text-[#D4AF37]" />
-              <span className="hidden md:inline">کانال تلگرام:</span>
-              <span className="font-mono text-[10px]">@tolidopakhsh_manoto</span>
+              <span className="hidden md:inline font-mono text-[10px]">@tolidopakhsh_manoto</span>
             </a>
 
             <span className="text-stone-700 hidden sm:inline">|</span>
@@ -169,12 +171,12 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
             {/* Direct Phone Call */}
             <a
               href={`tel:${BRAND_INFO.primaryPhone}`}
-              className="text-[#FAF7F2] hover:text-[#D4AF37] font-bold flex items-center gap-1.5 transition-all bg-stone-900/80 hover:bg-stone-800 px-2.5 py-0.5 rounded-lg border border-stone-700/60 hover:border-[#D4AF37]/60 group cursor-pointer"
+              className="text-[#FAF7F2] hover:text-[#D4AF37] font-bold flex items-center gap-1 transition-all bg-stone-900/80 hover:bg-stone-800 px-1.5 sm:px-2.5 py-0.5 rounded-lg border border-stone-700/60 hover:border-[#D4AF37]/60 group cursor-pointer"
               title="تماس مستقیم با مدیریت و ثبت سفارش"
             >
-              <Phone className="w-3 h-3 text-[#D4AF37] group-hover:scale-110 transition-transform" />
+              <Phone className="w-3 h-3 text-[#D4AF37] group-hover:scale-110 transition-transform shrink-0" />
               <span className="hidden sm:inline text-stone-400 text-[10px] group-hover:text-stone-300">تماس:</span>
-              <span dir="ltr" className="font-black text-[11px] tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
+              <span dir="ltr" className="hidden sm:inline font-black text-[11px] tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
                 {BRAND_INFO.primaryPhoneDisplay}
               </span>
             </a>
@@ -185,49 +187,72 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
             <button
               type="button"
               onClick={onOpenRoutingModal}
-              className="text-[#D4AF37] hover:text-white font-bold flex items-center gap-1 transition-colors"
+              className="text-[#D4AF37] hover:text-white font-bold flex items-center gap-1 transition-colors p-0.5"
               title="مشاهده لوکیشن در نقشه بازار و مسیریابی"
             >
               <MapPin className="w-3 h-3 text-[#D4AF37]" />
               <span className="hidden md:inline">لوکیشن در بازار</span>
             </button>
 
-            <span className="text-stone-700 hidden xs:inline">|</span>
+            <span className="text-stone-700 hidden sm:inline">|</span>
 
             <button
               type="button"
               id="btn-nav-admin-portal"
               onClick={onSwitchToAdmin}
-              className="text-stone-400 hover:text-white transition-colors flex items-center gap-1 font-bold"
+              className="text-stone-400 hover:text-white transition-colors flex items-center gap-1 font-bold p-0.5"
+              title="پرتال مدیریت ادمین"
             >
               <Lock className="w-3 h-3" />
-              <span className="hidden sm:inline">پرتال مدیریت ادمین</span>
+              <span className="hidden sm:inline">ادمین</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3 w-full">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-4 w-full">
           
-          {/* Logo & Brand Identity */}
-          <div 
-            className="cursor-pointer group flex items-center gap-2 sm:gap-3 flex-shrink-0"
-            onClick={onOpenAboutModal}
-            title="اطلاعات موسسه تولید و پخش من و تو (اسدی)"
-          >
-            <div className="bg-[#FAF7F2] border border-[#E6DEC8] p-1 sm:p-2 rounded-2xl shadow-xs group-hover:border-[#18181B] transition-all">
-              <ManotoLogo size="md" showPersianSub={false} />
-            </div>
+          {/* Mobile Hamburger Menu Trigger & Logo */}
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Hamburger Button for Mobile */}
+            {onOpenMobileMenu && (
+              <button
+                type="button"
+                id="btn-mobile-hamburger-nav"
+                onClick={onOpenMobileMenu}
+                className="md:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white hover:bg-[#FAF8F5] active:bg-[#F3EFE6] text-stone-900 border border-[#EAE4D9] shadow-xs active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
+                aria-label="باز کردن منوی دسترسی سریع موبایل"
+                title="منوی دسترسی سریع و دسته‌بندی‌ها"
+              >
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-[#18181B] hover:text-[#967434] transition-colors" />
+              </button>
+            )}
 
-            <div className="hidden lg:block border-r border-[#E6DEC8] pr-3">
-              <span className="text-xs font-black text-[#18181B] block">
-                تولید و پخش پوشاک من و تو
-              </span>
-              <span className="text-[10px] text-[#8C6D37] font-bold block">
-                مدیریت اسدی • بازار بزرگ تهران
-              </span>
+            {/* Logo & Brand Identity */}
+            <div 
+              className="cursor-pointer group flex items-center gap-2 sm:gap-3 shrink-0"
+              onClick={onOpenAboutModal}
+              title="اطلاعات موسسه تولید و پخش من و تو (اسدی)"
+            >
+              <div className="bg-[#FAF8F5] border border-[#EAE4D9] p-1 sm:p-2 rounded-2xl shadow-xs group-hover:border-[#18181B] transition-all flex items-center justify-center">
+                <div className="sm:hidden">
+                  <ManotoLogo size="sm" showPersianSub={false} />
+                </div>
+                <div className="hidden sm:block">
+                  <ManotoLogo size="md" showPersianSub={false} />
+                </div>
+              </div>
+
+              <div className="hidden lg:block border-r border-[#EAE4D9] pr-3">
+                <span className="text-xs font-black text-[#18181B] block">
+                  تولید و پخش پوشاک من و تو
+                </span>
+                <span className="text-[10px] text-[#967434] font-bold block">
+                  مدیریت اسدی • بازار بزرگ تهران
+                </span>
+              </div>
             </div>
           </div>
 
@@ -249,7 +274,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                   }
                 }}
                 placeholder="جستجوی مدل، پارچه (کتان، مازراتی، پنبه) یا کد کالا..."
-                className="w-full pl-9 pr-10 py-2.5 rounded-2xl bg-white border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/15 focus:border-[#18181B] text-xs text-stone-900 transition-all placeholder:text-stone-400 shadow-xs"
+                className="w-full pl-9 pr-10 py-2.5 rounded-2xl bg-white border border-[#EAE5DC] focus:outline-none focus:ring-2 focus:ring-[#18181B]/15 focus:border-[#18181B] text-xs text-stone-900 transition-all placeholder:text-stone-400 shadow-xs"
               />
               <Search className="w-4 h-4 text-stone-400 absolute right-3.5 top-3 pointer-events-none" />
               
@@ -385,21 +410,21 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             
             {/* AI Assistant Button */}
             <button
               type="button"
               id="btn-header-ai-assistant"
               onClick={onOpenAiAssistant}
-              className="flex items-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 px-2 sm:px-2.5 bg-gradient-to-r from-amber-50 to-[#FAF7F2] hover:from-amber-100 hover:to-amber-50 text-[#18181B] border border-[#D4AF37]/50 rounded-xl text-xs font-bold transition-all shadow-xs group shrink-0"
+              className="flex items-center justify-center gap-1 h-9 sm:h-10 px-2 sm:px-2.5 bg-gradient-to-r from-amber-50 to-[#FAF7F2] hover:from-amber-100 hover:to-amber-50 text-[#18181B] border border-[#D4AF37]/50 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95"
               title="دستیار هوشمند و پاسخ به سوالات پر تکرار"
             >
-              <div className="w-4 h-4 rounded-full bg-[#18181B] text-[#D4AF37] flex items-center justify-center text-[10px]">
-                <Bot className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+              <div className="w-4 h-4 rounded-full bg-[#18181B] text-[#D4AF37] flex items-center justify-center text-[10px] shrink-0">
+                <Bot className="w-3 h-3" />
               </div>
               <span className="font-bold hidden md:inline xl:inline">دستیار هوشمند</span>
-              <span className="bg-[#D4AF37] text-[#18181B] text-[8.5px] sm:text-[9px] font-black px-1.5 py-0.2 rounded-full">
+              <span className="bg-[#D4AF37] text-[#18181B] text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none">
                 AI
               </span>
             </button>
@@ -409,15 +434,15 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-customer-account"
               onClick={onOpenCustomerAuthOrPortal}
-              className={`flex items-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 px-2 sm:px-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 ${
+              className={`flex items-center justify-center h-9 sm:h-10 w-9 sm:w-auto px-0 sm:px-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 active:scale-95 cursor-pointer ${
                 loggedInCustomer
-                  ? 'bg-[#18181B] text-[#FAF7F2] border border-[#3F3F46]'
-                  : 'bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0]'
+                  ? 'bg-[#18181B] text-[#FAF8F5] border border-[#3F3F46]'
+                  : 'bg-white hover:bg-[#FAF8F5] text-stone-900 border border-[#EAE4D9]'
               }`}
-              title={loggedInCustomer ? `حساب کاربری: ${loggedInCustomer.fullName}` : 'ورود یا عضویت خریداران'}
+              title={loggedInCustomer ? `حساب کاربری: ${loggedInCustomer.fullName}` : 'ورود با نام کاربری (شماره همراه) و رمز عبور'}
             >
-              <User className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loggedInCustomer ? 'text-[#D4AF37]' : 'text-[#8C6D37]'}`} />
-              <span className="hidden sm:inline truncate max-w-[80px] lg:max-w-[120px]">
+              <User className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${loggedInCustomer ? 'text-[#D4AF37]' : 'text-[#967434]'}`} />
+              <span className="hidden sm:inline mr-1 truncate max-w-[80px] lg:max-w-[120px]">
                 {loggedInCustomer ? loggedInCustomer.fullName : 'ورود / ثبت‌نام'}
               </span>
             </button>
@@ -427,10 +452,10 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-header-contact"
               onClick={onOpenAboutModal}
-              className="hidden xl:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0] hover:border-[#8C6D37] rounded-xl text-xs font-bold transition-all shadow-xs shrink-0"
+              className="hidden xl:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF8F5] text-stone-900 border border-[#EAE4D9] hover:border-[#967434] rounded-xl text-xs font-bold transition-all shadow-xs shrink-0"
               title="تماس، آدرس مغازه، شناسنامه کارگاه و مسیریابی مستقیم در نشان و بلد"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#8C6D37]" />
+              <MapPin className="w-3.5 h-3.5 text-[#967434]" />
               <span>تماس و آدرس</span>
             </button>
 
@@ -442,7 +467,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               className={`hidden lg:flex items-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 ${
                 isPartnerLoggedIn
                   ? 'bg-emerald-50 text-emerald-900 border border-emerald-300'
-                  : 'bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0]'
+                  : 'bg-white hover:bg-[#FAF8F5] text-stone-900 border border-[#EAE4D9]'
               }`}
             >
               {isPartnerLoggedIn ? (
@@ -452,7 +477,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                 </>
               ) : (
                 <>
-                  <Building2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                  <Building2 className="w-3.5 h-3.5 text-[#967434]" />
                   <span>ورود همکاران</span>
                 </>
               )}
@@ -463,27 +488,38 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               type="button"
               id="btn-header-tracking"
               onClick={onOpenTracking}
-              className="hidden 2xl:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF7F2] text-stone-900 border border-[#DDD5C0] rounded-xl text-xs font-bold transition-colors shadow-xs shrink-0"
+              className="hidden 2xl:flex items-center gap-1.5 py-2 px-3 bg-white hover:bg-[#FAF8F5] text-stone-900 border border-[#EAE4D9] rounded-xl text-xs font-bold transition-colors shadow-xs shrink-0"
               title="پیگیری بارنامه و بیجک باربری"
             >
-              <Truck className="w-3.5 h-3.5 text-[#8C6D37]" />
+              <Truck className="w-3.5 h-3.5 text-[#967434]" />
               <span>پیگیری بیجک</span>
             </button>
 
-            {/* Cart Button */}
+            {/* Quick Direct Call Button for Mobile Shoppers */}
+            <a
+              href={`tel:${BRAND_INFO.primaryPhone}`}
+              className="md:hidden h-9 w-9 rounded-xl bg-[#FAF8F5] hover:bg-amber-50 text-[#967434] border border-[#D4AF37]/40 shadow-xs flex items-center justify-center shrink-0 active:scale-95 transition-all"
+              title="تماس تلفنی با دفتر بازار"
+            >
+              <Phone className="w-3.5 h-3.5" />
+            </a>
+
+            {/* Cart Button (Selected element: #btn-header-cart) */}
             <button
               type="button"
               id="btn-header-cart"
               onClick={onOpenCart}
-              className="relative py-1.5 sm:py-2 px-2.5 sm:px-3.5 bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2] rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 sm:gap-2 shrink-0"
+              className="relative h-9 sm:h-10 px-2.5 sm:px-3.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 active:from-emerald-700 active:to-emerald-800 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-emerald-700/25 hover:shadow-lg border border-emerald-500/40 flex items-center justify-center gap-1.5 shrink-0 active:scale-95 cursor-pointer select-none"
               aria-label={`سبد خرید با ${cartItemsCount} کالا`}
             >
-              <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
-              <span className="hidden xs:inline">سبد خرید</span>
-              {cartItemsCount > 0 && (
-                <span className="w-5 h-5 bg-[#B89B58] text-[#18181B] font-black rounded-full flex items-center justify-center text-[10px] shadow-xs">
+              <ShoppingBag className="w-4 h-4 text-emerald-100 shrink-0" />
+              <span className="hidden sm:inline">سبد خرید</span>
+              {cartItemsCount > 0 ? (
+                <span className="min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 bg-white text-emerald-800 font-black rounded-full flex items-center justify-center text-[10px] shadow-xs shrink-0 font-mono">
                   {cartItemsCount}
                 </span>
+              ) : (
+                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping hidden sm:inline-block shrink-0" />
               )}
             </button>
 
@@ -492,7 +528,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
         </div>
 
         {/* Mobile Search Bar */}
-        <div ref={mobileSearchRef} className="mt-2.5 md:hidden relative">
+        <div ref={mobileSearchRef} className="mt-2 md:hidden relative w-full">
           <div className="relative w-full">
             <input
               type="text"
@@ -509,9 +545,9 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                 }
               }}
               placeholder="جستجوی مدل، پارچه یا کد کالا..."
-              className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-900 shadow-xs"
+              className="w-full pl-9 pr-10 py-2 rounded-xl bg-white border border-[#EAE4D9] focus:outline-none focus:ring-2 focus:ring-[#18181B]/15 focus:border-[#18181B] text-xs text-stone-900 shadow-xs"
             />
-            <Search className="w-4 h-4 text-stone-400 absolute right-3.5 top-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-stone-400 absolute right-3.5 top-2.5 pointer-events-none" />
             
             {searchQuery && (
               <button

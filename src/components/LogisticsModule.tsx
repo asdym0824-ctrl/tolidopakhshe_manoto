@@ -53,7 +53,7 @@ export const LogisticsModule: React.FC<LogisticsModuleProps> = ({ invoices }) =>
       id: 'shp-2',
       invoiceNumber: '۱۴۰۳-۱۴۳',
       customerName: 'خانم دکتر زهرا نوری',
-      storeName: 'بوتیک مانتو و شلوار نوری',
+      storeName: 'پوشاک مانتو و شلوار نوری',
       phone: '09124447812',
       destinationCity: 'مشهد مقدس',
       carrier: 'تیپاکس بازار',

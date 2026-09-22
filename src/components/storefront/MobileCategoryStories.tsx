@@ -1,6 +1,6 @@
 import React from 'react';
 import { Product } from '../../types';
-import { Sparkles, Package, ShoppingBag, Flame, Layers } from 'lucide-react';
+import { Sparkles, Package, ShoppingBag, Flame, Layers, Film, Play, Gift } from 'lucide-react';
 
 interface MobileCategoryStoriesProps {
   categories: string[];
@@ -9,6 +9,10 @@ interface MobileCategoryStoriesProps {
   products: Product[];
   salesModeFilter: 'all' | 'retail_only' | 'wholesale_only';
   onSetSalesModeFilter: (filter: 'all' | 'retail_only' | 'wholesale_only') => void;
+  onToggleVideoOnly?: () => void;
+  isVideoFilterActive?: boolean;
+  onOpenPromoPopup?: () => void;
+  promoTitle?: string;
 }
 
 export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
@@ -18,6 +22,10 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
   products,
   salesModeFilter,
   onSetSalesModeFilter,
+  onToggleVideoOnly,
+  isVideoFilterActive = false,
+  onOpenPromoPopup,
+  promoTitle
 }) => {
   // Find a representative image for each category
   const getCategoryImage = (cat: string) => {
@@ -34,7 +42,7 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border border-[#E6DEC8] shadow-xs space-y-3" dir="rtl">
+    <div className="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border border-[#EAE4D9] shadow-xs space-y-3" dir="rtl">
       
       {/* Top Header with Swipe Hint */}
       <div className="flex items-center justify-between px-1">
@@ -72,6 +80,54 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
             ویترین راسته
           </span>
         </button>
+
+        {/* Special Story: Video Reels / Fit Clips */}
+        {onToggleVideoOnly && (
+          <button
+            type="button"
+            onClick={onToggleVideoOnly}
+            className="flex flex-col items-center gap-1.5 flex-shrink-0 group focus:outline-none"
+          >
+            <div className={`relative p-0.5 rounded-full transition-all duration-200 ${
+              isVideoFilterActive
+                ? 'bg-gradient-to-tr from-purple-600 via-pink-500 to-amber-400 scale-105 shadow-md ring-2 ring-purple-400'
+                : 'bg-gradient-to-tr from-purple-500 to-indigo-500 group-hover:scale-105 shadow-xs'
+            }`}>
+              <div className="w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-stone-900 text-[#FAF7F2] flex flex-col items-center justify-center p-1 border-2 border-white">
+                <Play className="w-5 h-5 text-[#D4AF37] fill-[#D4AF37] ml-0.5" />
+                <span className="text-[9px] font-black text-white">فیلم تنخور</span>
+              </div>
+              <span className="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[8.5px] font-black px-1.5 py-0.2 rounded-full shadow-xs">
+                {isVideoFilterActive ? 'فعال ✓' : 'ریلز'}
+              </span>
+            </div>
+            <span className="text-[11px] font-bold text-stone-800 group-hover:text-purple-700 text-center max-w-[68px] truncate">
+              {isVideoFilterActive ? 'فقط ویدیو' : 'ویدیو تنخور'}
+            </span>
+          </button>
+        )}
+
+        {/* Special Story: Festival Promo Discount */}
+        {onOpenPromoPopup && (
+          <button
+            type="button"
+            onClick={onOpenPromoPopup}
+            className="flex flex-col items-center gap-1.5 flex-shrink-0 group focus:outline-none"
+          >
+            <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-rose-500 via-amber-500 to-yellow-300 group-hover:scale-105 transition-transform duration-200 shadow-xs animate-pulse">
+              <div className="w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 text-white flex flex-col items-center justify-center p-1 border-2 border-white">
+                <Gift className="w-5 h-5 text-yellow-200" />
+                <span className="text-[9px] font-black text-yellow-100">آفر ویژه</span>
+              </div>
+              <span className="absolute -bottom-1 -right-1 bg-black text-[#D4AF37] text-[8.5px] font-black px-1.5 py-0.2 rounded-full shadow-xs">
+                تخفیف
+              </span>
+            </div>
+            <span className="text-[11px] font-bold text-rose-700 group-hover:text-rose-800 text-center max-w-[68px] truncate">
+              {promoTitle ? promoTitle.slice(0, 10) : 'جشنواره'}
+            </span>
+          </button>
+        )}
 
         {/* Categories as Stories */}
         {categories.map((cat) => {

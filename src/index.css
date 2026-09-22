@@ -7,7 +7,34 @@
   
   body {
     font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #F8F6F1;
+    color: #1F1D1A;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
+}
+
+/* ========================================================================= */
+/* 🎨 EYE-COMFORT AMBIENT BACKGROUND & COLOR PSYCHOLOGY FOR ATELIER STORE    */
+/* Subtle warm alabaster, soothing sage, and antique gold textile ambient   */
+/* ========================================================================= */
+
+.bg-atelier-canvas {
+  background-color: #F8F6F1;
+  background-image: 
+    /* Calming sage-mist pool (reduces optic nerve strain) */
+    radial-gradient(ellipse at 92% 18%, rgba(76, 125, 98, 0.045) 0%, transparent 48%),
+    /* Warm antique gold sunlit aura (stimulates confidence and bazaar craftsmanship) */
+    radial-gradient(ellipse at 8% 22%, rgba(212, 175, 55, 0.055) 0%, transparent 45%),
+    /* Soft cashmere glow (creates visual depth and comforting luxury) */
+    radial-gradient(ellipse at 50% 65%, rgba(197, 160, 89, 0.04) 0%, transparent 55%),
+    /* Lower calming eucalyptus breath */
+    radial-gradient(ellipse at 15% 85%, rgba(110, 148, 128, 0.035) 0%, transparent 50%),
+    /* Whisper-soft woven micro-linen texture (tactile fabric impression, glare-free) */
+    radial-gradient(circle at 1px 1px, rgba(40, 35, 30, 0.032) 1px, transparent 0);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 26px 26px;
+  background-attachment: fixed;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -21,18 +48,182 @@
   scrollbar-width: none;  /* Firefox */
 }
 
-/* Custom smooth scrollbar for desktop elements */
+/* Custom smooth scrollbar for desktop elements with warm sand tones */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f5f5f4;
+  background: #F4EFE6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
+  background: #D9D2C3;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
+  background: #BDB4A1;
 }
+
+/* ========================================================================= */
+/* 🏛️ ADMIN PANEL PROFESSIONAL DUAL-DEVICE TYPOGRAPHY ENGINE (PHONE & LAPTOP) */
+/* Strictly scoped ONLY to the Admin Panel as requested by the user         */
+/* ========================================================================= */
+
+.admin-panel {
+  /* 1. Bulletproof Persian Typography Font Stack with native OS fallbacks */
+  font-family: 'Vazirmatn', 'Vazir', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', 'Tahoma', sans-serif !important;
+  
+  /* 2. Razor-sharp text rendering across Mobile (iOS/Android) & Laptop (Windows/Mac/Linux) */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  
+  /* 3. Balanced Persian line-height to prevent letter-dot (نقاط) clipping */
+  line-height: 1.6;
+  letter-spacing: 0 !important;
+
+  /* 4. Subtle interactive scaling and elevation animation */
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+}
+
+.admin-panel:hover {
+  transform: scale(1.005);
+  box-shadow: 0 20px 40px -15px rgba(24, 24, 27, 0.08), 0 0 25px 0 rgba(212, 175, 55, 0.05);
+}
+
+/* Ensure all nested text elements inside admin panel inherit the proper Persian font */
+.admin-panel :where(h1, h2, h3, h4, h5, h6, p, span, a, button, input, select, textarea, label, table, th, td, div) {
+  font-family: 'Vazirmatn', 'Vazir', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', 'Tahoma', sans-serif;
+  letter-spacing: 0;
+}
+
+/* Persian headings inside admin panel: compact, crisp, and no dot-clipping */
+.admin-panel :where(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.35;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+/* Numbers in tables, balances, invoices, stock & checks: Tabular numbers */
+.admin-panel :where(table, [data-num], .tabular-nums, .font-mono) {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+/* Prevent text wrapping inside buttons, badges & table headers for clean layouts */
+.admin-panel :where(button, .badge, th) {
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------------- */
+/* 📱 SMARTPHONE / MOBILE OPTIMIZATIONS (Screen width < 640px)                */
+/* Solves unreadable tiny text, awkward button breaks, and iOS zoom glitch   */
+/* ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* Prevent iOS Safari 16px auto-zoom bug on input focus */
+  .admin-panel input:not([type="checkbox"]):not([type="radio"]),
+  .admin-panel select,
+  .admin-panel textarea {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Minimum legible font-size floor on phones: boost 9px/9.5px/10px to 11px */
+  .admin-panel .text-\[9px\],
+  .admin-panel .text-\[9\.5px\],
+  .admin-panel .text-\[10px\] {
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    font-weight: 600;
+  }
+
+  .admin-panel .text-\[10\.5px\],
+  .admin-panel .text-\[11px\] {
+    font-size: 11.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Slightly boost font weights on mobile for outdoor/bazaar sunlight readability */
+  .admin-panel button {
+    font-weight: 700;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* 💻 LAPTOP / DESKTOP OPTIMIZATIONS (Screen width >= 641px)                 */
+/* Ultra-crisp high-DPI rendering, balanced contrast, and table readability   */
+/* ------------------------------------------------------------------------- */
+@media (min-width: 641px) {
+  .admin-panel {
+    font-size: 13.5px;
+  }
+
+  .admin-panel th {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .admin-panel td {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+/* ========================================================================= */
+/* 👗 FLOATING GARMENT & MAISON APPAREL ANIMATIONS (شناور و ریز در پس‌زمینه)   */
+/* ========================================================================= */
+
+@keyframes garment-float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(5deg);
+  }
+}
+
+@keyframes garment-float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(14px) rotate(-6deg);
+  }
+}
+
+@keyframes garment-drift {
+  0%, 100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  50% {
+    transform: translate(10px, -12px) rotate(3deg);
+  }
+}
+
+@keyframes garment-sway {
+  0%, 100% {
+    transform: translateY(0px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
+.animate-garment-float-1 {
+  animation: garment-float-slow 7s ease-in-out infinite;
+}
+
+.animate-garment-float-2 {
+  animation: garment-float-reverse 9s ease-in-out infinite;
+}
+
+.animate-garment-float-3 {
+  animation: garment-drift 11s ease-in-out infinite;
+}
+
+.animate-garment-float-4 {
+  animation: garment-sway 8.5s ease-in-out infinite;
+}
+

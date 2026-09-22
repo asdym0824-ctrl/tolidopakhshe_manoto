@@ -20,6 +20,7 @@ import {
   Store,
   Crown,
   ChevronLeft,
+  Package,
   PackageCheck,
   Plus,
   Trash2,
@@ -43,10 +44,12 @@ import {
   StorefrontBannerPosition, 
   StorefrontBannerAction, 
   StorefrontBannerStyle, 
-  StorefrontBannerIcon 
+  StorefrontBannerIcon,
+  OccasionPromoPopupConfig
 } from '../types';
 import { StorefrontMidGridBanner } from './storefront/StorefrontMidGridBanner';
-import { DEFAULT_STOREFRONT_BANNERS } from '../App';
+import { DEFAULT_STOREFRONT_BANNERS, DEFAULT_PROMO_POPUP } from '../App';
+import { OccasionPromoPopupModal } from './storefront/OccasionPromoPopupModal';
 
 interface StorefrontModuleProps {
   products: Product[];
@@ -65,15 +68,17 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
   orders,
   onOpenLiveStorefront,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'mid_grid_banners' | 'registered_customers' | 'pricing_policy'>('site_info');
+  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'promo_popup' | 'mid_grid_banners' | 'registered_customers' | 'pricing_policy'>('site_info');
   
   // Local form for site settings
   const [formData, setFormData] = useState<SiteSettings>(() => ({
     ...siteSettings,
     midGridBanners: siteSettings.midGridBanners || DEFAULT_STOREFRONT_BANNERS,
+    promoPopup: siteSettings.promoPopup || DEFAULT_PROMO_POPUP,
   }));
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [previewPopupOpen, setPreviewPopupOpen] = useState(false);
 
   // Selected customer for viewing history
   const [selectedUserForHistory, setSelectedUserForHistory] = useState<CustomerUser | null>(null);
@@ -83,6 +88,19 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
     onUpdateSiteSettings(formData);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  const handleUpdatePromoPopup = (updates: Partial<OccasionPromoPopupConfig>) => {
+    const current = formData.promoPopup || DEFAULT_PROMO_POPUP;
+    const updatedPromo: OccasionPromoPopupConfig = {
+      ...current,
+      ...updates,
+    };
+    const updatedSettings = {
+      ...formData,
+      promoPopup: updatedPromo,
+    };
+    setFormData(updatedSettings);
   };
 
   // Banner CRUD Operations
@@ -210,6 +228,20 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveSubTab('promo_popup')}
+            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+              activeSubTab === 'promo_popup'
+                ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Flame className="w-4 h-4 text-[#D4AF37]" />
+            <span>
+              پاپ‌آپ تخفیف مناسبتی {formData.promoPopup?.isActive ? '✨ (فعال)' : '(غیرفعال)'}
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveSubTab('mid_grid_banners')}
             className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
               activeSubTab === 'mid_grid_banners'
@@ -252,6 +284,444 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-xl flex items-center gap-2 text-xs font-bold animate-in fade-in">
           <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>تغییرات با موفقیت ذخیره شد و در ویترین آنلاین اعمال گردید!</span>
+        </div>
+      )}
+
+      {/* TAB: Occasion Promo Popup Management */}
+      {activeSubTab === 'promo_popup' && (
+        <div className="space-y-6">
+          {/* Header Action Bar */}
+          <div className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#8C6D37] via-[#D4AF37] to-[#F5E6A3] text-[#18181B] flex items-center justify-center font-black">
+                  <Flame className="w-4 h-4 fill-[#18181B]" />
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-[#18181B]">
+                  پاپ‌آپ تخفیف مناسبتی لندینگ (جنس خاص با آفر ویژه)
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500 mt-1">
+                این پاپ‌آپ بلافاصله پس از ورود خریدار یا همکار به صفحه اول، روی شلوار یا جنس انتخابی شما تخفیف چشمگیر اعمال کرده و شمارش معکوس نشان می‌دهد.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setPreviewPopupOpen(true)}
+                className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border border-stone-300"
+              >
+                <Eye className="w-4 h-4 text-[#8C6D37]" />
+                <span>پیش‌نمایش زنده پاپ‌آپ</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleUpdatePromoPopup({ isActive: !formData.promoPopup?.isActive });
+                  handleSaveSettings();
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                  formData.promoPopup?.isActive
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-stone-200 hover:bg-stone-300 text-stone-700'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${formData.promoPopup?.isActive ? 'bg-white animate-ping' : 'bg-stone-400'}`} />
+                <span>{formData.promoPopup?.isActive ? 'پاپ‌آپ در سایت فعال است' : 'پاپ‌آپ غیرفعال است'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveSettings()}
+                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-xs"
+              >
+                <Save className="w-4 h-4 text-[#D4AF37]" />
+                <span>ذخیره تنظیمات</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="bg-gradient-to-r from-[#FAF7F2] to-white p-4 rounded-2xl border border-[#DDD5C0] space-y-2">
+            <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>قالب‌های آماده و مناسبتی (انتخاب سریع با یک کلیک):</span>
+            </span>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleUpdatePromoPopup({
+                    occasionTitle: 'جشنواره تخفیف ویژه عید نوروز و سال نو',
+                    subtitle: 'تخفیف استثنایی کارگاه اسدی روی مدل‌های نوبرانه بهاره بازار',
+                    badgeText: '🌸 آفر عیدانه',
+                    discountPercent: 30,
+                    couponCode: 'NOWRUZ1404',
+                    urgencyNote: 'ظرفیت سهمیه حراج عیدانه فقط تا پایان هفته معتبر است',
+                    countdownHours: 72,
+                    remainingStock: 18,
+                  });
+                }}
+                className="p-2.5 text-right bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 rounded-xl transition-all group shadow-2xs"
+              >
+                <div className="text-xs font-black text-stone-800 group-hover:text-amber-900">🌸 جشنواره نوروز</div>
+                <div className="text-[10px] text-stone-500">۳۰٪ تخفیف + کد NOWRUZ</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleUpdatePromoPopup({
+                    occasionTitle: 'جشنواره حراج بزرگ آخر فصل تابستانه',
+                    subtitle: 'کف قیمت بازار بزرگ تهران روی شلوارهای خنک کتان و بگ',
+                    badgeText: '☀️ حراج تابستانه',
+                    discountPercent: 25,
+                    couponCode: 'SUMMER-OFF',
+                    urgencyNote: 'فقط تا تخلیه کامل انبار کارگاه تولیدی با این نرخ عرضه می‌شود',
+                    countdownHours: 48,
+                    remainingStock: 12,
+                  });
+                }}
+                className="p-2.5 text-right bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 rounded-xl transition-all group shadow-2xs"
+              >
+                <div className="text-xs font-black text-stone-800 group-hover:text-amber-900">☀️ حراج تابستانه</div>
+                <div className="text-[10px] text-stone-500">۲۵٪ تخفیف + SUMMER-OFF</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleUpdatePromoPopup({
+                    occasionTitle: 'جشنواره تخفیف اعیاد بازار بزرگ تهران',
+                    subtitle: 'آفر اختصاصی کارگاه تولیدی من و تو برای بنکداران و همکاران سراسر کشور',
+                    badgeText: '✨ هدیه اعیاد',
+                    discountPercent: 20,
+                    couponCode: 'EID-OFFER',
+                    urgencyNote: 'تعداد بسته‌های تخفیف‌دار این مدل رو به اتمام است',
+                    countdownHours: 36,
+                    remainingStock: 15,
+                  });
+                }}
+                className="p-2.5 text-right bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 rounded-xl transition-all group shadow-2xs"
+              >
+                <div className="text-xs font-black text-stone-800 group-hover:text-amber-900">✨ تخفیف اعیاد</div>
+                <div className="text-[10px] text-stone-500">۲۰٪ تخفیف + EID-OFFER</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleUpdatePromoPopup({
+                    occasionTitle: 'جشنواره بلک فرایدی (جمعه سیاه) پوشاک من و تو',
+                    subtitle: 'بزرگترین تخفیف سال کارگاه روی تمام تیراژهای عمده و تک',
+                    badgeText: '🖤 بلک فرایدی',
+                    discountPercent: 35,
+                    couponCode: 'BLACK-FRIDAY',
+                    urgencyNote: 'آفر آتشین کارگاه اسدی فقط برای سفارش‌های ۲۴ ساعت آینده',
+                    countdownHours: 24,
+                    remainingStock: 9,
+                  });
+                }}
+                className="p-2.5 text-right bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 rounded-xl transition-all group shadow-2xs"
+              >
+                <div className="text-xs font-black text-stone-800 group-hover:text-amber-900">🖤 بلک فرایدی</div>
+                <div className="text-[10px] text-stone-500">۳۵٪ تخفیف + BLACK-FRIDAY</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Detailed Config Form */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Left 2 Cols: Form Inputs */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-5 text-xs">
+              
+              {/* Target Product Selection */}
+              <div>
+                <label className="block font-black text-stone-800 mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-[#8C6D37]" />
+                    <span>انتخاب جنس و محصول خاص برای تخفیف جشنواره:</span>
+                  </span>
+                  <span className="text-[11px] text-amber-700 font-bold">
+                    ({products.length} محصول موجود در کاتالوگ)
+                  </span>
+                </label>
+
+                <select
+                  value={formData.promoPopup?.targetProductId || products[0]?.id}
+                  onChange={(e) => handleUpdatePromoPopup({ targetProductId: e.target.value })}
+                  className="w-full bg-[#FAF7F2] text-xs p-3 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                >
+                  {products.map((prod) => (
+                    <option key={prod.id} value={prod.id}>
+                      {prod.name} ({prod.code}) — تک: {(prod.retailPriceToman || (prod.wholesalePackPriceToman / prod.packQuantity)).toLocaleString('fa-IR')} ت | پک {prod.packQuantity}تایی: {prod.wholesalePackPriceToman.toLocaleString('fa-IR')} ت
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-stone-500 mt-1">
+                  عکس، نام، کد و هر دو قیمت تک‌فروشی و پک عمده به همراه درصد تخفیف ویژه به طور خودکار در پاپ‌آپ محاسبه می‌گردد.
+                </p>
+              </div>
+
+              {/* Title & Badge */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">تیتر مناسبت / جشنواره:</label>
+                  <input
+                    type="text"
+                    value={formData.promoPopup?.occasionTitle || ''}
+                    onChange={(e) => handleUpdatePromoPopup({ occasionTitle: e.target.value })}
+                    placeholder="مثال: جشنواره حراج ویژه عید نوروز"
+                    className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">متن نشان / لیبل حراج (Badge):</label>
+                  <input
+                    type="text"
+                    value={formData.promoPopup?.badgeText || ''}
+                    onChange={(e) => handleUpdatePromoPopup({ badgeText: e.target.value })}
+                    placeholder="مثال: 🌸 آفر عیدانه"
+                    className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Subtitle */}
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">زیرعنوان و ارزش پیشنهادی جشنواره:</label>
+                <input
+                  type="text"
+                  value={formData.promoPopup?.subtitle || ''}
+                  onChange={(e) => handleUpdatePromoPopup({ subtitle: e.target.value })}
+                  placeholder="مثال: تخفیف مستقیم کارگاه تولیدی اسدی روی پرفروش‌ترین شلوار راسته"
+                  className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] focus:bg-white focus:border-[#18181B] outline-none"
+                />
+              </div>
+
+              {/* Discount Percentage & Coupon */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#DDD5C0]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-bold text-stone-800">درصد تخفیف مناسبتی:</label>
+                    <span className="text-base font-black text-rose-600 font-mono">
+                      %{formData.promoPopup?.discountPercent || 25}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="60"
+                    step="5"
+                    value={formData.promoPopup?.discountPercent || 25}
+                    onChange={(e) => handleUpdatePromoPopup({ discountPercent: Number(e.target.value) })}
+                    className="w-full accent-rose-600 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-stone-400 mt-1 font-mono">
+                    <span>5%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                  </div>
+                </div>
+
+                <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#DDD5C0]">
+                  <label className="block font-bold text-stone-800 mb-1">کد کوپن اختصاصی (اختیاری):</label>
+                  <input
+                    type="text"
+                    value={formData.promoPopup?.couponCode || ''}
+                    onChange={(e) => handleUpdatePromoPopup({ couponCode: e.target.value.toUpperCase() })}
+                    placeholder="مثال: MANOTO-EID"
+                    className="w-full bg-white text-xs p-2 rounded-xl border border-[#DDD5C0] font-mono font-black text-[#18181B] focus:border-[#18181B] outline-none"
+                  />
+                  <p className="text-[10px] text-stone-500 mt-1">
+                    در صورت ثبت، دکمه کپی کد کوپن در پاپ‌آپ فعال می‌شود.
+                  </p>
+                </div>
+              </div>
+
+              {/* Urgency, Countdown, and Stock */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">مدت زمان جشنواره (ساعت):</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="240"
+                    value={formData.promoPopup?.countdownHours || 48}
+                    onChange={(e) => handleUpdatePromoPopup({ countdownHours: Number(e.target.value) })}
+                    className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-mono font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">موجودی باقی‌مانده (حس فوریت):</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    value={formData.promoPopup?.remainingStock || 14}
+                    onChange={(e) => handleUpdatePromoPopup({ remainingStock: Number(e.target.value) })}
+                    className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-mono font-bold focus:bg-white focus:border-[#18181B] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">متن فوریت و هشدار موجودی:</label>
+                  <input
+                    type="text"
+                    value={formData.promoPopup?.urgencyNote || ''}
+                    onChange={(e) => handleUpdatePromoPopup({ urgencyNote: e.target.value })}
+                    placeholder="فقط تا پایان موجودی کارگاه"
+                    className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] focus:bg-white focus:border-[#18181B] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Custom Poster Image with Fallback to Site Default */}
+              <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#DDD5C0] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-stone-800 flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-[#8C6D37]" />
+                    <span>تصویر یا بنر پوستر اختصاصی پاپ‌آپ (اختیاری):</span>
+                  </label>
+                  {formData.promoPopup?.customBannerImage && (
+                    <button
+                      type="button"
+                      onClick={() => handleUpdatePromoPopup({ customBannerImage: '' })}
+                      className="text-[11px] text-rose-600 hover:underline font-bold flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>بازگشت به عکس پیش‌فرض سایت</span>
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={formData.promoPopup?.customBannerImage || ''}
+                  onChange={(e) => handleUpdatePromoPopup({ customBannerImage: e.target.value })}
+                  placeholder="آدرس اینترنتی (URL) عکس جدید یا خالی بگذارید"
+                  dir="ltr"
+                  className="w-full bg-white text-xs p-2.5 rounded-xl border border-[#DDD5C0] focus:border-[#18181B] outline-none text-left font-mono"
+                />
+                <p className="text-[10px] text-stone-500 leading-relaxed">
+                  💡 چنانچه کاربر یا مدیر عکسی وارد نکند یا این کادر خالی باشد، تصویر اصلی و پیش‌فرض فعلی سایت به عنوان پوستر باقی می‌ماند.
+                </p>
+              </div>
+
+              {/* Behavior Settings */}
+              <div className="pt-2 border-t border-stone-200 flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.promoPopup?.showOncePerSession ?? true}
+                    onChange={(e) => handleUpdatePromoPopup({ showOncePerSession: e.target.checked })}
+                    className="w-4 h-4 rounded-md accent-[#18181B] text-[#D4AF37]"
+                  />
+                  <span className="font-bold text-stone-800">
+                    نمایش حداکثر یک‌بار در هر نشست (Show Once Per Session)
+                  </span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => handleSaveSettings()}
+                  className="px-5 py-2 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-800 rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                >
+                  <Save className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>ذخیره کلیه تنظیمات پاپ‌آپ</span>
+                </button>
+              </div>
+
+            </div>
+
+            {/* Right 1 Col: Visual Preview of the Promo Product Card */}
+            <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#DDD5C0] space-y-4 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-black text-stone-800 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-rose-600" />
+                  <span>پیش‌نمایش جنس انتخاب‌شده</span>
+                </span>
+                <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {formData.promoPopup?.discountPercent || 25}٪ تخفیف
+                </span>
+              </div>
+
+              {(() => {
+                const targetId = formData.promoPopup?.targetProductId;
+                const p = products.find(prod => prod.id === targetId) || products[0];
+                if (!p) return null;
+                const discount = formData.promoPopup?.discountPercent || 25;
+                const retailBase = p.retailPriceToman || Math.round(p.wholesalePackPriceToman / p.packQuantity);
+                const retailDiscounted = Math.round(retailBase * (1 - discount / 100));
+                const wholesaleDiscounted = Math.round(p.wholesalePackPriceToman * (1 - discount / 100));
+
+                return (
+                  <div className="bg-white rounded-2xl overflow-hidden border border-[#DDD5C0] shadow-xs space-y-3">
+                    <div className="relative aspect-4/3 bg-stone-100 overflow-hidden">
+                      <img
+                        src={p.images?.[0] || 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80'}
+                        alt={p.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-2 right-2 bg-[#18181B]/90 backdrop-blur-md text-[#D4AF37] text-[10px] font-black px-2 py-0.5 rounded-md border border-[#D4AF37]/30">
+                        {formData.promoPopup?.badgeText || 'آفر مناسبتی'}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 space-y-2.5">
+                      <div>
+                        <div className="font-black text-stone-900 text-sm">{p.name}</div>
+                        <div className="text-[10px] text-stone-500 font-mono">کد کالا: {p.code} • جنس: {p.fabric}</div>
+                      </div>
+
+                      <div className="space-y-1.5 bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8]">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-stone-600">نرخ تک‌فروشی با تخفیف:</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="line-through text-stone-400 text-[10px]">
+                              {retailBase.toLocaleString('fa-IR')}
+                            </span>
+                            <span className="font-black text-rose-600">
+                              {retailDiscounted.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-stone-600">نرخ پک عمده ({p.packQuantity}تایی):</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="line-through text-stone-400 text-[10px]">
+                              {p.wholesalePackPriceToman.toLocaleString('fa-IR')}
+                            </span>
+                            <span className="font-black text-emerald-700">
+                              {wholesaleDiscounted.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setPreviewPopupOpen(true)}
+                        className="w-full py-2 bg-gradient-to-r from-[#8C6D37] via-[#D4AF37] to-[#F5E6A3] text-[#18181B] rounded-xl font-black text-xs hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>مشاهده دقیق پنجره پاپ‌آپ</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+            </div>
+
+          </div>
+
         </div>
       )}
 
@@ -464,7 +934,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                             value={banner.badgeText || ''}
                             onChange={(e) => handleUpdateBannerField(banner.id, { badgeText: e.target.value })}
                             className="w-full bg-[#FAF7F2] text-xs p-2.5 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
-                            placeholder="مثال: ✨ ویژه بنکداران و بوتیک‌داران"
+                            placeholder="مثال: ✨ ویژه بنکداران و همکاران سراسر کشور"
                           />
                         </div>
                       </div>
@@ -1016,6 +1486,16 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
           </div>
         </div>
       )}
+
+      {/* Admin Live Preview of Occasion Promo Popup */}
+      <OccasionPromoPopupModal
+        isOpen={previewPopupOpen}
+        onClose={() => setPreviewPopupOpen(false)}
+        config={formData.promoPopup}
+        product={products.find(p => p.id === formData.promoPopup?.targetProductId) || products[0]}
+        onAddToCart={() => {}}
+        onOpenCart={() => {}}
+      />
 
     </div>
   );

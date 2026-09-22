@@ -29,9 +29,20 @@ export const WholesalePartnerModal: React.FC<WholesalePartnerModalProps> = ({
 
   const [partnerPhone, setPartnerPhone] = useState('09121114589');
   const [partnerName, setPartnerName] = useState('حاج داوود محمدی (بنکداری اصفهان)');
+  const [partnerError, setPartnerError] = useState<string | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setPartnerError(null);
+    const cleanPhone = partnerPhone.replace(/[^0-9]/g, '');
+    if (cleanPhone.length !== 11 || !cleanPhone.startsWith('09')) {
+      setPartnerError('لطفاً یک شماره موبایل معتبر ۱۱ رقمی همکار (با پیش‌شماره ۰۹) وارد نمایید.');
+      return;
+    }
+    if (!partnerName.trim() || partnerName.trim().length < 3) {
+      setPartnerError('لطفاً نام فروشگاه یا بنکداری را به صورت کامل وارد فرمایید.');
+      return;
+    }
     onToggleLogin(true);
     onClose();
   };
@@ -127,9 +138,14 @@ export const WholesalePartnerModal: React.FC<WholesalePartnerModalProps> = ({
 
               {/* Quick Partner Login Form */}
               <form onSubmit={handleLogin} className="space-y-4">
+                {partnerError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+                    {partnerError}
+                  </div>
+                )}
                 <div>
                   <label className="text-xs font-bold text-stone-700 block mb-1">
-                    شماره موبایل همکار / صاحب بوتیک:
+                    شماره موبایل همکار / مدیریت فروشگاه:
                   </label>
                   <input
                     type="tel"

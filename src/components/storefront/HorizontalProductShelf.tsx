@@ -131,7 +131,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
     >
       
       {/* Header Section with Mobile Ergonomics */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#E6DEC8]/60 pb-3">
+      <div className="flex items-center justify-between gap-2 border-b border-[#EAE4D9] pb-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs shrink-0">
             <Icon className="w-4 h-4" />
@@ -167,7 +167,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
             <button
               type="button"
               onClick={onViewAll}
-              className="text-xs font-bold text-stone-700 hover:text-[#8C6D37] active:scale-95 transition-all flex items-center gap-1 bg-[#FAF7F2] hover:bg-white border border-[#DDD5C0] px-2.5 py-1.5 rounded-xl shadow-2xs"
+              className="text-xs font-bold text-stone-700 hover:text-[#8C6D37] active:scale-95 transition-all flex items-center gap-1 bg-[#FAF8F5] hover:bg-white border border-[#EAE4D9] px-2.5 py-1.5 rounded-xl shadow-2xs"
             >
               <span>مشاهده همه ({products.length})</span>
               <ArrowLeft className="w-3 h-3 text-[#8C6D37]" />
@@ -180,9 +180,9 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
               type="button"
               onClick={() => handleScroll('prev')}
               disabled={!canScrollRight}
-              className={`p-2 rounded-xl border border-[#DDD5C0] transition-all shadow-2xs active:scale-95 ${
+              className={`p-2 rounded-xl border border-[#EAE4D9] transition-all shadow-2xs active:scale-95 ${
                 canScrollRight 
-                  ? 'bg-white hover:bg-[#FAF7F2] text-stone-800' 
+                  ? 'bg-white hover:bg-[#FAF8F5] text-stone-800' 
                   : 'bg-stone-100 text-stone-400 opacity-50 cursor-not-allowed'
               }`}
               title="مشاهده موارد قبلی"
@@ -193,9 +193,9 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
               type="button"
               onClick={() => handleScroll('next')}
               disabled={!canScrollLeft}
-              className={`p-2 rounded-xl border border-[#DDD5C0] transition-all shadow-2xs active:scale-95 ${
+              className={`p-2 rounded-xl border border-[#EAE4D9] transition-all shadow-2xs active:scale-95 ${
                 canScrollLeft 
-                  ? 'bg-white hover:bg-[#FAF7F2] text-stone-800' 
+                  ? 'bg-white hover:bg-[#FAF8F5] text-stone-800' 
                   : 'bg-stone-100 text-stone-400 opacity-50 cursor-not-allowed'
               }`}
               title="مشاهده موارد بعدی"
@@ -229,11 +229,11 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
               <div
                 key={product.id}
                 id={`swipe-card-${product.id}`}
-                className="w-[168px] xs:w-[190px] sm:w-[230px] md:w-[260px] shrink-0 snap-start bg-white rounded-2xl border border-[#E6DEC8] hover:border-[#18181B] shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden group select-none relative"
+                className="w-[168px] xs:w-[190px] sm:w-[230px] md:w-[260px] shrink-0 snap-start bg-white rounded-2xl border border-[#EAE4D9] hover:border-[#18181B] shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden group select-none relative"
               >
                 {/* Image Section - Compact and Crisp */}
                 <div
-                  className="relative aspect-square w-full bg-[#F5EFEB] overflow-hidden cursor-pointer active:opacity-95"
+                  className="relative aspect-square w-full bg-[#F6F3EC] overflow-hidden cursor-pointer active:opacity-95"
                   onClick={() => onOpenDetail(product)}
                 >
                   <img
@@ -274,11 +274,11 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
 
                   {/* Fabric Type & Rating Bottom Overlay */}
                   <div className="absolute bottom-1.5 right-1.5 left-1.5 flex items-center justify-between pointer-events-none z-10">
-                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md shadow-2xs truncate max-w-[70%] border border-[#E6DEC8]/80">
+                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md shadow-2xs truncate max-w-[70%] border border-[#EAE4D9]/80">
                       {product.fabricType}
                     </span>
                     {product.rating && (
-                      <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8.5px] sm:text-[9.5px] font-bold px-1.5 py-0.5 rounded-md shadow-2xs flex items-center gap-0.5 border border-[#E6DEC8]/80">
+                      <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8.5px] sm:text-[9.5px] font-bold px-1.5 py-0.5 rounded-md shadow-2xs flex items-center gap-0.5 border border-[#EAE4D9]/80">
                         <Star className="w-2 h-2 fill-[#D4AF37] text-[#D4AF37]" />
                         {product.rating}
                       </span>
@@ -287,7 +287,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
 
                   {/* Quick View Hover overlay (Desktop) */}
                   <div className="absolute inset-0 bg-stone-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none hidden sm:flex">
-                    <span className="bg-white/95 text-[#18181B] px-2.5 py-1 rounded-lg font-black text-[11px] shadow-md flex items-center gap-1 border border-[#E6DEC8]">
+                    <span className="bg-white/95 text-[#18181B] px-2.5 py-1 rounded-lg font-black text-[11px] shadow-md flex items-center gap-1 border border-[#EAE4D9]">
                       <Eye className="w-3 h-3 text-[#8C6D37]" />
                       جزئیات
                     </span>
@@ -323,7 +323,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                   </div>
 
                   {/* Pricing Box - Streamlined */}
-                  <div className="bg-[#FAF7F2] rounded-xl p-2 border border-[#E6DEC8] space-y-1">
+                  <div className="bg-[#FAF8F5] rounded-xl p-2 border border-[#EAE4D9] space-y-1">
                     {/* Retail / Wholesale Mini Toggle if available */}
                     {isRetailAvailable && (
                       <div className="flex items-center bg-[#ECE4D5] p-0.5 rounded-md text-[8.5px] font-black">
@@ -368,7 +368,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                             <span className="text-[8px] font-normal text-stone-500">ت</span>
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-[8.5px] text-stone-600 pt-0.5 border-t border-[#E6DEC8]/50">
+                        <div className="flex items-center justify-between text-[8.5px] text-stone-600 pt-0.5 border-t border-[#EAE4D9]/60">
                           <span className="text-stone-400">هر عدد:</span>
                           <span className="font-bold text-[#8C6D37]">
                             {wholesaleUnitPrice.toLocaleString('fa-IR')} ت
@@ -384,7 +384,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                             <span className="text-[8px] font-normal text-stone-500">ت</span>
                           </span>
                         </div>
-                        <div className="text-[8px] text-emerald-800 font-bold flex items-center gap-0.5 pt-0.5 border-t border-[#E6DEC8]/50">
+                        <div className="text-[8px] text-emerald-800 font-bold flex items-center gap-0.5 pt-0.5 border-t border-[#EAE4D9]/60">
                           <CheckCircle2 className="w-2 h-2 text-emerald-600 shrink-0" />
                           <span className="truncate">ارسال پستی فوری</span>
                         </div>

@@ -78,7 +78,7 @@ const FREQUENT_QUESTIONS_CATEGORIES = [
       'نحوه فعال‌سازی قیمت همکاری و بنکداری در سایت؟',
       'ارسال روزانه با باربری وطن و پیام‌گیر چطور انجام میشه؟',
       'آیا برای خرید تیراژ بالا تخفیف کارتنی دارید؟',
-      'پرفروش‌ترین مدل‌های شلوار برای مغازه و بوتیک چیست؟'
+      'پرفروش‌ترین مدل‌های شلوار برای مغازه و فروشگاه چیست؟'
     ]
   },
   {
@@ -183,6 +183,10 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
           productContext
         })
       });
+
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
 
       const data = await res.json();
 

@@ -28,7 +28,7 @@ interface ImageUploaderProps {
 const PRESET_APPAREL_PHOTOS = [
   {
     name: 'شلوار بگ کتان کرم',
-    url: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=700&auto=format&fit=crop&q=80',
+    url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=80',
   },
   {
     name: 'شلوار بگ ذغالی ژورنالی',

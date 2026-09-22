@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
+import { RubikaIcon, BaleIcon, EitaaIcon, TelegramIcon } from '../common/SocialIcons';
 
 interface StorefrontFooterProps {
   onOpenAboutModal: () => void;
@@ -45,17 +46,55 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               <strong>تولید و پخش پوشاک من و تو (مدیریت اسدی)</strong>: تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ، راسته، جاگر، دمپا)، شومیز، مانتو و ست‌های راحتی با کیفیت برتر و ارسال مستقیم از بازار بزرگ تهران.
             </p>
 
-            <div className="flex items-center gap-2 pt-1">
-              <a
-                href={BRAND_INFO.telegramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-xl bg-sky-600/20 border border-sky-500/30 hover:bg-sky-600 text-sky-300 hover:text-white flex items-center gap-1.5 transition-all font-bold text-xs"
-                title="کانال رسمی تلگرام"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>کانال تلگرام @{BRAND_INFO.telegramUsername}</span>
-              </a>
+            <div className="space-y-2 pt-1">
+              <span className="text-[11px] font-bold text-stone-400 block">
+                کانال‌ها و پیام‌رسان‌های رسمی من و تو:
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={BRAND_INFO.telegramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-xl bg-sky-600/20 border border-sky-500/40 hover:bg-sky-600/30 text-sky-300 hover:text-white flex items-center gap-1.5 transition-all font-bold text-xs shadow-xs active:scale-95 group"
+                  title="کانال رسمی تلگرام: tolidopakhsh_manoto@"
+                >
+                  <TelegramIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span>تلگرام</span>
+                </a>
+
+                <a
+                  href="https://rubika.ir/tolidopakhsh_manoto"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-xl bg-purple-600/20 border border-purple-500/40 hover:bg-purple-600/30 text-purple-300 hover:text-white flex items-center gap-1.5 transition-all font-bold text-xs shadow-xs active:scale-95 group"
+                  title="کانال و پیج روبیکا: tolidopakhsh_manoto"
+                >
+                  <RubikaIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span>روبیکا</span>
+                </a>
+
+                <a
+                  href="https://ble.ir/tolidopakhsh_manoto_dress"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-300 hover:text-white flex items-center gap-1.5 transition-all font-bold text-xs shadow-xs active:scale-95 group"
+                  title="شناسه کانال پیام‌رسان بله: tolidopakhsh_manoto_dress"
+                >
+                  <BaleIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span>بله</span>
+                </a>
+
+                <a
+                  href="https://eitaa.com/tolidopakhsh_manoto"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-xl bg-orange-600/20 border border-orange-500/40 hover:bg-orange-600/30 text-orange-300 hover:text-white flex items-center gap-1.5 transition-all font-bold text-xs shadow-xs active:scale-95 group"
+                  title="کانال پیام‌رسان ایتا: tolidopakhsh_manoto"
+                >
+                  <EitaaIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span>ایتا</span>
+                </a>
+              </div>
             </div>
           </div>
 

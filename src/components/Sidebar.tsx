@@ -14,10 +14,10 @@ import {
   ChevronLeft,
   Crown,
   LogOut,
-  HelpCircle,
   Search,
   Layers,
   Store,
+  ClipboardList,
   X
 } from 'lucide-react';
 import { ModuleTab, UserRoleType } from '../types';
@@ -120,6 +120,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: ShoppingBasket,
         },
         {
+          id: 'order_tracking',
+          label: 'پیگیری و مدیریت سفارشات',
+          description: 'کی چی سفارش داده؟ رهگیری باربری و ارسال',
+          icon: ClipboardList,
+        },
+        {
           id: 'logistics',
           label: 'لجستیک و بیجک باربری',
           description: 'باربری وطن، پیشتاز، تیپاکس و چاپ بارنامه',
@@ -215,8 +221,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Live Storefront Quick Link */}
-        {onOpenStorefront && (
+        {/* Live Storefront Quick Link (Hidden for order_tracker role) */}
+        {currentUserRole !== 'order_tracker' && onOpenStorefront && (
           <button
             type="button"
             id="sidebar-btn-open-storefront"
@@ -236,40 +242,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        {/* Search inside menu */}
-        <div className="relative">
-          <input
-            type="text"
-            value={sidebarSearch}
-            onChange={(e) => setSidebarSearch(e.target.value)}
-            placeholder="فیلتر سریع منوها..."
-            className="w-full pl-7 pr-8 py-1.5 bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl text-[11px] text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#18181B]"
-          />
-          <Search className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-2 pointer-events-none" />
-          {sidebarSearch && (
-            <button
-              type="button"
-              onClick={() => setSidebarSearch('')}
-              className="absolute left-2 top-2 text-stone-400 hover:text-stone-700"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-
-        {/* Help & Guide Button */}
-        {onOpenHelpModal && (
-          <button
-            type="button"
-            onClick={() => {
-              onOpenHelpModal();
-              if (isMobileDrawer && onCloseMobileDrawer) onCloseMobileDrawer();
-            }}
-            className="w-full py-2 px-3 bg-[#FAF7F2] hover:bg-[#EBE3D3] text-[#8C6D37] hover:text-stone-950 rounded-xl text-xs font-bold transition-all border border-[#E6DEC8] flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <HelpCircle className="w-4 h-4 text-[#8C6D37]" />
-            <span>راهنمای سریع کار با سیستم</span>
-          </button>
+        {/* Search inside menu (Hidden for order_tracker role since only order tracking tab is visible) */}
+        {currentUserRole !== 'order_tracker' && (
+          <div className="relative">
+            <input
+              type="text"
+              value={sidebarSearch}
+              onChange={(e) => setSidebarSearch(e.target.value)}
+              placeholder="فیلتر سریع منوها..."
+              className="w-full pl-7 pr-8 py-1.5 bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl text-[11px] text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#18181B]"
+            />
+            <Search className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-2 pointer-events-none" />
+            {sidebarSearch && (
+              <button
+                type="button"
+                onClick={() => setSidebarSearch('')}
+                className="absolute left-2 top-2 text-stone-400 hover:text-stone-700"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         )}
 
       </div>

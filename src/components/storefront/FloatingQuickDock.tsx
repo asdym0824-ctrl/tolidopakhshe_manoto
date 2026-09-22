@@ -87,7 +87,7 @@ export const FloatingQuickDock: React.FC<FloatingQuickDockProps> = ({
           type="button"
           onClick={onOpenRoiCalculator}
           className="flex items-center gap-1.5 py-1.5 sm:py-2 px-2 sm:px-3 bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white rounded-xl sm:rounded-2xl text-xs font-bold transition-all cursor-pointer"
-          title="محاسبه‌گر سود بوتیک و آنلاین‌شاپ"
+          title="محاسبه‌گر سود فروشگاه و آنلاین‌شاپ"
         >
           <Calculator className="w-3.5 h-3.5 text-[#D4AF37]" />
           <span className="hidden md:inline">محاسبه سود مغازه</span>

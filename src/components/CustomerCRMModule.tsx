@@ -459,7 +459,7 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
                 <option value="all">همه انواع مشتری</option>
                 <option value="shop_keeper">مغازه‌دار شهرستان</option>
                 <option value="partner_wholesale">عمده‌فروش همکار</option>
-                <option value="online_shop">آنلاین‌شاپ و مزون</option>
+                <option value="online_shop">آنلاین‌شاپ و فروشگاه اینترنتی</option>
                 <option value="retail">مشتری تکی و مصرف‌کننده</option>
               </select>
 
@@ -549,7 +549,7 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
                               'bg-stone-100 text-stone-800 border-stone-200'
                             }`}>
                               {cust.type === 'partner_wholesale' ? 'عمده‌فروش همکار' :
-                               cust.type === 'online_shop' ? 'آنلاین‌شاپ / مزون' :
+                               cust.type === 'online_shop' ? 'آنلاین‌شاپ / فروشگاه' :
                                cust.type === 'retail' ? 'مشتری تکی' : 'مغازه‌دار شهرستان'}
                             </span>
                             {loyalty.tier === 'partner_gold_vip' && (
@@ -1123,7 +1123,7 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
                   >
                     <option value="shop_keeper">مغازه‌دار شهرستان</option>
                     <option value="partner_wholesale">عمده‌فروش همکار (قیمت هم‌صنف)</option>
-                    <option value="online_shop">آنلاین‌شاپ و مزون اینترنتی</option>
+                    <option value="online_shop">آنلاین‌شاپ و فروشگاه اینترنتی</option>
                     <option value="retail">مشتری تکی (مصرف‌کننده)</option>
                   </select>
                 </div>

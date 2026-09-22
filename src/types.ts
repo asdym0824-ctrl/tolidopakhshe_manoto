@@ -9,6 +9,7 @@ export type ModuleTab =
   | 'marketing'
   | 'storefront'
   | 'logistics'
+  | 'order_tracking'
   | 'roles';
 
 export type PackSize = 4 | 6 | 8 | 12;
@@ -268,7 +269,7 @@ export interface AutoResponderRule {
   isActive: boolean;
 }
 
-export type UserRoleType = 'super_admin' | 'content_admin' | 'accountant' | 'warehouse_manager' | 'marketer';
+export type UserRoleType = 'super_admin' | 'order_tracker' | 'content_admin';
 
 export interface UserRole {
   id: string;
@@ -330,6 +331,28 @@ export interface StorefrontBanner {
   isActive: boolean;
 }
 
+export interface OccasionPromoPopupConfig {
+  isActive: boolean;
+  occasionTitle: string; // e.g. 'جشنواره حراج ویژه مناسبتی بازار بزرگ'
+  occasionSubtitle: string; // e.g. 'تخفیف شگفت‌انگیز کارگاه تولیدی من و تو روی پرفروش‌ترین مدل فصل'
+  subtitle?: string; // alias for occasionSubtitle
+  badgeText: string; // e.g. '🔥 آفر محدود مناسبتی'
+  targetProductId: string; // ID of featured product
+  discountPercent: number; // e.g. 25 (%)
+  discountCouponCode?: string; // e.g. 'MANOTO-GOLD'
+  couponCode?: string; // alias for discountCouponCode
+  customSpecialPricePerPack?: number; // manual override or 0 for auto calc
+  customSpecialPricePerUnit?: number; // manual override or 0 for auto calc
+  urgencyText?: string; // e.g. 'مهلت استفاده فقط تا پایان ساعت ۲۴:۰۰ امروز'
+  urgencyNote?: string; // alias for urgencyText
+  countdownHours?: number; // hours left, e.g. 14
+  remainingPacksAlert?: number; // e.g. 6
+  remainingStock?: number; // alias for remainingPacksAlert
+  showOncePerSession?: boolean; // whether to only show once per visit session
+  customBannerImage?: string; // اختیاری: آدرس تصویر یا بنر پوستر اختصاصی
+  posterImage?: string; // alias for customBannerImage
+}
+
 export interface SiteSettings {
   brandName: string;
   brandSubtitle: string;
@@ -346,6 +369,7 @@ export interface SiteSettings {
   isRetailSaleActive: boolean;
   minFreeShippingToman: number;
   midGridBanners?: StorefrontBanner[];
+  promoPopup?: OccasionPromoPopupConfig;
 }
 
 export interface FabricSupplier {

@@ -20,7 +20,9 @@ import {
   Zap,
   Film,
   Play,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Ruler,
+  Sparkles
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -36,6 +38,8 @@ interface ProductDetailModalProps {
   ) => void;
   isPartnerLoggedIn?: boolean;
   onSelectCategoryFilter?: (category: string) => void;
+  onOpenSizeGuide?: () => void;
+  onOpenFabricCare?: () => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -44,7 +48,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
   onAddToCart,
   isPartnerLoggedIn = false,
-  onSelectCategoryFilter
+  onSelectCategoryFilter,
+  onOpenSizeGuide,
+  onOpenFabricCare
 }) => {
   if (!isOpen || !product) return null;
 
@@ -261,15 +267,44 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </p>
             </div>
 
-            {/* Fabric & Technical Highlights */}
+            {/* Fabric & Technical Highlights with Women-Specific Quick Helpers */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8]">
-                <span className="text-stone-500 block text-[10px]">جنس و بافت پارچه:</span>
-                <span className="font-bold text-stone-900 mt-0.5 block">{product.fabricType}</span>
+              <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-500 text-[10px]">جنس و بافت پارچه:</span>
+                    {onOpenFabricCare && (
+                      <button
+                        type="button"
+                        onClick={onOpenFabricCare}
+                        className="text-[9.5px] text-[#967434] hover:text-[#18181B] font-bold flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span>شناسنامه پارچه</span>
+                        <Layers className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                  <span className="font-bold text-stone-900 mt-0.5 block">{product.fabricType}</span>
+                </div>
               </div>
-              <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8]">
-                <span className="text-stone-500 block text-[10px]">سایزبندی:</span>
-                <span className="font-bold text-stone-900 mt-0.5 block">{product.sizes}</span>
+
+              <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-stone-500 text-[10px]">سایزبندی:</span>
+                    {onOpenSizeGuide && (
+                      <button
+                        type="button"
+                        onClick={onOpenSizeGuide}
+                        className="text-[9.5px] text-rose-700 hover:text-rose-950 font-bold flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span>جدول سایز زنانه</span>
+                        <Ruler className="w-2.5 h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                  <span className="font-bold text-stone-900 mt-0.5 block">{product.sizes}</span>
+                </div>
               </div>
             </div>
 

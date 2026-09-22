@@ -53,7 +53,9 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
     province: currentUser.province,
     city: currentUser.city,
     address: currentUser.address,
+    password: currentUser.password || 'password123',
   });
+  const [showProfilePassword, setShowProfilePassword] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   if (!isOpen) return null;
@@ -82,6 +84,7 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
       province: profileForm.province.trim(),
       city: profileForm.city.trim(),
       address: profileForm.address.trim(),
+      password: profileForm.password.trim() || currentUser.password || 'password123',
     };
     onUpdateProfile(updated);
     setSaveSuccess(true);
@@ -394,13 +397,33 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">نام فروشگاه / بوتیک:</label>
+                  <label className="font-bold text-stone-700 block mb-1">نام فروشگاه / مجموعه:</label>
                   <input
                     type="text"
                     value={profileForm.storeName}
                     onChange={(e) => setProfileForm({ ...profileForm, storeName: e.target.value })}
-                    placeholder="بوتیک شیک‌پوشان"
+                    placeholder="فروشگاه شیک‌پوشان"
                     className="w-full px-3 py-2 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 bg-[#FAF7F2]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-stone-700">کلمه عبور حساب (ورود):</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowProfilePassword(!showProfilePassword)}
+                      className="text-[10px] text-stone-500 hover:text-stone-800"
+                    >
+                      {showProfilePassword ? 'مخفی' : 'نمایش'}
+                    </button>
+                  </div>
+                  <input
+                    type={showProfilePassword ? 'text' : 'password'}
+                    dir="ltr"
+                    value={profileForm.password}
+                    onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 font-mono bg-[#FAF7F2]"
                   />
                 </div>
 

@@ -105,7 +105,7 @@ export const SeoAssistantModule: React.FC<SeoAssistantModuleProps> = ({
       ],
       h3List: [
         'تضمین ۱۰۰٪ کیفیت عدم آبرفت و رنگ‌دهی',
-        'تخفیف همکاری ویژه بنکداران و بوتیک‌داران شهرستان',
+        'تخفیف همکاری ویژه بنکداران و فروشگاه‌داران شهرستان',
         'امکان خرید تکی به قیمت عمده برای مشتریان خاص'
       ]
     },
@@ -210,6 +210,10 @@ export const SeoAssistantModule: React.FC<SeoAssistantModuleProps> = ({
           price: targetType === 'product' && selectedProduct ? `${selectedProduct.baseWholesalePricePerPack.toLocaleString('fa-IR')} تومان هر پک` : 'قیمت کارگاه بازار تهران',
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
 
       const resData = await response.json();
       if (resData.success && resData.data && !resData.data.raw) {

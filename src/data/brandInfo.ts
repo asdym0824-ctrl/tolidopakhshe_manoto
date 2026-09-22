@@ -10,6 +10,9 @@ export interface BrandContactInfo {
   allPhones: { phone: string; display: string; label: string }[];
   telegramUsername: string;
   telegramUrl: string;
+  rubikaUrl: string;
+  baleUrl: string;
+  eitaaUrl: string;
   eitaaRubikaUrl: string;
   whatsappDirectUrl: string;
   mainAddressFa: string;
@@ -55,7 +58,10 @@ export const BRAND_INFO: BrandContactInfo = {
   ],
   telegramUsername: 'tolidopakhsh_manoto',
   telegramUrl: 'https://t.me/tolidopakhsh_manoto',
-  eitaaRubikaUrl: 'https://t.me/tolidopakhsh_manoto',
+  rubikaUrl: 'https://rubika.ir/tolidopakhsh_manoto',
+  baleUrl: 'https://ble.ir/tolidopakhsh_manoto_dress',
+  eitaaUrl: 'https://eitaa.com/tolidopakhsh_manoto',
+  eitaaRubikaUrl: 'https://rubika.ir/tolidopakhsh_manoto',
   whatsappDirectUrl: 'https://wa.me/989120369567?text=%D8%B3%D9%84%D8%A7%D9%85%D8%8C%20%D8%A7%D8%B2%20%D8%B3%D8%A7%DB%8C%D8%AA%20%D9%BE%D9%88%D8%B4%D8%A7%DA%A9%20%D9%85%D9%86%20%D9%88%20%D8%AA%D9%88%20%D9%BE%DB%8C%D8%A7%D9%85%20%D9%85%DB%8C%E2%80%8C%D8%AF%D9%87%D9%85%20%D8%AC%D9%87%D8%AA%20%D8%AE%D8%B1%DB%8C%D8%AF%20%D8%B9%D9%85%D8%AF%D9%87%20%D9%88%20%D8%A7%D8%B3%D8%AA%D8%B9%D9%84%D8%A7%D9%85%20%D9%85%D9%88%D8%AC%D9%88%D8%AF%DB%8C',
   mainAddressFa: 'بازار بزرگ تهران، بازار عباس‌آباد، پاساژ المهدی ۴، طبقه منفی یک (زیرزمین اول)، پلاک ۲۴۲',
   subwayRouteFa: 'مترو میدان محمدیه (خط ۱ و ۷) یا مترو خیام، بازار حاج قاسم، پاساژ المهدی ۴، ورودی یک، زیرزمین اول، پلاک ۲۴۲',

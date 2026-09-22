@@ -71,6 +71,10 @@ export const MarketingAIModule: React.FC<MarketingAIModuleProps> = ({
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+
       const data = await response.json();
       if (data.success && data.caption) {
         setGeneratedCaption(data.caption);
