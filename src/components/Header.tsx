@@ -369,10 +369,16 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header id="app-header" className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E6DEC8] shadow-xs" dir="rtl">
+    <header 
+      id="app-header" 
+      className="sticky top-0 z-40 bg-[#FAF7F2]/85 backdrop-blur-xl border-b border-[#E6DEC8]/90 shadow-[0_4px_24px_-4px_rgba(24,24,27,0.06),0_1px_2px_rgba(24,24,27,0.02)] transition-all relative" 
+      dir="rtl"
+    >
+      {/* Delicate ambient gold hairline accent on bottom of header */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/35 to-transparent pointer-events-none" />
       
       {/* Top Black Bar matching the Main Site */}
-      <div className="bg-[#18181B] text-[#FAF7F2] text-[11px] py-1.5 px-4 overflow-hidden border-b border-stone-800">
+      <div className="bg-gradient-to-r from-[#18181B] via-[#232328] to-[#18181B] text-[#FAF7F2] text-[11px] py-1.5 px-4 overflow-hidden border-b border-[#D4AF37]/25 shadow-inner">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 truncate">
             <span className="bg-[#D4AF37] text-[#18181B] font-black px-2.5 py-0.5 rounded-full text-[10px] tracking-wide flex items-center gap-1">

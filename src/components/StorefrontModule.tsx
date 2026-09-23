@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, 
   Settings, 
@@ -33,7 +33,10 @@ import {
   LayoutTemplate,
   ToggleLeft,
   ToggleRight,
-  RotateCcw
+  RotateCcw,
+  Sliders,
+  Image as ImageIcon,
+  RefreshCw
 } from 'lucide-react';
 import { 
   Product, 
@@ -45,10 +48,13 @@ import {
   StorefrontBannerAction, 
   StorefrontBannerStyle, 
   StorefrontBannerIcon,
-  OccasionPromoPopupConfig
+  OccasionPromoPopupConfig,
+  LookbookBannerItem,
+  SiteBackgroundTheme
 } from '../types';
 import { StorefrontMidGridBanner } from './storefront/StorefrontMidGridBanner';
-import { DEFAULT_STOREFRONT_BANNERS, DEFAULT_PROMO_POPUP } from '../App';
+import { DEFAULT_STOREFRONT_BANNERS, DEFAULT_PROMO_POPUP, INITIAL_SITE_SETTINGS } from '../App';
+import { DEFAULT_LOOKBOOK_BANNERS } from '../data/defaultLookbookBanners';
 import { OccasionPromoPopupModal } from './storefront/OccasionPromoPopupModal';
 
 interface StorefrontModuleProps {
@@ -68,26 +74,123 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
   orders,
   onOpenLiveStorefront,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'promo_popup' | 'mid_grid_banners' | 'registered_customers' | 'pricing_policy'>('site_info');
+  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'site_theme' | 'lookbook_banners' | 'mid_grid_banners' | 'promo_popup' | 'registered_customers' | 'pricing_policy'>('site_info');
   
   // Local form for site settings
   const [formData, setFormData] = useState<SiteSettings>(() => ({
     ...siteSettings,
     midGridBanners: siteSettings.midGridBanners || DEFAULT_STOREFRONT_BANNERS,
     promoPopup: siteSettings.promoPopup || DEFAULT_PROMO_POPUP,
+    lookbookBanners: siteSettings.lookbookBanners || DEFAULT_LOOKBOOK_BANNERS,
+    siteBackgroundTheme: siteSettings.siteBackgroundTheme || 'couture_craft',
+    customBackgroundPatternOpacity: siteSettings.customBackgroundPatternOpacity ?? 0.12,
   }));
+
+  // Synchronize when external siteSettings changes
+  useEffect(() => {
+    setFormData({
+      ...siteSettings,
+      midGridBanners: siteSettings.midGridBanners || DEFAULT_STOREFRONT_BANNERS,
+      promoPopup: siteSettings.promoPopup || DEFAULT_PROMO_POPUP,
+      lookbookBanners: siteSettings.lookbookBanners || DEFAULT_LOOKBOOK_BANNERS,
+      siteBackgroundTheme: siteSettings.siteBackgroundTheme || 'couture_craft',
+      customBackgroundPatternOpacity: siteSettings.customBackgroundPatternOpacity ?? 0.12,
+    });
+  }, [siteSettings]);
+
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [resetSuccessMessage, setResetSuccessMessage] = useState<string | null>(null);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [editingLookbookId, setEditingLookbookId] = useState<string | null>(null);
   const [previewPopupOpen, setPreviewPopupOpen] = useState(false);
 
   // Selected customer for viewing history
   const [selectedUserForHistory, setSelectedUserForHistory] = useState<CustomerUser | null>(null);
 
-  const handleSaveSettings = (e?: React.FormEvent) => {
+  const handleSaveSettings = (e?: React.FormEvent, customData?: SiteSettings) => {
     if (e) e.preventDefault();
-    onUpdateSiteSettings(formData);
+    const dataToSave = customData || formData;
+    onUpdateSiteSettings(dataToSave);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  const showResetToast = (msg: string) => {
+    setResetSuccessMessage(msg);
+    setTimeout(() => setResetSuccessMessage(null), 3500);
+  };
+
+  // Reset Handlers for each tab
+  const handleResetSiteInfo = () => {
+    const updated: SiteSettings = {
+      ...formData,
+      brandName: INITIAL_SITE_SETTINGS.brandName,
+      brandSubtitle: INITIAL_SITE_SETTINGS.brandSubtitle,
+      mainAddress: INITIAL_SITE_SETTINGS.mainAddress,
+      subwayAddress: INITIAL_SITE_SETTINGS.subwayAddress,
+      primaryPhone: INITIAL_SITE_SETTINGS.primaryPhone,
+      salesPhone: INITIAL_SITE_SETTINGS.salesPhone,
+      supportPhone: INITIAL_SITE_SETTINGS.supportPhone,
+      telegramChannel: INITIAL_SITE_SETTINGS.telegramChannel,
+      telegramChannelUrl: INITIAL_SITE_SETTINGS.telegramChannelUrl,
+      heroHeadline: INITIAL_SITE_SETTINGS.heroHeadline,
+      heroSubheadline: INITIAL_SITE_SETTINGS.heroSubheadline,
+      announcementNotice: INITIAL_SITE_SETTINGS.announcementNotice,
+    };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+    showResetToast('اطلاعات، سربرگ و نشانی‌های وب‌سایت به مقادیر اولیه کارگاه بازنشانی شد.');
+  };
+
+  const handleResetLookbookBanners = () => {
+    const updated = { ...formData, lookbookBanners: DEFAULT_LOOKBOOK_BANNERS };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+    showResetToast('بنرهای استایل و ژورنالی لوک‌بوک به حالت اولیه بازنشانی شد.');
+  };
+
+  const handleResetSiteTheme = () => {
+    const updated: SiteSettings = {
+      ...formData,
+      siteBackgroundTheme: INITIAL_SITE_SETTINGS.siteBackgroundTheme || 'couture_craft',
+      customBackgroundPatternOpacity: INITIAL_SITE_SETTINGS.customBackgroundPatternOpacity ?? 0.12,
+    };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+    showResetToast('تم بصری و پس‌زمینه سایت به سبک پیش‌فرض خیاطی و وضوح ۱۲٪ بازنشانی شد.');
+  };
+
+  const handleResetDefaultBanners = () => {
+    const updated = { ...formData, midGridBanners: DEFAULT_STOREFRONT_BANNERS };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+    showResetToast('بنرهای بین گریدها و تبلیغات ویژه به حالت استاندارد بازنشانی شد.');
+  };
+
+  const handleResetPromoPopup = () => {
+    const updated = { ...formData, promoPopup: DEFAULT_PROMO_POPUP };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+    showResetToast('تنظیمات پاپ‌آپ حراج مناسبتی به حالت پیش‌فرض بازنشانی شد.');
+  };
+
+  const handleResetPricingPolicy = () => {
+    const updated: SiteSettings = {
+      ...formData,
+      isRetailSaleActive: INITIAL_SITE_SETTINGS.isRetailSaleActive,
+      minFreeShippingToman: INITIAL_SITE_SETTINGS.minFreeShippingToman,
+    };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
+    showResetToast('قوانین تک‌فروشی و سقف ارسال رایگان به مقادیر پیش‌فرض بازنشانی شد.');
+  };
+
+  const handleResetEntireStorefront = () => {
+    if (window.confirm('آیا مطمئن هستید که می‌خواهید تمام تنظیمات ویترین، بنرها، پاپ‌آپ و تم پس‌زمینه را به حالت اولیه کارخانه بازنشانی کنید؟')) {
+      setFormData(INITIAL_SITE_SETTINGS);
+      onUpdateSiteSettings(INITIAL_SITE_SETTINGS);
+      showResetToast('تمام بخش‌های ویترین سایت با موفقیت به تنظیمات اولیه بازنشانی شد.');
+    }
   };
 
   const handleUpdatePromoPopup = (updates: Partial<OccasionPromoPopupConfig>) => {
@@ -101,6 +204,17 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
       promoPopup: updatedPromo,
     };
     setFormData(updatedSettings);
+    onUpdateSiteSettings(updatedSettings);
+  };
+
+  // Lookbook Banner CRUD Operations
+  const handleUpdateLookbookBanner = (bannerId: string, updates: Partial<LookbookBannerItem>) => {
+    const updatedLookbook = (formData.lookbookBanners || DEFAULT_LOOKBOOK_BANNERS).map(b =>
+      b.id === bannerId ? { ...b, ...updates } : b
+    );
+    const updated = { ...formData, lookbookBanners: updatedLookbook };
+    setFormData(updated);
+    onUpdateSiteSettings(updated);
   };
 
   // Banner CRUD Operations
@@ -119,6 +233,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
     );
     const updated = { ...formData, midGridBanners: updatedBanners };
     setFormData(updated);
+    onUpdateSiteSettings(updated);
   };
 
   const handleAddNewBanner = () => {
@@ -168,12 +283,6 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
     onUpdateSiteSettings(updated);
   };
 
-  const handleResetDefaultBanners = () => {
-    const updated = { ...formData, midGridBanners: DEFAULT_STOREFRONT_BANNERS };
-    setFormData(updated);
-    onUpdateSiteSettings(updated);
-  };
-
   const currentBanners = formData.midGridBanners || [];
   const activeBannersCount = currentBanners.filter(b => b.isActive).length;
 
@@ -202,10 +311,20 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              type="button"
+              onClick={handleResetEntireStorefront}
+              className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              title="بازنشانی تمام تنظیمات و بنرهای ویترین به حالت اولیه کارخانه"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+              <span>بازنشانی کل ویترین به پیش‌فرض</span>
+            </button>
+
             <button
               onClick={onOpenLiveStorefront}
-              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-xs border border-[#3F3F46]"
+              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-xs border border-[#3F3F46] cursor-pointer"
             >
               <ExternalLink className="w-4 h-4 text-[#D4AF37]" />
               <span>ورود به فروشگاه آنلاین</span>
@@ -217,7 +336,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
         <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[#E6DEC8] text-xs flex-wrap">
           <button
             onClick={() => setActiveSubTab('site_info')}
-            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeSubTab === 'site_info'
                 ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
                 : 'text-stone-700 hover:bg-[#FAF7F2]'
@@ -228,34 +347,58 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveSubTab('promo_popup')}
-            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
-              activeSubTab === 'promo_popup'
+            onClick={() => setActiveSubTab('lookbook_banners')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === 'lookbook_banners'
                 ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
                 : 'text-stone-700 hover:bg-[#FAF7F2]'
             }`}
           >
-            <Flame className="w-4 h-4 text-[#D4AF37]" />
-            <span>
-              پاپ‌آپ تخفیف مناسبتی {formData.promoPopup?.isActive ? '✨ (فعال)' : '(غیرفعال)'}
-            </span>
+            <Layers className="w-4 h-4 text-amber-400" />
+            <span>بنرهای استایل لوک‌بوک ({formData.lookbookBanners?.length || 8} اسلاید)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('site_theme')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === 'site_theme'
+                ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Palette className="w-4 h-4 text-purple-400" />
+            <span>پس‌زمینه و تم بصری فروشگاه</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('mid_grid_banners')}
-            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeSubTab === 'mid_grid_banners'
                 ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
                 : 'text-stone-700 hover:bg-[#FAF7F2]'
             }`}
           >
             <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-            <span>بنرهای بین گریدها و تبلیغات ({activeBannersCount} فعال)</span>
+            <span>بنرهای بین گریدها ({activeBannersCount} فعال)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('promo_popup')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === 'promo_popup'
+                ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Flame className="w-4 h-4 text-rose-500" />
+            <span>
+              پاپ‌آپ تخفیف مناسبتی {formData.promoPopup?.isActive ? '✨ (فعال)' : '(غیرفعال)'}
+            </span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('registered_customers')}
-            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeSubTab === 'registered_customers'
                 ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
                 : 'text-stone-700 hover:bg-[#FAF7F2]'
@@ -267,14 +410,14 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
 
           <button
             onClick={() => setActiveSubTab('pricing_policy')}
-            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeSubTab === 'pricing_policy'
                 ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
                 : 'text-stone-700 hover:bg-[#FAF7F2]'
             }`}
           >
             <Tag className="w-4 h-4 text-[#D4AF37]" />
-            <span>تنظیمات تک‌فروشی و حمل‌ونقل</span>
+            <span>تنظیمات تک‌فروشی و ارسال</span>
           </button>
         </div>
       </div>
@@ -284,6 +427,383 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-xl flex items-center gap-2 text-xs font-bold animate-in fade-in">
           <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>تغییرات با موفقیت ذخیره شد و در ویترین آنلاین اعمال گردید!</span>
+        </div>
+      )}
+
+      {/* Reset Notification Toast */}
+      {resetSuccessMessage && (
+        <div className="bg-amber-50 border border-amber-300 text-amber-900 p-4 rounded-xl flex items-center gap-2 text-xs font-bold animate-in fade-in">
+          <RotateCcw className="w-5 h-5 text-amber-700 shrink-0" />
+          <span>{resetSuccessMessage}</span>
+        </div>
+      )}
+
+      {/* TAB: Lookbook Style Banners Management */}
+      {activeSubTab === 'lookbook_banners' && (
+        <div className="space-y-6">
+          <div className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 text-[#18181B] flex items-center justify-center font-black">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-[#18181B]">
+                  مدیریت اسلایدر بنرهای استایل و لوک‌بوک فروشگاه
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500">
+                این بنرها به صورت ۴تایی در صفحه اصلی نمایش داده می‌شوند و با تایمر روان ورق می‌خورند. مدیر محتوا می‌تواند تیتر، تصویر، برچسب و دکمه هر اسلاید را ویرایش کند.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetLookbookBanners}
+                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                title="بازنشانی به بنرهای پیش‌فرض اولیه"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>بازنشانی به بنرهای اولیه</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveSettings()}
+                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+              >
+                <Save className="w-4 h-4 text-[#D4AF37]" />
+                <span>ذخیره کلیه بنرهای لوک‌بوک</span>
+              </button>
+            </div>
+          </div>
+
+          {/* List of Lookbook Banners */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(formData.lookbookBanners || DEFAULT_LOOKBOOK_BANNERS).map((item, index) => {
+              const isEditing = editingLookbookId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-white rounded-2xl border transition-all overflow-hidden ${
+                    isEditing ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/20 shadow-md' : 'border-[#E6DEC8] shadow-xs'
+                  }`}
+                >
+                  <div className="p-4 flex items-center justify-between gap-3 bg-[#FAF7F2] border-b border-[#E6DEC8]">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-[#18181B] text-[#D4AF37] text-xs font-mono font-black flex items-center justify-center shrink-0">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <h4 className="font-black text-xs text-[#18181B] truncate">{item.title}</h4>
+                        <span className="text-[10px] text-stone-500 block truncate">دسته: {item.category} • بج: {item.badge}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditingLookbookId(isEditing ? null : item.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                        isEditing
+                          ? 'bg-[#18181B] text-[#D4AF37]'
+                          : 'bg-white hover:bg-stone-100 text-stone-700 border border-[#DDD5C0]'
+                      }`}
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>{isEditing ? 'بستن' : 'ویرایش اسلاید'}</span>
+                    </button>
+                  </div>
+
+                  {/* Banner Card Preview */}
+                  <div className="p-4">
+                    <div className="relative rounded-xl overflow-hidden aspect-16/9 bg-stone-900 shadow-inner group">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className={`absolute inset-0 bg-gradient-to-t ${item.bgGradient}`} />
+                      <div className="absolute inset-0 p-3.5 flex flex-col justify-between text-white">
+                        <div className="flex justify-between items-start">
+                          <span className="bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-400/40 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            {item.badge}
+                          </span>
+                          <span className="text-[10px] text-stone-300 font-mono bg-black/40 px-1.5 py-0.5 rounded">
+                            {item.category}
+                          </span>
+                        </div>
+                        <div>
+                          <h5 className="font-black text-sm text-white drop-shadow-xs">{item.title}</h5>
+                          <p className="text-[11px] text-stone-200 line-clamp-1 drop-shadow-xs mt-0.5">{item.shortFeature}</p>
+                          <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-white/20">
+                            <span>{item.ctaText}</span>
+                            <span>←</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Editing Panel */}
+                  {isEditing && (
+                    <div className="p-4 bg-stone-50 border-t border-[#E6DEC8] space-y-3 text-xs animate-in fade-in">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block font-bold text-stone-700 mb-1">تیتر اسلاید:</label>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => handleUpdateLookbookBanner(item.id, { title: e.target.value })}
+                            className="w-full bg-white p-2 rounded-xl border border-[#DDD5C0] font-bold focus:border-[#18181B] outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-stone-700 mb-1">دسته‌بندی مرتبط:</label>
+                          <input
+                            type="text"
+                            value={item.category}
+                            onChange={(e) => handleUpdateLookbookBanner(item.id, { category: e.target.value })}
+                            className="w-full bg-white p-2 rounded-xl border border-[#DDD5C0] focus:border-[#18181B] outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block font-bold text-stone-700 mb-1">متن برچسب (بج بالا):</label>
+                          <input
+                            type="text"
+                            value={item.badge}
+                            onChange={(e) => handleUpdateLookbookBanner(item.id, { badge: e.target.value })}
+                            className="w-full bg-white p-2 rounded-xl border border-[#DDD5C0] focus:border-[#18181B] outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-stone-700 mb-1">متن دکمه (CTA):</label>
+                          <input
+                            type="text"
+                            value={item.ctaText}
+                            onChange={(e) => handleUpdateLookbookBanner(item.id, { ctaText: e.target.value })}
+                            className="w-full bg-white p-2 rounded-xl border border-[#DDD5C0] focus:border-[#18181B] outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">توضیح کوتاه ویژگی:</label>
+                        <input
+                          type="text"
+                          value={item.shortFeature}
+                          onChange={(e) => handleUpdateLookbookBanner(item.id, { shortFeature: e.target.value })}
+                          className="w-full bg-white p-2 rounded-xl border border-[#DDD5C0] focus:border-[#18181B] outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1 flex items-center justify-between">
+                          <span>آدرس اینترنتی تصویر بنر (Image URL):</span>
+                          <span className="text-[10px] text-stone-400 font-normal">ابعاد بهینه: 800x600 پیکسل</span>
+                        </label>
+                        <input
+                          type="text"
+                          dir="ltr"
+                          value={item.image}
+                          onChange={(e) => handleUpdateLookbookBanner(item.id, { image: e.target.value })}
+                          className="w-full bg-white p-2 rounded-xl border border-[#DDD5C0] font-mono text-[11px] focus:border-[#18181B] outline-none"
+                        />
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleSaveSettings();
+                            setEditingLookbookId(null);
+                          }}
+                          className="px-4 py-2 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Save className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>ذخیره تغییرات این اسلاید</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: Visual Site Theme & Background Settings */}
+      {activeSubTab === 'site_theme' && (
+        <div className="space-y-6">
+          <div className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-400 text-white flex items-center justify-center font-black">
+                  <Palette className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-[#18181B]">
+                  تنظیمات پس‌زمینه و هویت بصری سایت (Background & Themes)
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500">
+                مدیر تولید محتوا می‌تواند پترن خیاطی و پوشاک پس‌زمینه، شدت محوشدگی (Opacity) و تم نوری را مستقیماً تنظیم کند.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetSiteTheme}
+                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                title="بازنشانی پس‌زمینه و تم به حالت اولیه خیاطی کلاسیک"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>بازنشانی تم پیش‌فرض</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveSettings()}
+                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
+              >
+                <Save className="w-4 h-4 text-[#D4AF37]" />
+                <span>ذخیره تم و پس‌زمینه</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Theme Selection Cards */}
+          <div className="bg-white p-6 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-4">
+            <h4 className="font-black text-xs text-[#18181B] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+              <span>انتخاب تم و سبک طراحی پس‌زمینه سایت:</span>
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                {
+                  id: 'couture_craft',
+                  title: 'دست‌ساز خیاطی کلاسیک (Couture Craft)',
+                  desc: 'تم پیش‌فرض و گرم کارگاه من و تو با واتر‌مارک طلایی دوخت و پارچه',
+                  bgPreview: 'bg-[#FAF8F5] border-amber-600/30',
+                  badge: 'پیشنهاد اصلی',
+                },
+                {
+                  id: 'gold_atelier',
+                  title: 'آتلیه زرین لوکس (Gold Atelier)',
+                  desc: 'توناژ غنی طلایی-کرم، مناسب کالکشن‌های مجلسی و مازراتی اعلا',
+                  bgPreview: 'bg-[#FDFBF7] border-amber-500/50',
+                  badge: 'مجلسی و فاخر',
+                },
+                {
+                  id: 'minimal_silk',
+                  title: 'ابریشم مینیمال مدرن (Minimal Silk)',
+                  desc: 'پس‌زمینه مات بسیار ملایم با خطوط محو و تمرکز صددرصدی روی عکس کالا',
+                  bgPreview: 'bg-[#FBFBFA] border-stone-300',
+                  badge: 'مینیمال خنثی',
+                },
+                {
+                  id: 'dark_luxury',
+                  title: 'کنتراست دراماتیک (Dark Luxury Contrast)',
+                  desc: 'واترمارک پرکنتراست با المان‌های درخشان و عمق بصری قوی',
+                  bgPreview: 'bg-stone-100 border-stone-800/40',
+                  badge: 'کنتراست بالا',
+                },
+              ].map((themeOpt) => {
+                const isSelected = (formData.siteBackgroundTheme || 'couture_craft') === themeOpt.id;
+                return (
+                  <button
+                    key={themeOpt.id}
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...formData, siteBackgroundTheme: themeOpt.id as SiteBackgroundTheme };
+                      setFormData(updated);
+                      onUpdateSiteSettings(updated);
+                    }}
+                    className={`p-4 rounded-2xl border-2 text-right transition-all flex flex-col justify-between gap-3 cursor-pointer ${
+                      themeOpt.bgPreview
+                    } ${
+                      isSelected
+                        ? 'border-[#18181B] ring-2 ring-[#D4AF37]/50 shadow-md scale-[1.02]'
+                        : 'border-[#E6DEC8] hover:border-stone-400'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-stone-700">
+                          {themeOpt.badge}
+                        </span>
+                        {isSelected && (
+                          <span className="w-5 h-5 rounded-full bg-[#18181B] text-[#D4AF37] flex items-center justify-center text-xs font-black">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <h5 className="font-black text-xs text-[#18181B] mb-1">{themeOpt.title}</h5>
+                      <p className="text-[11px] text-stone-600 leading-relaxed">{themeOpt.desc}</p>
+                    </div>
+
+                    <div className="pt-2 border-t border-black/10 flex items-center justify-between text-[11px]">
+                      <span className="text-stone-500 font-medium">وضعیت:</span>
+                      <span className={`font-black ${isSelected ? 'text-[#18181B]' : 'text-stone-400'}`}>
+                        {isSelected ? 'فعال در فروشگاه' : 'انتخاب این تم'}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Pattern Opacity Slider */}
+            <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#DDD5C0] space-y-3 mt-4">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-xs text-stone-800 flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-[#8C6D37]" />
+                  <span>شدت وضوح واتر‌مارک پس‌زمینه پوشاک (Background Pattern Opacity):</span>
+                </label>
+                <span className="font-mono font-black text-xs text-[#18181B] bg-white px-2.5 py-1 rounded-lg border border-[#DDD5C0]">
+                  {Math.round((formData.customBackgroundPatternOpacity ?? 0.12) * 100)}٪
+                </span>
+              </div>
+
+              <input
+                type="range"
+                min="0.04"
+                max="0.25"
+                step="0.01"
+                value={formData.customBackgroundPatternOpacity ?? 0.12}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  const updated = { ...formData, customBackgroundPatternOpacity: val };
+                  setFormData(updated);
+                  onUpdateSiteSettings(updated);
+                }}
+                className="w-full accent-[#18181B] cursor-pointer"
+              />
+
+              <div className="flex justify-between text-[11px] text-stone-500 font-mono">
+                <span>۴٪ (بسیار محو و نامحسوس)</span>
+                <span>۱۲٪ (حالت پیشنهادی کارگاه)</span>
+                <span>۲۵٪ (کاملاً واضح و پررنگ)</span>
+              </div>
+            </div>
+
+            <div className="pt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => handleSaveSettings()}
+                className="px-6 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+              >
+                <Save className="w-4 h-4 text-[#D4AF37]" />
+                <span>ذخیره و اعمال در کل فروشگاه</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -334,8 +854,18 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
 
               <button
                 type="button"
+                onClick={handleResetPromoPopup}
+                className="px-3.5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
+                title="بازنشانی اطلاعات پاپ‌آپ تخفیف به حالت پیش‌فرض اولیه"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-stone-600" />
+                <span>بازنشانی پیش‌فرض</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => handleSaveSettings()}
-                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-xs"
+                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Save className="w-4 h-4 text-[#D4AF37]" />
                 <span>ذخیره تنظیمات</span>
@@ -1299,10 +1829,20 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleResetSiteInfo}
+              className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-4 py-3 rounded-xl transition-all flex items-center gap-1.5 border border-stone-300 cursor-pointer"
+              title="بازنشانی اطلاعات، تلفن‌ها و آدرس‌های سربرگ به مقادیر اولیه کارگاه"
+            >
+              <RotateCcw className="w-4 h-4 text-stone-600" />
+              <span>بازنشانی اطلاعات به مقادیر پیش‌فرض</span>
+            </button>
+
             <button
               type="submit"
-              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-6 py-3 rounded-xl transition-all shadow-xs flex items-center gap-2 border border-[#3F3F46]"
+              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-6 py-3 rounded-xl transition-all shadow-xs flex items-center gap-2 border border-[#3F3F46] cursor-pointer"
             >
               <Save className="w-4 h-4 text-[#D4AF37]" />
               <span>ذخیره کلیه تنظیمات وب‌سایت</span>
@@ -1422,6 +1962,27 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                 className="w-full bg-white p-2.5 rounded-xl border border-[#DDD5C0] font-mono font-bold text-[#18181B] outline-none"
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-4 border-t border-[#E6DEC8]">
+            <button
+              type="button"
+              onClick={handleResetPricingPolicy}
+              className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 border border-stone-300 cursor-pointer"
+              title="بازنشانی شرایط تک‌فروشی و حداقل ارسال رایگان به مقادیر پیش‌فرض"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-stone-600" />
+              <span>بازنشانی قوانین به مقادیر پیش‌فرض</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSaveSettings()}
+              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 border border-[#3F3F46] cursor-pointer"
+            >
+              <Save className="w-4 h-4 text-[#D4AF37]" />
+              <span>ذخیره قوانین فروش</span>
+            </button>
           </div>
         </div>
       )}

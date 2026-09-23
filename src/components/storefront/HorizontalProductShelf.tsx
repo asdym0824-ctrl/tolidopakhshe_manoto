@@ -126,7 +126,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
   return (
     <section 
       id={id} 
-      className="space-y-3.5 bg-gradient-to-b from-white via-white to-[#FAF7F2]/60 p-3.5 sm:p-5 rounded-3xl border border-[#E6DEC8] shadow-xs relative transition-all duration-300" 
+      className="space-y-3.5 p-3.5 sm:p-5 rounded-3xl relative transition-all duration-300 overflow-hidden bg-gradient-to-b from-white via-[#FAF8F5]/90 to-[#F7F3EB]/60 border border-[#E6DEC8] shadow-xs" 
       dir="rtl"
     >
       

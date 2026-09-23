@@ -61,29 +61,30 @@ export const StorefrontVideoReels: React.FC<StorefrontVideoReelsProps> = ({
 
   return (
     <div 
-      className="bg-gradient-to-b from-white/95 to-[#FAF8F5]/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#EAE4D9] p-3 sm:p-4 shadow-xs space-y-3" 
+      id="storefront-video-reels"
+      className="rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-3 relative overflow-hidden transition-all duration-300" 
       dir="rtl"
     >
       
       {/* Header: Sleek, Modern & Instagram Reels Aesthetic */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#EAE4D9]/80 pb-2.5">
+      <div className="flex items-center justify-between gap-2 border-b border-stone-800/80 pb-2.5 relative z-10">
         <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           {/* Instagram / Reels Style Gradient Icon */}
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-xs shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-md shrink-0">
             <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           
           <div className="truncate">
             <div className="flex items-center gap-1.5">
-              <h3 className="font-black text-stone-900 text-xs sm:text-sm truncate">
+              <h3 className="font-black text-[#FAF7F2] text-xs sm:text-sm truncate">
                 ریلز و تنخور زنده مدل‌ها
               </h3>
-              <span className="hidden xs:inline-flex items-center gap-1 bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200 text-rose-700 text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                <Sparkles className="w-2.5 h-2.5 text-rose-500" />
-                تست ایستایی و کشسانی
+              <span className="hidden xs:inline-flex items-center gap-1 bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-[#D4AF37]/40 text-[#D4AF37] text-[9px] font-black px-2 py-0.5 rounded-full">
+                <Sparkles className="w-2.5 h-2.5 text-[#D4AF37]" />
+                استیج اختصاصی تنخور
               </span>
             </div>
-            <p className="text-[10px] sm:text-[11px] text-stone-500 truncate">
+            <p className="text-[10px] sm:text-[11px] text-stone-300 truncate">
               مشاهده کیفیت دوخت و ریزش پارچه در تن مانکن قبل از سفارش
             </p>
           </div>
@@ -94,7 +95,7 @@ export const StorefrontVideoReels: React.FC<StorefrontVideoReelsProps> = ({
           <button
             type="button"
             onClick={scrollRight}
-            className="w-7 h-7 rounded-xl bg-white border border-[#EAE4D9] hover:border-stone-900 text-stone-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95"
+            className="w-7 h-7 rounded-xl bg-stone-800/90 border border-stone-700 hover:border-[#D4AF37] text-stone-200 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
             title="قبلی"
             aria-label="اسلاید قبلی ویدیوها"
           >
@@ -103,7 +104,7 @@ export const StorefrontVideoReels: React.FC<StorefrontVideoReelsProps> = ({
           <button
             type="button"
             onClick={scrollLeft}
-            className="w-7 h-7 rounded-xl bg-white border border-[#EAE4D9] hover:border-stone-900 text-stone-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95"
+            className="w-7 h-7 rounded-xl bg-stone-800/90 border border-stone-700 hover:border-[#D4AF37] text-stone-200 hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
             title="بعدی"
             aria-label="اسلاید بعدی ویدیوها"
           >

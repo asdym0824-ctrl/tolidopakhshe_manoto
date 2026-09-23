@@ -353,6 +353,23 @@ export interface OccasionPromoPopupConfig {
   posterImage?: string; // alias for customBannerImage
 }
 
+export interface LookbookBannerItem {
+  id: string;
+  title: string;
+  category: string;
+  badge: string;
+  badgeType: 'fire' | 'gold' | 'emerald' | 'blue' | 'purple' | 'amber';
+  shortFeature: string;
+  ctaText: string;
+  bgGradient: string;
+  accentBorder: string;
+  accentTextColor: string;
+  image: string;
+  matchingSku: string;
+}
+
+export type SiteBackgroundTheme = 'couture_craft' | 'minimal_silk' | 'dark_luxury' | 'gold_atelier';
+
 export interface SiteSettings {
   brandName: string;
   brandSubtitle: string;
@@ -370,6 +387,9 @@ export interface SiteSettings {
   minFreeShippingToman: number;
   midGridBanners?: StorefrontBanner[];
   promoPopup?: OccasionPromoPopupConfig;
+  lookbookBanners?: LookbookBannerItem[];
+  siteBackgroundTheme?: SiteBackgroundTheme;
+  customBackgroundPatternOpacity?: number; // e.g. 0.12
 }
 
 export interface FabricSupplier {

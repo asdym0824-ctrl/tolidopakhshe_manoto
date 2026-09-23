@@ -15,6 +15,7 @@ import {
   Train
 } from 'lucide-react';
 import { BRAND_INFO } from '../../data/brandInfo';
+import { SiteSettings } from '../../types';
 import { RubikaIcon, BaleIcon, EitaaIcon, TelegramIcon } from '../common/SocialIcons';
 
 interface AboutAndContactModalProps {
@@ -22,12 +23,14 @@ interface AboutAndContactModalProps {
   onClose: () => void;
   initialTab?: 'all' | 'map' | 'metro';
   onOpenRoutingModal?: () => void;
+  siteSettings?: SiteSettings;
 }
 
 export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
   isOpen,
   onClose,
-  initialTab = 'all'
+  initialTab = 'all',
+  siteSettings,
 }) => {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [activeViewTab, setActiveViewTab] = useState<'all' | 'map' | 'metro'>(initialTab);
@@ -42,7 +45,7 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
   if (!isOpen) return null;
 
   const handleCopyAddress = () => {
-    const textToCopy = `${BRAND_INFO.brandNameFa} (اسدی)\n📍 ${BRAND_INFO.mainAddressFa}\n📞 ${BRAND_INFO.primaryPhoneDisplay}\nمسیریابی نشان: ${BRAND_INFO.coordinates.neshanUrl}\nمسیریابی بلد: ${BRAND_INFO.coordinates.baladUrl}`;
+    const textToCopy = `${siteSettings?.brandName || BRAND_INFO.brandNameFa} (${siteSettings?.brandSubtitle || 'اسدی'})\n📍 ${siteSettings?.mainAddress || BRAND_INFO.mainAddressFa}\n📞 ${siteSettings?.primaryPhone || BRAND_INFO.primaryPhoneDisplay}\nمسیریابی نشان: ${BRAND_INFO.coordinates.neshanUrl}\nمسیریابی بلد: ${BRAND_INFO.coordinates.baladUrl}`;
     navigator.clipboard.writeText(textToCopy);
     setCopiedAddress(true);
     setTimeout(() => setCopiedAddress(false), 2500);
@@ -154,17 +157,17 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
                     </div>
 
                     <h4 className="text-xl sm:text-2xl font-black text-white pt-1">
-                      تولید و پخش پوشاک من و تو <span className="text-[#D4AF37] font-light text-lg">(اسدی)</span>
+                      {siteSettings?.brandName || 'تولید و پخش پوشاک من و تو'} <span className="text-[#D4AF37] font-light text-lg">({siteSettings?.brandSubtitle || 'اسدی'})</span>
                     </h4>
                     <p className="text-xs text-stone-300 font-medium leading-relaxed">
-                      تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ کتان، کارگو، جاگر، مازراتی، راحتی نخی)، شومیز و ست‌های مجلسی با امکان سفارش بسته‌ای عمده و تک.
+                      {siteSettings?.heroSubheadline || 'تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ کتان، کارگو، جاگر، مازراتی، راحتی نخی)، شومیز و ست‌های مجلسی با امکان سفارش بسته‌ای عمده و تک.'}
                     </p>
                   </div>
 
                   <div className="bg-white p-3 rounded-2xl shadow-sm text-center flex-shrink-0 self-center sm:self-auto border border-[#E6DEC8]">
                     <QrCode className="w-14 h-14 text-[#18181B] mx-auto" />
                     <span className="text-[9px] text-stone-700 font-black block mt-1">
-                      اسکن تلگرام تولیدی
+                      {siteSettings?.telegramChannel || 'اسکن تلگرام تولیدی'}
                     </span>
                   </div>
                 </div>
@@ -173,11 +176,11 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-stone-800 text-[11px]">
                   <div className="bg-stone-900/90 p-2.5 rounded-xl border border-stone-800 text-center">
                     <span className="text-stone-400 block text-[10px]">مدیریت مجموعه:</span>
-                    <span className="font-bold text-white">آقای اسدی</span>
+                    <span className="font-bold text-white">{siteSettings?.brandSubtitle || 'آقای اسدی'}</span>
                   </div>
                   <div className="bg-stone-900/90 p-2.5 rounded-xl border border-stone-800 text-center">
                     <span className="text-stone-400 block text-[10px]">دفتر و شو‌روم:</span>
-                    <span className="font-bold text-[#D4AF37]">پاساژ المهدی ۴ (پلاک ۲۴۲)</span>
+                    <span className="font-bold text-[#D4AF37] truncate">{siteSettings?.mainAddress || 'پاساژ المهدی ۴ (پلاک ۲۴۲)'}</span>
                   </div>
                   <div className="bg-stone-900/90 p-2.5 rounded-xl border border-stone-800 text-center">
                     <span className="text-stone-400 block text-[10px]">نحوه ارسال:</span>
@@ -195,21 +198,44 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
                     تلفن‌های تماس مستقیم جهت استعلام موجودی، قیمت عمده و هماهنگی خرید:
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {BRAND_INFO.allPhones.map((ph, idx) => (
-                      <a
-                        key={idx}
-                        href={`tel:${ph.phone}`}
-                        className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl text-center font-bold text-white transition-all flex items-center justify-between gap-1.5 border border-stone-700 hover:border-[#D4AF37]"
-                      >
-                        <span className="text-[11px] font-sans text-stone-400">{ph.label}:</span>
-                        <div className="flex items-center gap-1.5 text-[#D4AF37]">
-                          <Phone className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span dir="ltr" className="text-xs sm:text-sm font-black tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
-                            {ph.display}
-                          </span>
-                        </div>
-                      </a>
-                    ))}
+                    <a
+                      href={`tel:${siteSettings?.primaryPhone || BRAND_INFO.primaryPhone}`}
+                      className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl text-center font-bold text-white transition-all flex items-center justify-between gap-1.5 border border-stone-700 hover:border-[#D4AF37]"
+                    >
+                      <span className="text-[11px] font-sans text-stone-400">مدیریت (اسدی):</span>
+                      <div className="flex items-center gap-1.5 text-[#D4AF37]">
+                        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span dir="ltr" className="text-xs sm:text-sm font-black tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
+                          {siteSettings?.primaryPhone || BRAND_INFO.primaryPhoneDisplay}
+                        </span>
+                      </div>
+                    </a>
+
+                    <a
+                      href={`tel:${siteSettings?.salesPhone || '09121966144'}`}
+                      className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl text-center font-bold text-white transition-all flex items-center justify-between gap-1.5 border border-stone-700 hover:border-[#D4AF37]"
+                    >
+                      <span className="text-[11px] font-sans text-stone-400">واحد فروش:</span>
+                      <div className="flex items-center gap-1.5 text-[#D4AF37]">
+                        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span dir="ltr" className="text-xs sm:text-sm font-black tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
+                          {siteSettings?.salesPhone || '09121966144'}
+                        </span>
+                      </div>
+                    </a>
+
+                    <a
+                      href={`tel:${siteSettings?.supportPhone || '02155608823'}`}
+                      className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl text-center font-bold text-white transition-all flex items-center justify-between gap-1.5 border border-stone-700 hover:border-[#D4AF37]"
+                    >
+                      <span className="text-[11px] font-sans text-stone-400">دفتر بازار:</span>
+                      <div className="flex items-center gap-1.5 text-[#D4AF37]">
+                        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span dir="ltr" className="text-xs sm:text-sm font-black tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
+                          {siteSettings?.supportPhone || '02155608823'}
+                        </span>
+                      </div>
+                    </a>
                   </div>
                 </div>
 

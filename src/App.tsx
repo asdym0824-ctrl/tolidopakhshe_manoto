@@ -183,7 +183,9 @@ export const DEFAULT_PROMO_POPUP: OccasionPromoPopupConfig = {
   showOncePerSession: true,
 };
 
-const INITIAL_SITE_SETTINGS: SiteSettings = {
+import { DEFAULT_LOOKBOOK_BANNERS } from './data/defaultLookbookBanners';
+
+export const INITIAL_SITE_SETTINGS: SiteSettings = {
   brandName: 'پوشاک من و تو',
   brandSubtitle: 'تولید و پخش شلوار زنانه اسدی • بازار بزرگ تهران',
   mainAddress: 'تهران، بازار بزرگ، سرای ملی، پاساژ المهدی ۴، پلاک ۲۴۲',
@@ -200,6 +202,9 @@ const INITIAL_SITE_SETTINGS: SiteSettings = {
   minFreeShippingToman: 5000000,
   midGridBanners: DEFAULT_STOREFRONT_BANNERS,
   promoPopup: DEFAULT_PROMO_POPUP,
+  lookbookBanners: DEFAULT_LOOKBOOK_BANNERS,
+  siteBackgroundTheme: 'couture_craft',
+  customBackgroundPatternOpacity: 0.12,
 };
 
 // Component Imports
@@ -226,6 +231,7 @@ import { AdminAuthGate } from './components/admin/AdminAuthGate';
 import { AdminHelpModal } from './components/admin/AdminHelpModal';
 import { AdminBreadcrumbBar } from './components/admin/AdminBreadcrumbBar';
 import { AdminMobileBottomNav } from './components/admin/AdminMobileBottomNav';
+import { AdminModernBackground } from './components/admin/AdminModernBackground';
 import { calculateTotalUnitStock } from './utils/stockUtils';
 import { isTabAllowedForRole, ROLE_PERMISSIONS } from './utils/rolePermissions';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
@@ -662,7 +668,10 @@ export default function App() {
 
   // 3. Admin Dashboard Zone
   return (
-    <div id="admin-panel-root" className="admin-panel min-h-screen bg-[#FAF7F2] text-[#18181B] flex flex-col antialiased selection:bg-[#D4AF37] selection:text-[#18181B]" dir="rtl">
+    <div id="admin-panel-root" className="admin-panel min-h-screen relative bg-[#FAF7F2] text-[#18181B] flex flex-col antialiased selection:bg-[#D4AF37] selection:text-[#18181B] overflow-x-hidden" dir="rtl">
+      {/* Modern Multi-layered Ambient Background */}
+      <AdminModernBackground />
+
       {isAppInitialLoading && (
         <AtelierGarmentLoadingScreen
           minDurationMs={1800}
@@ -702,7 +711,7 @@ export default function App() {
       />
 
       {/* Main Container Layout with Sidebar */}
-      <div className="max-w-7xl mx-auto w-full px-3 sm:px-5 lg:px-8 py-4 sm:py-6 flex-1">
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-5 lg:px-8 py-4 sm:py-6 flex-1 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
           
           {/* Right/Side Navigation for Desktop (Hidden on mobile/tablet, shown on lg screens) */}

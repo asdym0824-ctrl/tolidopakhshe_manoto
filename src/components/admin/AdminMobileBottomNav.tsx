@@ -33,34 +33,48 @@ export const AdminMobileBottomNav: React.FC<AdminMobileBottomNavProps> = ({
 }) => {
   const totalBadges = lowStockCount + checkAlertCount + followUpCount;
 
-  // Dedicated bottom bar for content_admin role (only inventory & catalogue)
+  // Dedicated bottom bar for content_admin role (Storefront, Inventory, Marketing & Menu)
   if (currentUserRole === 'content_admin') {
     return (
       <div 
-        className="admin-panel fixed bottom-0 inset-x-0 z-40 bg-[#18181B] text-[#FAF7F2] border-t border-[#3F3F46] shadow-2xl px-4 py-2 lg:hidden safe-area-bottom"
+        className="admin-panel fixed bottom-0 inset-x-0 z-40 bg-[#18181B] text-[#FAF7F2] border-t border-[#3F3F46] shadow-2xl px-2 py-2 lg:hidden safe-area-bottom"
         dir="rtl"
         id="admin-mobile-bottom-nav"
       >
         <div className="flex items-center justify-around max-w-md mx-auto w-full">
           <button
             type="button"
+            id="mobile-nav-storefront-contentadmin"
+            onClick={() => onSelectTab('storefront')}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
+              currentTab === 'storefront'
+                ? 'bg-[#27272A] text-[#D4AF37] font-black'
+                : 'text-stone-300 font-bold'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-[11px] font-black">بنرها و تم سایت</span>
+          </button>
+
+          <button
+            type="button"
             id="mobile-nav-inventory-contentadmin"
             onClick={() => onSelectTab('inventory')}
-            className={`flex items-center gap-2 py-1.5 px-4 rounded-xl transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
               currentTab === 'inventory'
                 ? 'bg-[#27272A] text-emerald-400 font-black'
                 : 'text-stone-300 font-bold'
             }`}
           >
-            <Package className="w-5 h-5 text-emerald-400" />
-            <span className="text-xs font-black">محصولات و موجودی انبار</span>
+            <Package className="w-4 h-4 text-emerald-400" />
+            <span className="text-[11px] font-black">محصولات انبار</span>
           </button>
 
           <button
             type="button"
             id="mobile-nav-more-menu"
             onClick={onOpenMobileMenu}
-            className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl transition-all text-stone-400 hover:text-stone-200 cursor-pointer font-bold text-xs"
+            className="flex items-center gap-1 py-1.5 px-2.5 rounded-xl transition-all text-stone-400 hover:text-stone-200 cursor-pointer font-bold text-xs"
           >
             <Menu className="w-4 h-4" />
             <span>منو</span>

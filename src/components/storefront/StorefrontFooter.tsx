@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
+import { SiteSettings } from '../../types';
 import { RubikaIcon, BaleIcon, EitaaIcon, TelegramIcon } from '../common/SocialIcons';
 
 interface StorefrontFooterProps {
@@ -20,6 +21,7 @@ interface StorefrontFooterProps {
   onOpenTracking: () => void;
   onOpenPartnerModal: () => void;
   onSwitchToAdmin: () => void;
+  siteSettings?: SiteSettings;
 }
 
 export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
@@ -27,7 +29,8 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
   onOpenRoutingModal,
   onOpenTracking,
   onOpenPartnerModal,
-  onSwitchToAdmin
+  onSwitchToAdmin,
+  siteSettings,
 }) => {
   return (
     <footer className="bg-[#121214] text-white pt-12 pb-8 border-t border-stone-800" dir="rtl">
@@ -43,7 +46,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
             </div>
 
             <p className="text-stone-300 text-xs leading-relaxed">
-              <strong>تولید و پخش پوشاک من و تو (مدیریت اسدی)</strong>: تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ، راسته، جاگر، دمپا)، شومیز، مانتو و ست‌های راحتی با کیفیت برتر و ارسال مستقیم از بازار بزرگ تهران.
+              <strong>{siteSettings?.brandName || 'تولید و پخش پوشاک من و تو'} ({siteSettings?.brandSubtitle || 'مدیریت اسدی'})</strong>: {siteSettings?.heroSubheadline || 'تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ، راسته، جاگر، دمپا)، شومیز، مانتو و ست‌های راحتی با کیفیت برتر و ارسال مستقیم از بازار بزرگ تهران.'}
             </p>
 
             <div className="space-y-2 pt-1">
@@ -52,7 +55,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 <a
-                  href={BRAND_INFO.telegramUrl}
+                  href={siteSettings?.telegramChannelUrl || BRAND_INFO.telegramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-2.5 py-1.5 rounded-xl bg-sky-600/20 border border-sky-500/40 hover:bg-sky-600/30 text-sky-300 hover:text-white flex items-center gap-1.5 transition-all font-bold text-xs shadow-xs active:scale-95 group"
@@ -183,7 +186,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
                   <span className="text-[10px] text-emerald-400 group-hover:text-emerald-300 font-bold">بلد • نشان</span>
                 </div>
                 <p className="text-[11px] text-stone-300 leading-relaxed group-hover:text-white transition-colors">
-                  {BRAND_INFO.mainAddressFa}
+                  {siteSettings?.mainAddress || BRAND_INFO.mainAddressFa}
                 </p>
               </button>
 
@@ -194,7 +197,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               >
                 <span className="text-[#B89B58] font-bold block text-[11px]">مسیر دسترسی سریع با مترو:</span>
                 <p className="text-[11px] text-stone-300 leading-relaxed group-hover:text-white transition-colors">
-                  {BRAND_INFO.subwayRouteFa}
+                  {siteSettings?.subwayAddress || BRAND_INFO.subwayRouteFa}
                 </p>
               </button>
             </div>
@@ -206,23 +209,56 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               تلفن‌های ثبت سفارش و استعلام
             </h4>
             <ul className="space-y-2 text-stone-300 text-xs">
-              {BRAND_INFO.allPhones.map((ph, idx) => (
-                <li key={idx}>
-                  <a
-                    href={`tel:${ph.phone}`}
-                    className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer"
-                    title={`تماس مستقیم با ${ph.label}`}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <Phone className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform flex-shrink-0" />
-                      <span className="text-[11px] text-stone-300 group-hover:text-white truncate">{ph.label}:</span>
-                    </div>
-                    <span dir="ltr" className="text-[#D4AF37] group-hover:text-amber-300 font-black text-xs sm:text-sm tabular-nums tracking-wider font-['Vazirmatn',sans-serif]">
-                      {ph.display}
-                    </span>
-                  </a>
-                </li>
-              ))}
+              {/* Primary Phone */}
+              <li>
+                <a
+                  href={`tel:${siteSettings?.primaryPhone || BRAND_INFO.primaryPhone}`}
+                  className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer"
+                  title="تماس مستقیم با مدیریت"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Phone className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform flex-shrink-0" />
+                    <span className="text-[11px] text-stone-300 group-hover:text-white truncate">مدیریت (اسدی):</span>
+                  </div>
+                  <span dir="ltr" className="text-[#D4AF37] group-hover:text-amber-300 font-black text-xs sm:text-sm tabular-nums tracking-wider font-['Vazirmatn',sans-serif]">
+                    {siteSettings?.primaryPhone || BRAND_INFO.primaryPhoneDisplay}
+                  </span>
+                </a>
+              </li>
+
+              {/* Sales Phone */}
+              <li>
+                <a
+                  href={`tel:${siteSettings?.salesPhone || '09121966144'}`}
+                  className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer"
+                  title="تماس با واحد فروش و سفارش عمده"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Phone className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform flex-shrink-0" />
+                    <span className="text-[11px] text-stone-300 group-hover:text-white truncate">واحد فروش عمده:</span>
+                  </div>
+                  <span dir="ltr" className="text-[#D4AF37] group-hover:text-amber-300 font-black text-xs sm:text-sm tabular-nums tracking-wider font-['Vazirmatn',sans-serif]">
+                    {siteSettings?.salesPhone || '09121966144'}
+                  </span>
+                </a>
+              </li>
+
+              {/* Support Phone */}
+              <li>
+                <a
+                  href={`tel:${siteSettings?.supportPhone || '02155608823'}`}
+                  className="bg-stone-900 hover:bg-stone-800 p-2.5 rounded-xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer"
+                  title="تماس با پشتیبانی و پیگیری بار"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Phone className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform flex-shrink-0" />
+                    <span className="text-[11px] text-stone-300 group-hover:text-white truncate">دفتر بازار و پیگیری:</span>
+                  </div>
+                  <span dir="ltr" className="text-[#D4AF37] group-hover:text-amber-300 font-black text-xs sm:text-sm tabular-nums tracking-wider font-['Vazirmatn',sans-serif]">
+                    {siteSettings?.supportPhone || '02155608823'}
+                  </span>
+                </a>
+              </li>
             </ul>
             <div className="text-[11px] text-stone-400 font-sans pt-1 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />

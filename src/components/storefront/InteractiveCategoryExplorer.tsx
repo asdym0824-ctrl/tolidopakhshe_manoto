@@ -77,7 +77,11 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#EAE4D9] p-3 sm:p-4 shadow-xs space-y-2.5" dir="rtl">
+    <div 
+      id="interactive-category-explorer"
+      className="backdrop-blur-md rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-2.5 transition-all duration-300 overflow-hidden" 
+      dir="rtl"
+    >
       
       {/* Header with Title & Context - Compact & Clean */}
       <div className="flex items-center justify-between gap-2 border-b border-[#EAE4D9]/80 pb-2.5">

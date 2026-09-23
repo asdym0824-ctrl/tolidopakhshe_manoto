@@ -190,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside 
       id="app-sidebar" 
-      className={`bg-white border-l border-[#E6DEC8] flex flex-col shrink-0 shadow-2xs ${
+      className={`bg-white/95 backdrop-blur-md border border-[#E6DEC8]/90 flex flex-col shrink-0 shadow-[0_8px_30px_-6px_rgba(24,24,27,0.04),0_2px_6px_rgba(24,24,27,0.02)] transition-all ${
         isMobileDrawer ? 'w-full h-full' : 'w-full md:w-68 rounded-2xl'
       }`}
     >

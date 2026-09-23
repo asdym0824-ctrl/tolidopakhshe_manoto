@@ -90,6 +90,8 @@ const MAISON_SHOWCASE_SLIDES: FashionShowcaseSlide[] = [
   }
 ];
 
+import { SiteSettings } from '../../types';
+
 interface StorefrontHeroProps {
   onScrollToCatalog: () => void;
   onFilterRetailOnly: () => void;
@@ -100,6 +102,7 @@ interface StorefrontHeroProps {
   totalProductsCount: number;
   onOpenSizeGuide?: () => void;
   onOpenFabricCare?: () => void;
+  siteSettings?: SiteSettings;
 }
 
 export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
@@ -111,9 +114,10 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
   onOpenTracking,
   totalProductsCount,
   onOpenSizeGuide,
-  onOpenFabricCare
+  onOpenFabricCare,
+  siteSettings,
 }) => {
-  // 🔄 Automatic multi-banner rotation state (cycles every 4 seconds)
+  // 🔄 Automatic multi-banner rotation state (cycles smoothly every 5.5 seconds like Digikala)
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -129,7 +133,7 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
     if (isPaused) return;
     const interval = setInterval(() => {
       nextSlide();
-    }, 4000);
+    }, 5500);
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
@@ -200,6 +204,7 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
           onScrollToCatalog={onScrollToCatalog}
           onOpenAboutModal={onOpenAboutModal}
           onOpenTracking={onOpenTracking}
+          customBanners={siteSettings?.midGridBanners}
         />
 
         {/* 🔘 DIGIKALA-STYLE CIRCULAR QUICK SERVICE ICONS (دایره‌های خدمات سریع دیجی‌کالا) */}
@@ -395,13 +400,19 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
             {/* Main Headline */}
             <div className="space-y-3">
               <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-[#141416] leading-[1.25] tracking-tight">
-                تولید و پخش پوشاک <span className="text-[#967434]">من و تو</span>
+                {siteSettings?.heroHeadline ? (
+                  <span>{siteSettings.heroHeadline}</span>
+                ) : (
+                  <>
+                    تولید و پخش پوشاک <span className="text-[#967434]">من و تو</span>
+                  </>
+                )}
                 <span className="block text-xl sm:text-2xl lg:text-[26px] font-bold text-stone-700 mt-1 sm:mt-1.5">
-                  (مدیریت اسدی)
+                  {siteSettings?.brandSubtitle || '(مدیریت اسدی)'}
                 </span>
               </h1>
               <p className="text-sm sm:text-base text-stone-700 leading-relaxed font-normal max-w-xl">
-                تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ، راسته، جاگر، دمپا)، شومیز، مانتو و ست‌های راحتی با کیفیت برتر و ارسال مستقیم از بازار بزرگ تهران.
+                {siteSettings?.heroSubheadline || 'تولیدکننده تخصصی انواع شلوار زنانه (بگ، نیم‌بگ، راسته، جاگر، دمپا)، شومیز، مانتو و ست‌های راحتی با کیفیت برتر و ارسال مستقیم از بازار بزرگ تهران.'}
               </p>
             </div>
 
@@ -415,15 +426,15 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
                   title="کلیک برای مشاهده نقشه و لوکیشن در بازار بزرگ"
                 >
                   <MapPin className="w-4 h-4 text-[#967434] group-hover:scale-110 transition-transform" />
-                  <span>تهران، بازار بزرگ، سرای ملی، پاساژ المهدی ۴، پلاک ۲۴۲</span>
+                  <span>{siteSettings?.mainAddress || BRAND_INFO.mainAddressFa}</span>
                   <span className="bg-[#141416] text-[#D4AF37] text-[10px] font-black px-2 py-0.5 rounded-full">
-                    مسیریابی مترو خیام
+                    {siteSettings?.subwayAddress ? 'مسیریابی مترو' : 'مسیریابی مترو خیام'}
                   </span>
                 </button>
               ) : (
                 <div className="text-xs text-stone-700 flex items-center gap-1.5 font-medium">
                   <MapPin className="w-4 h-4 text-[#967434]" />
-                  <span>تهران، بازار بزرگ، سرای ملی، پاساژ المهدی ۴، پلاک ۲۴۲</span>
+                  <span>{siteSettings?.mainAddress || BRAND_INFO.mainAddressFa}</span>
                 </div>
               )}
             </div>

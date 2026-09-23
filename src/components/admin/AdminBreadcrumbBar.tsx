@@ -112,7 +112,7 @@ export const AdminBreadcrumbBar: React.FC<AdminBreadcrumbBarProps> = ({
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E6DEC8] p-3 sm:p-4 mb-4 shadow-2xs space-y-3" dir="rtl">
+    <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-[#E6DEC8]/90 p-3 sm:p-4 mb-4 shadow-[0_8px_30px_-6px_rgba(24,24,27,0.03),0_2px_6px_rgba(24,24,27,0.02)] space-y-3 transition-all" dir="rtl">
       
       {/* Top Row: Breadcrumb, Section Title and Context Help Button */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-[#E6DEC8]/80">

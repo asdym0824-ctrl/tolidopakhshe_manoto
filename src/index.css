@@ -83,14 +83,8 @@
   line-height: 1.6;
   letter-spacing: 0 !important;
 
-  /* 4. Subtle interactive scaling and elevation animation */
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: center center;
-}
-
-.admin-panel:hover {
-  transform: scale(1.005);
-  box-shadow: 0 20px 40px -15px rgba(24, 24, 27, 0.08), 0 0 25px 0 rgba(212, 175, 55, 0.05);
+  /* 4. Balanced smooth transitions */
+  transition: background-color 0.3s ease;
 }
 
 /* Ensure all nested text elements inside admin panel inherit the proper Persian font */
@@ -226,4 +220,123 @@
 .animate-garment-float-4 {
   animation: garment-sway 8.5s ease-in-out infinite;
 }
+
+/* ========================================================================= */
+/* 🌟 AMBIENT ATMOSPHERIC BACKGROUND DRIFT KEYFRAMES (ULTRA-SMOOTH & SUBTLE) */
+/* Hardware-accelerated GPU transforms with slow, non-distracting timing     */
+/* ========================================================================= */
+
+@keyframes admin-blob-drift-1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(24px, 18px, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(-15px, 25px, 0) scale(0.96);
+  }
+}
+
+@keyframes admin-blob-drift-2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-20px, 30px, 0) scale(1.06);
+  }
+}
+
+@keyframes admin-blob-drift-3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(18px, -24px, 0) scale(1.04);
+  }
+  80% {
+    transform: translate3d(-10px, 12px, 0) scale(0.97);
+  }
+}
+
+@keyframes admin-blob-drift-4 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(25px, -15px, 0) scale(1.08);
+  }
+}
+
+.animate-admin-blob-1 {
+  animation: admin-blob-drift-1 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-admin-blob-2 {
+  animation: admin-blob-drift-2 26s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-admin-blob-3 {
+  animation: admin-blob-drift-3 24s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-admin-blob-4 {
+  animation: admin-blob-drift-4 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ========================================================================= */
+/* ✨ LOOKBOOK & STOREFRONT BANNER PACK TRANSITIONS (DIGIKALA-STYLE SMOOTH)  */
+/* ========================================================================= */
+
+@keyframes lookbook-banner-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(18px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-lookbook-pack {
+  animation: lookbook-banner-enter 0.75s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* Staggered gentle entry for banner cards */
+.animate-lookbook-pack > div:nth-child(1) {
+  animation: lookbook-banner-enter 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: 0.04s;
+}
+.animate-lookbook-pack > div:nth-child(2) {
+  animation: lookbook-banner-enter 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: 0.1s;
+}
+.animate-lookbook-pack > div:nth-child(3) {
+  animation: lookbook-banner-enter 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: 0.16s;
+}
+.animate-lookbook-pack > div:nth-child(4) {
+  animation: lookbook-banner-enter 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: 0.22s;
+}
+
+/* Atmospheric golden pulse shimmer across active banner header */
+@keyframes golden-shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-golden-shimmer {
+  animation: golden-shimmer-sweep 2.8s ease-in-out infinite;
+}
+
 

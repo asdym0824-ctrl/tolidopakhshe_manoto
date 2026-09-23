@@ -43,7 +43,20 @@ const FLOATING_ITEMS: FloatingItem[] = [
   { id: 'f-15', top: '3100px', right: '5%', size: 36, rotation: 14, animationClass: 'animate-garment-float-3', opacity: 0.24, type: 'pants' }
 ];
 
-export const GarmentBackgroundPattern: React.FC = () => {
+import { SiteBackgroundTheme } from '../../types';
+
+interface GarmentBackgroundPatternProps {
+  theme?: SiteBackgroundTheme;
+  opacity?: number;
+}
+
+export const GarmentBackgroundPattern: React.FC<GarmentBackgroundPatternProps> = ({
+  theme = 'couture_craft',
+  opacity = 0.115,
+}) => {
+  const patternColor = theme === 'dark_luxury' ? 'text-amber-300' : theme === 'minimal_silk' ? 'text-stone-400' : 'text-[#967434]';
+  const effectiveOpacity = theme === 'minimal_silk' ? Math.max(0.05, opacity * 0.7) : opacity;
+
   return (
     <div 
       className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0" 
@@ -51,10 +64,10 @@ export const GarmentBackgroundPattern: React.FC = () => {
     >
       {/* ========================================================================= */}
       {/* 1. CRISP, CLEARLY VISIBLE WATERMARK GRID PATTERN (نقش ریز سرتاسری پوشاک)     */}
-      {/* Opacity boosted to ~0.11 so shapes are distinctly noticeable without clutter*/}
       {/* ========================================================================= */}
       <svg
-        className="absolute inset-0 w-full h-full text-[#967434] opacity-[0.115]"
+        className={`absolute inset-0 w-full h-full ${patternColor}`}
+        style={{ opacity: effectiveOpacity }}
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"

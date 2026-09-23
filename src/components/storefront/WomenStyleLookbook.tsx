@@ -15,152 +15,26 @@ import {
   Layers,
   Tag
 } from 'lucide-react';
-import { Product } from '../../types';
+import { Product, LookbookBannerItem } from '../../types';
+import { DEFAULT_LOOKBOOK_BANNERS } from '../../data/defaultLookbookBanners';
 
 interface WomenStyleLookbookProps {
   products: Product[];
   onOpenProduct: (product: Product) => void;
   onFilterCategory: (category: string) => void;
-}
-
-interface BannerItem {
-  id: string;
-  title: string;
-  category: string;
-  badge: string;
-  badgeType: 'fire' | 'gold' | 'emerald' | 'blue' | 'purple' | 'amber';
-  shortFeature: string;
-  ctaText: string;
-  bgGradient: string;
-  accentBorder: string;
-  accentTextColor: string;
-  image: string;
-  matchingSku: string;
+  customBanners?: LookbookBannerItem[];
 }
 
 export const WomenStyleLookbook: React.FC<WomenStyleLookbookProps> = ({
   products,
   onOpenProduct,
   onFilterCategory,
+  customBanners,
 }) => {
-  // 8 Curated Fashion Style Banners organized into 2 distinct 4-banner packs (4 تا 4 تا)
-  const allBanners: BannerItem[] = [
-    // Pack 1: پرفروش‌ترین استایل‌های روزمره و خیابانی
-    {
-      id: 'banner-baggy',
-      title: 'شلوار بگ ترند خیابانی',
-      category: 'شلوار بگ',
-      badge: 'پرفروش‌ترین ترند سال',
-      badgeType: 'gold',
-      shortFeature: 'تنخور آزاد و خوش‌ایست استاندار',
-      ctaText: 'مدل‌های بگ',
-      bgGradient: 'from-black/90 via-[#261E16]/80 to-transparent',
-      accentBorder: 'border-amber-400/40 hover:border-amber-400',
-      accentTextColor: 'text-amber-300',
-      image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-BGR-101',
-    },
-    {
-      id: 'banner-cotton-relax',
-      title: 'راحتی ۱۰۰٪ نخ پنبه',
-      category: 'شلوار راحتی نخی',
-      badge: 'فوق‌العاده خنک و لطیف',
-      badgeType: 'emerald',
-      shortFeature: 'الیاف طبیعی بدون آبرفت',
-      ctaText: 'شلوار راحتی',
-      bgGradient: 'from-black/90 via-[#0E2319]/80 to-transparent',
-      accentBorder: 'border-emerald-400/40 hover:border-emerald-400',
-      accentTextColor: 'text-emerald-300',
-      image: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-RHT-204',
-    },
-    {
-      id: 'banner-dacron-office',
-      title: 'اداری و پرسنلی داکرون',
-      category: 'داکرون اداری/اسپرت',
-      badge: 'ایستایی رسمی بدون چروک',
-      badgeType: 'blue',
-      shortFeature: 'خط اتوی مقاوم با دوام بالا',
-      ctaText: 'مدل‌های اداری',
-      bgGradient: 'from-black/90 via-[#121F33]/80 to-transparent',
-      accentBorder: 'border-sky-400/40 hover:border-sky-400',
-      accentTextColor: 'text-sky-300',
-      image: 'https://images.unsplash.com/photo-1551854838-212c50b4c184?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-DKR-305',
-    },
-    {
-      id: 'banner-jogger-sport',
-      title: 'جاگر و اسلش اسپرت',
-      category: 'جاگر',
-      badge: 'دمپا کش و تحرک راحت',
-      badgeType: 'fire',
-      shortFeature: 'پارچه دورس با کشسانی ۴ جهته',
-      ctaText: 'جاگر اسپرت',
-      bgGradient: 'from-black/90 via-[#2D121B]/80 to-transparent',
-      accentBorder: 'border-rose-400/40 hover:border-rose-400',
-      accentTextColor: 'text-rose-300',
-      image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-JGR-412',
-    },
-
-    // Pack 2: کالکشن راسته، عمده و کلاسیک
-    {
-      id: 'banner-straight-classic',
-      title: 'راسته کلاسیک مجلسی',
-      category: 'شلوار راسته',
-      badge: 'قدبلندتر نشان‌دادن اندام',
-      badgeType: 'purple',
-      shortFeature: 'پارچه کرپ مازراتی اعلا',
-      ctaText: 'شلوار راسته',
-      bgGradient: 'from-black/90 via-[#24132E]/80 to-transparent',
-      accentBorder: 'border-purple-400/40 hover:border-purple-400',
-      accentTextColor: 'text-purple-300',
-      image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-RST-518',
-    },
-    {
-      id: 'banner-dacron-casual',
-      title: 'داکرون کژوال مانتویی',
-      category: 'داکرون اداری/اسپرت',
-      badge: 'سبک و چهارفصل',
-      badgeType: 'gold',
-      shortFeature: 'ست‌پذیری بالا با انواع مانتو',
-      ctaText: 'داکرون کژوال',
-      bgGradient: 'from-black/90 via-[#2E2413]/80 to-transparent',
-      accentBorder: 'border-amber-400/40 hover:border-amber-400',
-      accentTextColor: 'text-amber-300',
-      image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-DKR-305',
-    },
-    {
-      id: 'banner-wholesale-bundles',
-      title: 'پک‌های بنکداری و عمده',
-      category: 'همه دسته‌ها',
-      badge: 'تخفیف پلکانی جین و کارتن',
-      badgeType: 'emerald',
-      shortFeature: 'ارزان‌ترین نرخ بازار بزرگ تهران',
-      ctaText: 'لیست عمده',
-      bgGradient: 'from-black/90 via-[#0A261C]/80 to-transparent',
-      accentBorder: 'border-emerald-400/40 hover:border-emerald-400',
-      accentTextColor: 'text-emerald-300',
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-BGR-101',
-    },
-    {
-      id: 'banner-mom-fit',
-      title: 'مام‌استایل و فاق‌بلند',
-      category: 'شلوار راسته',
-      badge: 'برش شیک و مدرن',
-      badgeType: 'blue',
-      shortFeature: 'دوخت محکم چهارسوزنه و باکیفیت',
-      ctaText: 'مدل‌های مام',
-      bgGradient: 'from-black/90 via-[#102330]/80 to-transparent',
-      accentBorder: 'border-sky-400/40 hover:border-sky-400',
-      accentTextColor: 'text-sky-300',
-      image: 'https://images.unsplash.com/photo-1542272604-780c96856592?w=800&auto=format&fit=crop&q=80',
-      matchingSku: 'SH-RST-518',
-    },
-  ];
+  // Use custom banners if provided from site settings, otherwise fall back to defaults
+  const allBanners: LookbookBannerItem[] = (customBanners && customBanners.length > 0)
+    ? customBanners
+    : DEFAULT_LOOKBOOK_BANNERS;
 
   // Group into pages of 4 banners each (4 تا 4 تا)
   const pageSize = 4;
@@ -178,12 +52,12 @@ export const WomenStyleLookbook: React.FC<WomenStyleLookbookProps> = ({
     setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   }, [totalPages]);
 
-  // Autoplay rotation every 5.5 seconds
+  // Autoplay rotation every 7 seconds (relaxed like Digikala & standard e-commerce banner carousels)
   useEffect(() => {
     if (!isAutoPlay) return;
     const timer = setInterval(() => {
       nextPage();
-    }, 5500);
+    }, 7000);
     return () => clearInterval(timer);
   }, [isAutoPlay, nextPage]);
 
@@ -221,35 +95,27 @@ export const WomenStyleLookbook: React.FC<WomenStyleLookbookProps> = ({
           </div>
         </div>
 
-        {/* 4-by-4 Navigation Controls */}
-        <div className="flex items-center gap-1.5">
-          {/* Pack tabs (پک ۱ / پک ۲) */}
-          <div className="flex items-center bg-[#FAF8F5] p-0.5 rounded-xl border border-[#EAE4D9] text-[11px] font-bold">
-            <button
-              type="button"
-              onClick={() => setCurrentPage(0)}
-              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                currentPage === 0
-                  ? 'bg-[#18181B] text-white shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              پک ۱ (ترند)
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(1)}
-              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                currentPage === 1
-                  ? 'bg-[#18181B] text-white shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              پک ۲ (مجلسی و کلاسیک)
-            </button>
+        {/* Luxury Auto-Rotation & Navigation Controls */}
+        <div className="flex items-center gap-2">
+          {/* Subtle Progress Bar & Pack Step Pill */}
+          <div className="flex items-center gap-1.5 bg-[#FAF8F5] px-2.5 py-1 rounded-xl border border-[#EAE4D9] text-[11px] font-bold text-stone-700 shadow-2xs">
+            <span className="text-[10px] text-stone-500">کالکشن</span>
+            <span className="font-mono text-[#D4AF37] font-black">{toPersianNum(currentPage + 1)}</span>
+            <span className="text-stone-300">/</span>
+            <span className="font-mono text-stone-400">{toPersianNum(totalPages)}</span>
           </div>
 
-          {/* Arrow buttons */}
+          {/* Autoplay Toggle Badge */}
+          <button
+            type="button"
+            onClick={() => setIsAutoPlay(!isAutoPlay)}
+            className="w-7 h-7 rounded-lg bg-[#FAF8F5] hover:bg-[#18181B] hover:text-[#D4AF37] text-stone-600 border border-[#EAE4D9] flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+            title={isAutoPlay ? "توقف تعویض خودکار" : "شروع تعویض خودکار"}
+          >
+            {isAutoPlay ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 text-emerald-600" />}
+          </button>
+
+          {/* Arrow buttons with modern hover effect */}
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -274,9 +140,12 @@ export const WomenStyleLookbook: React.FC<WomenStyleLookbookProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 🖼️ COMPACT 4-BANNER GRID (۴ بنر همزمان با طراحی مدرن و ارتفاع بهینه)          */}
+      {/* 🖼️ COMPACT 4-BANNER GRID WITH FLUID HAUTE-COUTURE TRANSITION ANIMATION    */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
+      <div 
+        key={`lookbook-pack-${currentPage}`}
+        className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5 animate-lookbook-pack"
+      >
         {currentBanners.map((banner) => {
           const matchingProduct = products.find(
             p => p.sku === banner.matchingSku || (banner.category !== 'همه دسته‌ها' && p.category === banner.category)

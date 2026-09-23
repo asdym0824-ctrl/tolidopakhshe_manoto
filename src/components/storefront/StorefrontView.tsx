@@ -507,7 +507,10 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
 
       {/* Main Content Area with Couture Apparel Shapes & Watermark Pattern */}
       <main className="flex-1 pb-16 md:pb-0 relative bg-[#FAF8F5]">
-        <GarmentBackgroundPattern />
+        <GarmentBackgroundPattern 
+          theme={siteSettings?.siteBackgroundTheme || 'couture_craft'} 
+          opacity={siteSettings?.customBackgroundPatternOpacity ?? 0.115} 
+        />
         <div className="relative z-10">
           {currentView === 'checkout' ? (
           <CheckoutView
@@ -609,6 +612,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                   setSelectedCategory(cat);
                   scrollToProducts();
                 }}
+                customBanners={siteSettings?.lookbookBanners}
               />
 
               {/* Active Search Notification Banner */}

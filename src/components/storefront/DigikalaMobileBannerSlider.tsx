@@ -15,6 +15,8 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
+import { StorefrontBanner } from '../../types';
+
 interface BannerSlide {
   id: string;
   badge: string;
@@ -35,6 +37,7 @@ interface DigikalaMobileBannerSliderProps {
   onScrollToCatalog: () => void;
   onOpenAboutModal?: (tab?: 'about' | 'map' | 'contact' | 'terms') => void;
   onOpenTracking?: () => void;
+  customBanners?: StorefrontBanner[];
 }
 
 export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProps> = ({
@@ -43,8 +46,9 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
   onScrollToCatalog,
   onOpenAboutModal,
   onOpenTracking,
+  customBanners,
 }) => {
-  const slides: BannerSlide[] = [
+  const defaultSlides: BannerSlide[] = [
     {
       id: 'slide-1',
       badge: 'شگفت‌انگیز راسته بازار',
@@ -112,6 +116,33 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
     },
   ];
 
+  // If custom banners are provided and active from site settings, map them into slides
+  const slides: BannerSlide[] = (customBanners && customBanners.filter(b => b.isActive).length > 0)
+    ? customBanners.filter(b => b.isActive).map((b, idx) => {
+        const badgeTypes: ('fire' | 'gold' | 'emerald' | 'purple' | 'blue')[] = ['fire', 'emerald', 'gold', 'blue', 'purple'];
+        const gradients = [
+          'from-[#1A1817] via-[#2A2318] to-[#141416]',
+          'from-[#0E2319] via-[#143022] to-[#0A1610]',
+          'from-[#261E14] via-[#352815] to-[#1A140B]',
+          'from-[#121E2C] via-[#1A2C40] to-[#0D1520]',
+          'from-[#21172E] via-[#2E1E42] to-[#160E21]',
+        ];
+        return {
+          id: b.id,
+          badge: b.tag || 'پیشنهاد ویژه من و تو',
+          badgeType: badgeTypes[idx % badgeTypes.length],
+          title: b.title,
+          highlightText: b.subtitle || 'تولید و پخش مستقیم بازار',
+          subtitle: b.badge || 'بازار بزرگ تهران • سرای ملی',
+          ctaText: b.ctaText || 'مشاهده جزئیات',
+          bgGradient: gradients[idx % gradients.length],
+          accentBorder: 'border-amber-500/40',
+          imageUrl: b.imageUrl,
+          actionType: (b.actionType === 'wholesale_modal' ? 'wholesale' : b.actionType === 'routing_map' ? 'cheque' : 'catalog') as any,
+        };
+      })
+    : defaultSlides;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -128,12 +159,12 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
     setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Autoplay timer like Digikala (3.8s)
+  // Autoplay timer like Digikala & modern e-commerce (5.0s comfortable read time)
   useEffect(() => {
     if (isPaused) return;
     const interval = setInterval(() => {
       nextSlide();
-    }, 3800);
+    }, 5000);
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
@@ -212,9 +243,9 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
         onTouchEnd={handleTouchEnd}
         className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-[#EAE4D9]/80 aspect-[2.15/1] min-h-[145px]"
       >
-        {/* Slides Track */}
+        {/* Slides Track with Digikala-Smooth Easing & Transition */}
         <div 
-          className="flex h-full transition-transform duration-500 ease-out"
+          className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-transform"
           style={{ transform: `translateX(${currentIndex * 100}%)` }}
         >
           {slides.map((slide, idx) => {

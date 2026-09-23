@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
-import { CustomerUser, Product } from '../../types';
+import { CustomerUser, Product, SiteSettings } from '../../types';
 
 // Helper for comprehensive Persian & Arabic text normalization
 const normalizePersian = (val: string = ''): string => {
@@ -56,6 +56,7 @@ interface StorefrontHeaderProps {
   onSelectProduct?: (product: Product) => void;
   onScrollToCatalog?: () => void;
   onOpenMobileMenu?: () => void;
+  siteSettings?: SiteSettings;
 }
 
 export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
@@ -75,7 +76,8 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   products = [],
   onSelectProduct,
   onScrollToCatalog,
-  onOpenMobileMenu
+  onOpenMobileMenu,
+  siteSettings,
 }) => {
   const [isDesktopFocused, setIsDesktopFocused] = useState(false);
   const [isMobileFocused, setIsMobileFocused] = useState(false);
@@ -149,35 +151,37 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               تولید و پخش مستقیم
             </span>
             <span className="text-[#EAE4D9] truncate text-[9.5px] sm:text-[11px]">
-              پاساژ المهدی ۴، پلاک ۲۴۲ • ارسال سراسری
+              {siteSettings?.announcementNotice || 'پاساژ المهدی ۴، پلاک ۲۴۲ • ارسال سراسری'}
             </span>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 text-stone-300 text-[10px] sm:text-[11px] shrink-0">
             {/* Quick Telegram */}
             <a
-              href={BRAND_INFO.telegramUrl}
+              href={siteSettings?.telegramChannelUrl || BRAND_INFO.telegramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#D4AF37] hover:text-amber-200 font-bold flex items-center gap-1 transition-colors p-0.5"
               title="کانال تلگرام تولیدی"
             >
               <Send className="w-3 h-3 text-[#D4AF37]" />
-              <span className="hidden md:inline font-mono text-[10px]">@tolidopakhsh_manoto</span>
+              <span className="hidden md:inline font-mono text-[10px]">
+                {siteSettings?.telegramChannel || '@tolidopakhsh_manoto'}
+              </span>
             </a>
 
             <span className="text-stone-700 hidden sm:inline">|</span>
 
             {/* Direct Phone Call */}
             <a
-              href={`tel:${BRAND_INFO.primaryPhone}`}
+              href={`tel:${siteSettings?.primaryPhone || BRAND_INFO.primaryPhone}`}
               className="text-[#FAF7F2] hover:text-[#D4AF37] font-bold flex items-center gap-1 transition-all bg-stone-900/80 hover:bg-stone-800 px-1.5 sm:px-2.5 py-0.5 rounded-lg border border-stone-700/60 hover:border-[#D4AF37]/60 group cursor-pointer"
               title="تماس مستقیم با مدیریت و ثبت سفارش"
             >
               <Phone className="w-3 h-3 text-[#D4AF37] group-hover:scale-110 transition-transform shrink-0" />
               <span className="hidden sm:inline text-stone-400 text-[10px] group-hover:text-stone-300">تماس:</span>
               <span dir="ltr" className="hidden sm:inline font-black text-[11px] tracking-wider tabular-nums font-['Vazirmatn',sans-serif]">
-                {BRAND_INFO.primaryPhoneDisplay}
+                {siteSettings?.primaryPhone || BRAND_INFO.primaryPhoneDisplay}
               </span>
             </a>
 
@@ -247,10 +251,10 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
 
               <div className="hidden lg:block border-r border-[#EAE4D9] pr-3">
                 <span className="text-xs font-black text-[#18181B] block">
-                  تولید و پخش پوشاک من و تو
+                  {siteSettings?.brandName || 'تولید و پخش پوشاک من و تو'}
                 </span>
                 <span className="text-[10px] text-[#967434] font-bold block">
-                  مدیریت اسدی • بازار بزرگ تهران
+                  {siteSettings?.brandSubtitle ? `${siteSettings.brandSubtitle} • بازار بزرگ تهران` : 'مدیریت اسدی • بازار بزرگ تهران'}
                 </span>
               </div>
             </div>

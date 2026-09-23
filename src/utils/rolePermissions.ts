@@ -35,12 +35,12 @@ export const ROLE_PERMISSIONS: Record<UserRoleType, RoleConfig> = {
   },
   content_admin: {
     role: 'content_admin',
-    title: 'پنل مدیر محتوا (اختصاصی محصولات و موجودی انبار)',
-    shortLabel: 'مدیر محتوا',
-    description: 'دسترسی اختصاصی به محصولات و انبار، ویرایش اجناس، کاتالوگ و موجودی پک‌ها',
+    title: 'پنل مدیریت تولید محتوا و رسانه (دسترسی کامل به وب‌سایت، بنرها و انبار)',
+    shortLabel: 'مدیر محتوا و سایت',
+    description: 'دسترسی کامل به ویرایش بنرها، تبلیغات، بک‌گراند و تم سایت، پاپ‌آپ‌ها، کاتالوگ و مشخصات محصولات',
     badgeBg: 'bg-emerald-950',
     badgeText: 'text-emerald-300',
-    allowedTabs: ['inventory'],
+    allowedTabs: ['storefront', 'inventory', 'marketing'],
   },
   order_tracker: {
     role: 'order_tracker',

@@ -42,7 +42,11 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-3xl p-3.5 border border-[#EAE4D9] shadow-xs space-y-3" dir="rtl">
+    <div 
+      id="storefront-stories-carousel"
+      className="backdrop-blur-md rounded-3xl p-3.5 space-y-3 transition-all duration-300 overflow-hidden" 
+      dir="rtl"
+    >
       
       {/* Top Header with Swipe Hint */}
       <div className="flex items-center justify-between px-1">
