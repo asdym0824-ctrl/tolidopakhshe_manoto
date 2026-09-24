@@ -613,7 +613,7 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
                         <div className="flex items-baseline justify-between text-xs">
                           <span className="text-[9px] sm:text-[10px] text-stone-500">قیمت هر عدد عمده:</span>
                           <span className="font-black text-stone-900 text-[11px] sm:text-xs">
-                            {product.baseWholesalePricePerUnit.toLocaleString('fa-IR')} <span className="text-[8.5px] font-normal text-stone-500">تومان</span>
+                            {(product.baseWholesalePricePerUnit || 0).toLocaleString('fa-IR')} <span className="text-[8.5px] font-normal text-stone-500">تومان</span>
                           </span>
                         </div>
 
@@ -621,7 +621,7 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
                         <div className="flex items-baseline justify-between bg-[#FAF7F2] px-2 py-1 rounded-lg border border-[#E6DEC8]">
                           <span className="text-[8.5px] sm:text-[9.5px] text-stone-600 font-bold">پک {product.packSize} تایی:</span>
                           <span className="font-black text-[#8C6D37] text-xs sm:text-sm">
-                            {product.baseWholesalePricePerPack.toLocaleString('fa-IR')} <span className="text-[8.5px] font-normal text-stone-500">تومان</span>
+                            {(product.baseWholesalePricePerPack || 0).toLocaleString('fa-IR')} <span className="text-[8.5px] font-normal text-stone-500">تومان</span>
                           </span>
                         </div>
 

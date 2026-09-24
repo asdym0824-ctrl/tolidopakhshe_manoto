@@ -420,7 +420,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col selection:bg-[#18181B] selection:text-[#FAF8F5] w-full max-w-full overflow-x-hidden" dir="rtl">
+    <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col selection:bg-[#18181B] selection:text-[#FAF8F5] w-full max-w-full overflow-x-clip" dir="rtl">
       
       {/* Top Header */}
       <StorefrontHeader
@@ -523,6 +523,8 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                   id: `usr-${Date.now()}`,
                   fullName: order.customer.fullName,
                   phone: order.customer.phone,
+                  landlinePhone: order.customer.landlinePhone,
+                  alternativePhone: order.customer.alternativePhone,
                   storeName: order.customer.storeName,
                   province: order.customer.province,
                   city: order.customer.city,
@@ -538,6 +540,10 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
             onClearCart={handleClearCart}
             isPartnerLoggedIn={isPartnerLoggedIn}
             loggedInCustomer={loggedInCustomer}
+            customerUsers={customerUsers}
+            onRegisterCustomerUser={onRegisterCustomerUser}
+            onLoginCustomerUser={(user) => setLoggedInCustomer(user)}
+            onUpdateCustomerUser={onUpdateCustomerUser}
           />
         ) : (
           <>

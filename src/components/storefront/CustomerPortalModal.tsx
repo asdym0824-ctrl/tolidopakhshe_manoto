@@ -21,6 +21,7 @@ import {
   Search
 } from 'lucide-react';
 import { CustomerUser, StorefrontOrder } from '../../types';
+import { CustomerOrderStepper } from './CustomerOrderStepper';
 
 interface CustomerPortalModalProps {
   isOpen: boolean;
@@ -49,6 +50,8 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
   const [profileForm, setProfileForm] = useState({
     fullName: currentUser.fullName,
     phone: currentUser.phone,
+    landlinePhone: currentUser.landlinePhone || '',
+    alternativePhone: currentUser.alternativePhone || '',
     storeName: currentUser.storeName || '',
     province: currentUser.province,
     city: currentUser.city,
@@ -80,6 +83,8 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
       ...currentUser,
       fullName: profileForm.fullName.trim(),
       phone: profileForm.phone.trim(),
+      landlinePhone: profileForm.landlinePhone.trim(),
+      alternativePhone: profileForm.alternativePhone.trim(),
       storeName: profileForm.storeName.trim(),
       province: profileForm.province.trim(),
       city: profileForm.city.trim(),
@@ -94,16 +99,18 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
   const getStatusBadge = (status: StorefrontOrder['orderStatus']) => {
     switch (status) {
       case 'registered':
-        return <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">ثبت در صف بسته‌بندی</span>;
+        return <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-300">ثبت اولیه (در صف تأیید ادمین)</span>;
+      case 'confirmed':
+        return <span className="bg-emerald-100 text-emerald-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-300">مرحلهٔ ۱: تأیید شده توسط ادمین</span>;
       case 'processing':
       case 'packed':
-        return <span className="bg-blue-100 text-blue-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">بسته‌بندی در انبار بازار</span>;
+        return <span className="bg-blue-100 text-blue-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-blue-300">مرحلهٔ ۲: دسته‌بندی و بسته‌بندی در انبار</span>;
       case 'sent_to_carrier':
-        return <span className="bg-purple-100 text-purple-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">تحویل به باربری / تیپاکس</span>;
+        return <span className="bg-purple-100 text-purple-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-300">مرحلهٔ ۳: تحویل به باربری / در حال حمل</span>;
       case 'delivered':
-        return <span className="bg-emerald-100 text-emerald-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">تحویل موفق به مشتری</span>;
+        return <span className="bg-teal-100 text-teal-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-teal-300">مرحلهٔ ۴: تحویل موفق به خریدار</span>;
       default:
-        return <span className="bg-stone-100 text-stone-700 text-[10px] font-bold px-2 py-0.5 rounded-full">در حال پردازش</span>;
+        return <span className="bg-stone-100 text-stone-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">در حال بررسی</span>;
     }
   };
 
@@ -287,6 +294,11 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
                         </div>
                       </div>
 
+                      {/* 4-Step Interactive Pipeline for Customer */}
+                      <div className="px-3.5 sm:px-5 py-3 bg-[#FAF7F2]/90 border-t border-[#E6DEC8]">
+                        <CustomerOrderStepper order={order} />
+                      </div>
+
                       {/* Expanded Order Items and Waybill Info */}
                       {isExpanded && (
                         <div className="p-4 sm:p-5 bg-[#FAF7F2] border-t border-[#E6DEC8] space-y-4 text-xs animate-fadeIn">
@@ -386,12 +398,36 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">شماره موبایل:</label>
+                  <label className="font-bold text-stone-700 block mb-1">شماره موبایل اصلی:</label>
                   <input
                     type="tel"
                     dir="ltr"
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 font-mono bg-[#FAF7F2]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-stone-700 block mb-1">شماره تلفن ثابت (مغازه / منزل):</label>
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    value={profileForm.landlinePhone}
+                    onChange={(e) => setProfileForm({ ...profileForm, landlinePhone: e.target.value })}
+                    placeholder="مثال: 02155667788"
+                    className="w-full px-3 py-2 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 font-mono bg-[#FAF7F2]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-stone-700 block mb-1">شماره تماس دوم / در دسترس دیگر:</label>
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    value={profileForm.alternativePhone}
+                    onChange={(e) => setProfileForm({ ...profileForm, alternativePhone: e.target.value })}
+                    placeholder="مثال: 09351234567"
                     className="w-full px-3 py-2 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 font-mono bg-[#FAF7F2]"
                   />
                 </div>

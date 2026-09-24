@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StorefrontOrder } from '../../types';
+import { CustomerOrderStepper } from './CustomerOrderStepper';
 import { 
   X, 
   Search, 
@@ -161,12 +162,19 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   <span className="inline-flex items-center gap-1.5 bg-[#ECE4D5] text-stone-900 font-bold text-xs px-3 py-1 rounded-xl border border-[#DDD5C0]">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                     <span>
-                      {matchedOrder.orderStatus === 'sent_to_carrier' ? 'تحویل به باربری / در حال حمل' :
-                       matchedOrder.orderStatus === 'packed' ? 'بسته‌بندی شده در انبار' :
-                       matchedOrder.orderStatus === 'delivered' ? 'تحویل داده شده' : 'در حال پردازش'}
+                      {matchedOrder.orderStatus === 'registered' ? 'ثبت اولیه (در صف تأیید ادمین)' :
+                       matchedOrder.orderStatus === 'confirmed' ? 'مرحلهٔ ۱: تأیید شده توسط ادمین' :
+                       matchedOrder.orderStatus === 'packed' || matchedOrder.orderStatus === 'processing' ? 'مرحلهٔ ۲: دسته‌بندی و بسته‌بندی' :
+                       matchedOrder.orderStatus === 'sent_to_carrier' ? 'مرحلهٔ ۳: تحویل به باربری / در حال حمل' :
+                       matchedOrder.orderStatus === 'delivered' ? 'مرحلهٔ ۴: تحویل شده به خریدار' : 'در حال پردازش'}
                     </span>
                   </span>
                 </div>
+              </div>
+
+              {/* 4-Step Visual Workflow Progress Bar */}
+              <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#DDD5C0]">
+                <CustomerOrderStepper order={matchedOrder} />
               </div>
 
               {/* Instant Courier Highlight Box */}
@@ -242,56 +250,9 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               ) : (
                 <div className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl p-3 text-xs text-stone-700 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-[#8C6D37] flex-shrink-0" />
-                  <span>بسته شما در حال سلفون‌پیچی و بسته‌بندی در کارگاه بازار است. شماره بیجک تا عصر صادر می‌گردد.</span>
+                  <span>بسته شما در مرحلهٔ آماده‌سازی و بسته‌بندی در انبار بازار است و پس از تحویل به باربری، کد رهگیری پیامک می‌شود.</span>
                 </div>
               )}
-
-              {/* Shipment Progress Visual Timeline */}
-              <div className="space-y-3 pt-2">
-                <h4 className="font-bold text-stone-900 text-xs">مراحل آماده‌سازی و ارسال مرسوله:</h4>
-
-                <div className="relative border-r-2 border-[#DDD5C0] pr-5 mr-3 space-y-4 text-xs">
-                  
-                  {/* Step 1 */}
-                  <div className="relative">
-                    <div className="absolute -right-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#18181B] border-2 border-white" />
-                    <p className="font-bold text-stone-900">ثبت فاکتور و تایید پرداخت در سامانه</p>
-                    <p className="text-[11px] text-stone-500">تاریخ ثبت: {matchedOrder.createdAt}</p>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div className="relative">
-                    <div className="absolute -right-[27px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#18181B] border-2 border-white" />
-                    <p className="font-bold text-stone-900">بسته‌بندی و تفکیک پک‌ها در انبار بازار تهران</p>
-                    <p className="text-[11px] text-stone-500">کنترل کیفیت دوخت و قواره استاندارد</p>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div className="relative">
-                    <div className={`absolute -right-[27px] top-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${
-                      matchedOrder.orderStatus === 'sent_to_carrier' || matchedOrder.orderStatus === 'delivered'
-                        ? 'bg-[#18181B]'
-                        : 'bg-stone-300'
-                    }`} />
-                    <p className={`font-bold ${matchedOrder.orderStatus === 'sent_to_carrier' ? 'text-[#8C6D37]' : 'text-stone-800'}`}>
-                      تحویل به متصدی {matchedOrder.shippingMethodTitle} و صدور بیجک
-                    </p>
-                    <p className="text-[11px] text-stone-500">
-                      {matchedOrder.waybillNumber ? `شماره بیجک: ${matchedOrder.waybillNumber}` : 'در انتظار تحویل نوبت عصر'}
-                    </p>
-                  </div>
-
-                  {/* Step 4 */}
-                  <div className="relative">
-                    <div className={`absolute -right-[27px] top-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${
-                      matchedOrder.orderStatus === 'delivered' ? 'bg-[#18181B]' : 'bg-stone-300'
-                    }`} />
-                    <p className="font-bold text-stone-700">تحویل نهایی به خریدار در شهر {matchedOrder.customer.city}</p>
-                    <p className="text-[11px] text-stone-400">تحویل طبق موعد باربری</p>
-                  </div>
-
-                </div>
-              </div>
 
               {/* Order Items Preview */}
               <div className="pt-3 border-t border-[#E6DEC8] space-y-2">

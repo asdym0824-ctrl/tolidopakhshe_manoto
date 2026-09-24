@@ -986,11 +986,16 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                   onChange={(e) => handleUpdatePromoPopup({ targetProductId: e.target.value })}
                   className="w-full bg-[#FAF7F2] text-xs p-3 rounded-xl border border-[#DDD5C0] font-bold focus:bg-white focus:border-[#18181B] outline-none"
                 >
-                  {products.map((prod) => (
-                    <option key={prod.id} value={prod.id}>
-                      {prod.name} ({prod.code}) — تک: {(prod.retailPriceToman || (prod.wholesalePackPriceToman / prod.packQuantity)).toLocaleString('fa-IR')} ت | پک {prod.packQuantity}تایی: {prod.wholesalePackPriceToman.toLocaleString('fa-IR')} ت
-                    </option>
-                  ))}
+                  {products.map((prod) => {
+                    const wholesalePrice = prod.baseWholesalePricePerPack || 0;
+                    const packCount = prod.packSize || 6;
+                    const retailPrice = prod.retailPricePerUnit || (wholesalePrice ? Math.round(wholesalePrice / packCount) : 0);
+                    return (
+                      <option key={prod.id} value={prod.id}>
+                        {prod.name} ({prod.sku || ''}) — تک: {(retailPrice || 0).toLocaleString('fa-IR')} ت | پک {packCount}تایی: {(wholesalePrice || 0).toLocaleString('fa-IR')} ت
+                      </option>
+                    );
+                  })}
                 </select>
                 <p className="text-[11px] text-stone-500 mt-1">
                   عکس، نام، کد و هر دو قیمت تک‌فروشی و پک عمده به همراه درصد تخفیف ویژه به طور خودکار در پاپ‌آپ محاسبه می‌گردد.
@@ -1186,15 +1191,17 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                 const p = products.find(prod => prod.id === targetId) || products[0];
                 if (!p) return null;
                 const discount = formData.promoPopup?.discountPercent || 25;
-                const retailBase = p.retailPriceToman || Math.round(p.wholesalePackPriceToman / p.packQuantity);
+                const wholesalePackPrice = p.baseWholesalePricePerPack || 0;
+                const packQty = p.packSize || 6;
+                const retailBase = p.retailPricePerUnit || (wholesalePackPrice ? Math.round(wholesalePackPrice / packQty) : 0);
                 const retailDiscounted = Math.round(retailBase * (1 - discount / 100));
-                const wholesaleDiscounted = Math.round(p.wholesalePackPriceToman * (1 - discount / 100));
+                const wholesaleDiscounted = Math.round(wholesalePackPrice * (1 - discount / 100));
 
                 return (
                   <div className="bg-white rounded-2xl overflow-hidden border border-[#DDD5C0] shadow-xs space-y-3">
                     <div className="relative aspect-4/3 bg-stone-100 overflow-hidden">
                       <img
-                        src={p.images?.[0] || 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80'}
+                        src={p.galleryImages?.[0] || p.image || 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80'}
                         alt={p.name}
                         className="w-full h-full object-cover"
                       />
@@ -1206,7 +1213,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                     <div className="p-3.5 space-y-2.5">
                       <div>
                         <div className="font-black text-stone-900 text-sm">{p.name}</div>
-                        <div className="text-[10px] text-stone-500 font-mono">کد کالا: {p.code} • جنس: {p.fabric}</div>
+                        <div className="text-[10px] text-stone-500 font-mono">کد کالا: {p.sku} • جنس: {p.fabricType || 'پارچه اعلا'}</div>
                       </div>
 
                       <div className="space-y-1.5 bg-[#FAF7F2] p-2.5 rounded-xl border border-[#E6DEC8]">
@@ -1214,22 +1221,22 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                           <span className="text-stone-600">نرخ تک‌فروشی با تخفیف:</span>
                           <div className="flex items-center gap-1.5">
                             <span className="line-through text-stone-400 text-[10px]">
-                              {retailBase.toLocaleString('fa-IR')}
+                              {(retailBase || 0).toLocaleString('fa-IR')}
                             </span>
                             <span className="font-black text-rose-600">
-                              {retailDiscounted.toLocaleString('fa-IR')} تومان
+                              {(retailDiscounted || 0).toLocaleString('fa-IR')} تومان
                             </span>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-stone-600">نرخ پک عمده ({p.packQuantity}تایی):</span>
+                          <span className="text-stone-600">نرخ پک عمده ({packQty}تایی):</span>
                           <div className="flex items-center gap-1.5">
                             <span className="line-through text-stone-400 text-[10px]">
-                              {p.wholesalePackPriceToman.toLocaleString('fa-IR')}
+                              {(wholesalePackPrice || 0).toLocaleString('fa-IR')}
                             </span>
                             <span className="font-black text-emerald-700">
-                              {wholesaleDiscounted.toLocaleString('fa-IR')} تومان
+                              {(wholesaleDiscounted || 0).toLocaleString('fa-IR')} تومان
                             </span>
                           </div>
                         </div>

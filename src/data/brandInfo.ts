@@ -52,7 +52,7 @@ export const BRAND_INFO: BrandContactInfo = {
     { phone: '09215935237', display: '۰۹۲۱ ۵۹۳ ۵۲۳۷' },
   ],
   allPhones: [
-    { phone: '09120369567', display: '۰۹۱۲ ۰۳۶ ۹۵۶۷', label: 'مدیریت و سفارشات اصلی' },
+    { phone: '09120369567', display: '۰۹۱۲ ۰۳۶ ۹۵۶۷', label: 'مدیریت و سفارش‌های اصلی' },
     { phone: '09353714911', display: '۰۹۳۵ ۳۷۱ ۴۹۱۱', label: 'واحد فروش و تلگرام' },
     { phone: '09215935237', display: '۰۹۲۱ ۵۹۳ ۵۲۳۷', label: 'پشتیبانی و باربری' },
   ],
@@ -66,12 +66,12 @@ export const BRAND_INFO: BrandContactInfo = {
   mainAddressFa: 'بازار بزرگ تهران، بازار عباس‌آباد، پاساژ المهدی ۴، طبقه منفی یک (زیرزمین اول)، پلاک ۲۴۲',
   subwayRouteFa: 'مترو میدان محمدیه (خط ۱ و ۷) یا مترو خیام، بازار حاج قاسم، پاساژ المهدی ۴، ورودی یک، زیرزمین اول، پلاک ۲۴۲',
   addressEn: 'No. 242, Floor -1 (Basement 1), Al-Mahdi Passage 4, Haj Qasim & Abbas Abad Bazaar, Tehran Grand Bazaar, Tehran, Iran',
-  workingHours: 'همه روزه ۸:۳۰ الی ۱۹:۰۰ • ارسال باربری هر عصر',
+  workingHours: 'همه‌روزه از ۸:۳۰ الی ۱۹:۰۰ • ارسال روزانه به باربری',
   shippingPartners: ['باربری وطن', 'پیام‌گیر', 'تیپاکس اکسپرس', 'چاپار', 'پست پیشتاز'],
   coordinates: {
     lat: 35.67185,
     lng: 51.42082,
-    title: 'تولید و پخش پوشاک من و تو (پاساژ المهدی ۴، پلاک ۲۴۲)',
+    title: 'تولید و پخش پوشاک «من و تو» (پاساژ المهدی ۴، پلاک ۲۴۲)',
     googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=35.67185,51.42082',
     neshanUrl: 'https://neshan.org/maps/@35.67185,51.42082,18z',
     baladUrl: 'https://balad.ir/location?latitude=35.67185&longitude=51.42082',
@@ -79,9 +79,9 @@ export const BRAND_INFO: BrandContactInfo = {
     osmEmbedUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=51.4150%2C35.6675%2C51.4265%2C35.6760&layer=mapnik&marker=35.67185%2C51.42082',
   },
   landmarks: {
-    metroMohammadieh: 'ایستگاه مترو میدان محمدیه (تقاطع خط ۱ تجریش-کهریزک و خط ۷) — ۷ دقیقه پیاده‌روی',
-    metroKhayam: 'ایستگاه مترو خیام (خط ۱ قرمز) — ۵ دقیقه پیاده‌روی تا ورودی بازار حاج قاسم',
-    metroPanzdahKhordad: 'ایستگاه مترو ۱۵ خرداد — دسترسی از سمت سبزه میدان و بازار عباس‌آباد',
+    metroMohammadieh: 'ایستگاه مترو میدان محمدیه (تقاطع خط ۱ تجریش-کهریزک و خط ۷)؛ ۷ دقیقه پیاده‌روی',
+    metroKhayam: 'ایستگاه مترو خیام (خط ۱ قرمز)؛ ۵ دقیقه پیاده‌روی تا ورودی بازار حاج قاسم',
+    metroPanzdahKhordad: 'ایستگاه مترو ۱۵ خرداد؛ دسترسی از سمت سبزه‌میدان و بازار عباس‌آباد',
     parking: 'پارکینگ عمومی خیابان خیام یا مصطفی خمینی (طرح ترافیک بازار)',
     passageLocation: 'پاساژ المهدی ۴ (یکی از مراکز اصلی بنکداری پوشاک زنانه بازار تهران)',
   }

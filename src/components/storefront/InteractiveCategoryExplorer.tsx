@@ -10,6 +10,7 @@ import {
   Tag
 } from 'lucide-react';
 import { Product } from '../../types';
+import { toPersianDigits } from '../../utils/persianWriting';
 
 interface InteractiveCategoryExplorerProps {
   categories: string[];
@@ -33,42 +34,42 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
     bgGradient: string;
   }> = {
     'همه': {
-      description: 'مشاهده کلیه طرح‌ها و تولیدات کارگاه',
+      description: 'مشاهدهٔ تمامی طرح‌ها و دوخت‌های کارگاه',
       iconBg: 'bg-stone-900 text-[#D4AF37]',
       accentColor: 'text-[#8C6D37]',
       badge: 'کاتالوگ جامع',
       bgGradient: 'from-stone-900 to-stone-800 text-white',
     },
     'شلوار بگ': {
-      description: 'بگ و نیم‌بگ استایل روز با تنخور راحت',
+      description: 'بگ و نیم‌بگ با الگوی استاندارد و تن‌خور آزاد',
       iconBg: 'bg-amber-100 text-amber-900',
       accentColor: 'text-amber-700',
       badge: '🔥 پرفروش فصل',
       bgGradient: 'from-amber-50 to-[#FAF7F2]',
     },
     'شلوار راحتی نخی': {
-      description: 'پارچه نخی ۱۰۰٪ طبیعی بدون آبرفت خانگی',
+      description: 'پارچهٔ تمام‌نخی ۱۰۰٪ طبیعی، لطیف و بدون آبرفت',
       iconBg: 'bg-emerald-100 text-emerald-900',
       accentColor: 'text-emerald-700',
       badge: '🌿 ارگانیک و خنک',
       bgGradient: 'from-emerald-50 to-[#FAF7F2]',
     },
     'جاگر': {
-      description: 'اسپرت دمپا کش با پارچه دورس و کرپ',
+      description: 'اسپرت دمپاکش با پارچهٔ دورس و کرپ کشی',
       iconBg: 'bg-blue-100 text-blue-900',
       accentColor: 'text-blue-700',
       badge: '⚡ اسپرت شهری',
       bgGradient: 'from-blue-50 to-[#FAF7F2]',
     },
     'لگ و ساپورت': {
-      description: 'کشی اعلا با فاق بلند، بدون پرزدهی و زانواندازی',
+      description: 'کشی اعلا با فاق بلند، بدون پرزدهی و زانو‌انداختن',
       iconBg: 'bg-purple-100 text-purple-900',
       accentColor: 'text-purple-700',
       badge: '✨ کشسانی بالا',
       bgGradient: 'from-purple-50 to-[#FAF7F2]',
     },
     'داکرون اداری/اسپرت': {
-      description: 'پارچه شیک داکرون فرم رسمی و شیک بانوان',
+      description: 'کرپ و داکرون با ایستایی عالی ویژهٔ استایل اداری و روزمره',
       iconBg: 'bg-rose-100 text-rose-900',
       accentColor: 'text-rose-700',
       badge: '👔 پرسنلی و اداری',
@@ -79,35 +80,43 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
   return (
     <div 
       id="interactive-category-explorer"
-      className="backdrop-blur-md rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-2.5 transition-all duration-300 overflow-hidden" 
+      className="relative overflow-hidden rounded-3xl p-4 sm:p-5 space-y-3.5 bg-white/95 backdrop-blur-xl border border-[#EAE4D9] shadow-[0_4px_24px_rgba(24,24,27,0.05)] transition-all duration-300" 
       dir="rtl"
     >
+      {/* Subtle Atelier Ambient Glow */}
+      <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
       
       {/* Header with Title & Context - Compact & Clean */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#EAE4D9]/80 pb-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs shrink-0">
-            <Layers className="w-3.5 h-3.5" />
+      <div className="flex items-center justify-between gap-2 border-b border-[#EAE4D9] pb-3 relative z-10">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs shrink-0 border border-[#D4AF37]/30">
+            <Layers className="w-4 h-4" />
           </div>
-          <div className="flex items-center gap-2 truncate">
-            <h3 className="font-black text-stone-900 text-xs sm:text-sm">
-              دسته‌بندی مدل‌ها
-            </h3>
-            <span className="hidden sm:inline-block text-[10px] font-bold bg-[#FAF8F5] border border-[#EAE4D9] text-stone-500 px-2 py-0.5 rounded-full">
-              تفکیک سریع
-            </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-black text-stone-900 text-xs sm:text-sm">
+                دسته‌بندی و تن‌خور مدل‌های زنانه
+              </h3>
+              <span className="hidden sm:inline-block text-[10px] font-bold bg-[#FAF8F5] border border-[#D4AF37]/30 text-[#8C6D37] px-2 py-0.5 rounded-full">
+                تفکیک تخصصی
+              </span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-stone-500 truncate">
+              انتخاب سریع انواع شلوار بگ، نیم‌بگ، کارگو، کرپ مازراتی و ست‌های تولیدی
+            </p>
           </div>
         </div>
 
         {/* Selected Category Pill info */}
-        <div className="text-[11px] font-bold text-stone-600 bg-[#FAF8F5] px-2.5 py-1 rounded-xl border border-[#EAE4D9] shrink-0 flex items-center gap-1.5">
-          <span className="text-stone-400 hidden xs:inline text-[10px]">دسته فعال:</span>
+        <div className="text-[11px] font-bold text-stone-700 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#EAE4D9] shrink-0 flex items-center gap-1.5 shadow-2xs">
+          <span className="text-stone-400 hidden xs:inline text-[10.5px]">دسته فعال:</span>
           <span className="text-[#18181B] font-black">{selectedCategory}</span>
         </div>
       </div>
 
       {/* Interactive Category Grid / Cards - Compact & Snappy */}
-      <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-2.5 relative z-10">
         {categories.map((cat) => {
           const isSelected = selectedCategory === cat;
           const config = categoryConfig[cat] || {
@@ -133,10 +142,10 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
               role="button"
               aria-pressed={isSelected}
               onClick={() => onSelectCategory(cat)}
-              className={`group relative text-right p-2 sm:p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 overflow-hidden active:scale-[0.98] cursor-pointer ${
+              className={`group relative text-right p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 overflow-hidden active:scale-[0.98] cursor-pointer ${
                 isSelected
-                  ? 'bg-[#18181B] text-[#FAF7F2] border-[#18181B] shadow-xs ring-1.5 ring-[#D4AF37]/50'
-                  : 'bg-[#FAF8F5]/90 hover:bg-[#FAF8F5] text-stone-800 border-[#EAE4D9] hover:border-[#8C6D37]/40 hover:shadow-2xs'
+                  ? 'bg-gradient-to-r from-[#18181B] to-[#27272A] text-[#FAF7F2] border-[#18181B] shadow-md ring-2 ring-[#D4AF37]/60'
+                  : 'bg-[#FAF8F5]/90 hover:bg-white text-stone-800 border-[#EAE4D9] hover:border-[#8C6D37]/50 hover:shadow-2xs'
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -166,7 +175,7 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
                   <span className={`text-[9px] font-bold block truncate leading-tight mt-0.5 ${
                     isSelected ? 'text-[#D4AF37]' : 'text-stone-500'
                   }`}>
-                    {count} مدل
+                    {toPersianDigits(count)} مدل
                   </span>
                 </div>
               </div>

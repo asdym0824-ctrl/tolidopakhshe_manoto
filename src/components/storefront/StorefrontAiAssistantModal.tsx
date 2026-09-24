@@ -165,7 +165,7 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
 
     // Build context summary from products
     const productContext = products.slice(0, 8).map(p => 
-      `- ${p.name} (کد: ${p.sku}) | جنس: ${p.fabricType} | عمده: ${p.baseWholesalePricePerPack.toLocaleString('fa-IR')} ت (${p.packSize} تایی) | تک: ${p.allowRetailSale && p.retailPricePerUnit ? p.retailPricePerUnit.toLocaleString('fa-IR') + ' ت' : 'فقط عمده'}`
+      `- ${p.name} (کد: ${p.sku}) | جنس: ${p.fabricType} | عمده: ${(p.baseWholesalePricePerPack || 0).toLocaleString('fa-IR')} ت (${p.packSize || 6} تایی) | تک: ${p.allowRetailSale && p.retailPricePerUnit ? (p.retailPricePerUnit || 0).toLocaleString('fa-IR') + ' ت' : 'فقط عمده'}`
     ).join('\n');
 
     try {

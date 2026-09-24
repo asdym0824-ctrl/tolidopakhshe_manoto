@@ -89,9 +89,13 @@ export interface CartItem {
 export interface StorefrontCustomerInfo {
   fullName: string;
   phone: string;
+  landlinePhone?: string; // شماره تلفن ثابت (مغازه / محل کار / منزل با پیش‌شماره)
+  alternativePhone?: string; // شماره موبایل دوم یا در دسترس دیگر جهت اطمینان
   province: string;
   city: string;
   address: string;
+  buildingNumber?: string; // پلاک
+  unitNumber?: string; // واحد / طبقه
   postalCode?: string;
   notes?: string;
   isPartnerWholesale?: boolean;
@@ -123,7 +127,13 @@ export interface StorefrontOrder {
   instantCourierInfo?: InstantCourierInfo;
   paymentMethod: 'online_gateway' | 'card_to_card' | 'wholesale_check';
   paymentStatus: 'paid' | 'pending_verification' | 'pending_check';
-  orderStatus: 'registered' | 'processing' | 'packed' | 'sent_to_carrier' | 'delivered';
+  orderStatus: 'registered' | 'confirmed' | 'processing' | 'packed' | 'sent_to_carrier' | 'delivered';
+  adminConfirmedAt?: string;
+  adminConfirmedBy?: string;
+  packedAt?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+  notes?: string;
   waybillNumber?: string; // شماره بارنامه / بیجک باربری یا کد رهگیری تیپاکس
   carrierName?: string;
   createdAt: string;
@@ -284,12 +294,17 @@ export interface UserRole {
 export interface CustomerUser {
   id: string;
   phone: string;
+  landlinePhone?: string;
+  alternativePhone?: string;
   fullName: string;
   storeName?: string;
   province: string;
   city: string;
   address: string;
+  buildingNumber?: string;
+  unitNumber?: string;
   postalCode?: string;
+  notes?: string;
   password?: string;
   isPartnerWholesale?: boolean;
   registeredAt: string;

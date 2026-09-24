@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import promoPosterBanner from '../../assets/images/fashion_promo_poster_1789560143097.jpg';
 import { Product, OccasionPromoPopupConfig, PurchaseMode } from '../../types';
+import { toPersianDigits, formatPersianPrice } from '../../utils/persianWriting';
 
 // Preset fashion boutique posters for quick selection
 const BOUTIQUE_POSTER_PRESETS = [
@@ -363,29 +364,29 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
                         : 'text-stone-500 hover:text-stone-900'
                     }`}
                   >
-                    عمده ({product.packSize}تایی)
+                    عمده ({toPersianDigits(product.packSize)} تایی)
                   </button>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="line-through text-stone-400 text-[10px] sm:text-[11px]">
-                    {displayOriginalPrice.toLocaleString('fa-IR')}
+                    {formatPersianPrice(displayOriginalPrice, 'تومان', false)}
                   </span>
                   <span className="font-black text-[#9F1239] text-xs sm:text-sm">
-                    {displayCurrentPrice.toLocaleString('fa-IR')} ت
+                    {formatPersianPrice(displayCurrentPrice)}
                   </span>
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-between bg-white border border-[#E6DEC8] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs">
                 <span className="text-stone-700 font-bold text-[11px] sm:text-xs">
-                  {isWholesale ? `پک عمده (${product.packSize}تایی):` : 'تک‌فروشی:'}
+                  {isWholesale ? `پک عمده (${toPersianDigits(product.packSize)} تایی):` : 'تک‌فروشی:'}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <span className="line-through text-stone-400 text-[10px] sm:text-[11px]">
-                    {displayOriginalPrice.toLocaleString('fa-IR')}
+                    {formatPersianPrice(displayOriginalPrice, 'تومان', false)}
                   </span>
                   <span className="font-black text-[#9F1239] text-xs sm:text-sm">
-                    {displayCurrentPrice.toLocaleString('fa-IR')} تومان
+                    {formatPersianPrice(displayCurrentPrice)}
                   </span>
                 </div>
               </div>

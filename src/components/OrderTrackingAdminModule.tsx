@@ -10,9 +10,12 @@ import {
   Copy, 
   MessageSquare,
   RefreshCw,
-  X
+  X,
+  ShieldCheck,
+  PackageCheck
 } from 'lucide-react';
 import { StorefrontOrder, Invoice } from '../types';
+import { OrderWorkflowStepper } from './admin/OrderWorkflowStepper';
 
 interface OrderTrackingAdminModuleProps {
   orders: StorefrontOrder[];
@@ -45,35 +48,42 @@ const ORDER_STATUS_CONFIG: Record<StorefrontOrder['orderStatus'], {
   description: string;
 }> = {
   registered: {
-    label: 'ثبت جدید (نیازمند پیگیری)',
+    label: 'ثبت جدید (در صف تأیید)',
     badgeBg: 'bg-amber-100 border-amber-300',
     badgeText: 'text-amber-900',
     dotColor: 'bg-amber-500',
-    description: 'سفارش ثبت شده و هنوز بسته‌بندی نشده است.'
+    description: 'سفارش ثبت شده و در انتظار تأیید ادمین مخصوص است.'
+  },
+  confirmed: {
+    label: 'مرحلهٔ ۱: تأیید شده (آماده دسته‌بندی)',
+    badgeBg: 'bg-emerald-100 border-emerald-300',
+    badgeText: 'text-emerald-900',
+    dotColor: 'bg-emerald-500',
+    description: 'سفارش توسط ادمین تأیید شد و در صف دسته‌بندی و بسته‌بندی انبار است.'
   },
   processing: {
-    label: 'در حال بسته‌بندی در انبار',
+    label: 'مرحلهٔ ۲: در حال دسته‌بندی و بسته‌بندی',
     badgeBg: 'bg-blue-100 border-blue-300',
     badgeText: 'text-blue-900',
     dotColor: 'bg-blue-500',
-    description: 'اقلام از قفسه‌ها برداشته شده و در حال سلفون و کارتن‌بندی است.'
+    description: 'اقلام در حال دسته‌بندی، کنترل کیفیت و بسته‌بندی در انبار بازار هستند.'
   },
   packed: {
-    label: 'بسته‌بندی شده (آماده ارسال)',
+    label: 'مرحلهٔ ۲: بسته‌بندی شده (آماده ارسال)',
     badgeBg: 'bg-indigo-100 border-indigo-300',
     badgeText: 'text-indigo-900',
     dotColor: 'bg-indigo-500',
     description: 'بسته آماده تحویل به سفیر، تیپاکس یا باربری وطن است.'
   },
   sent_to_carrier: {
-    label: 'ارسال شده (تحویل باربری/پست)',
+    label: 'مرحلهٔ ۳: ارسال شده (دارای بیجک باربری)',
     badgeBg: 'bg-purple-100 border-purple-300',
     badgeText: 'text-purple-900',
     dotColor: 'bg-purple-500',
     description: 'بار به باربری تحویل شده و شماره بیجک/بارنامه صادر شده است.'
   },
   delivered: {
-    label: 'تحویل شده به خریدار',
+    label: 'مرحلهٔ ۴: تحویل شده به خریدار',
     badgeBg: 'bg-emerald-100 border-emerald-300',
     badgeText: 'text-emerald-900',
     dotColor: 'bg-emerald-500',
@@ -144,10 +154,11 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
   const stats = useMemo(() => {
     const total = orders.length;
     const pendingNew = orders.filter(o => o.orderStatus === 'registered').length;
+    const confirmed = orders.filter(o => o.orderStatus === 'confirmed').length;
     const inProcessing = orders.filter(o => o.orderStatus === 'processing' || o.orderStatus === 'packed').length;
     const dispatched = orders.filter(o => o.orderStatus === 'sent_to_carrier').length;
     const delivered = orders.filter(o => o.orderStatus === 'delivered').length;
-    return { total, pendingNew, inProcessing, dispatched, delivered };
+    return { total, pendingNew, confirmed, inProcessing, dispatched, delivered };
   }, [orders]);
 
   const handleStartEdit = (order: StorefrontOrder) => {
@@ -285,70 +296,83 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
       </div>
 
       {/* Quick Metrics Bar - Horizontal Scroll on Mobile with Touch Momentum */}
-      <div className="flex sm:grid sm:grid-cols-5 gap-2.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1 snap-x">
+      <div className="flex sm:grid sm:grid-cols-6 gap-2 sm:gap-2.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1 snap-x">
         <div 
           onClick={() => setStatusFilter('all')}
-          className={`snap-start shrink-0 min-w-[130px] sm:min-w-0 flex-1 p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+          className={`snap-start shrink-0 min-w-[120px] sm:min-w-0 flex-1 p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
             statusFilter === 'all' 
               ? 'bg-[#18181B] text-[#FAF7F2] border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/20' 
               : 'bg-white text-stone-800 border-[#E6DEC8] hover:bg-stone-50'
           }`}
         >
           <div className="text-[10px] font-bold opacity-75">کل سفارش‌ها</div>
-          <div className="text-lg sm:text-2xl font-black font-mono mt-0.5">{stats.total}</div>
-          <div className="text-[10px] text-[#D4AF37] font-bold mt-0.5 truncate">همه سفارشات</div>
+          <div className="text-base sm:text-xl font-black font-mono mt-0.5">{stats.total}</div>
+          <div className="text-[10px] text-[#D4AF37] font-bold mt-0.5 truncate">همه موارد</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('registered')}
-          className={`snap-start shrink-0 min-w-[130px] sm:min-w-0 flex-1 p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+          className={`snap-start shrink-0 min-w-[120px] sm:min-w-0 flex-1 p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
             statusFilter === 'registered' 
               ? 'bg-amber-950 text-amber-200 border-amber-500 shadow-md ring-2 ring-amber-500/20' 
               : 'bg-amber-50/80 text-amber-900 border-amber-200 hover:bg-amber-100/70'
           }`}
         >
-          <div className="text-[10px] font-bold opacity-85">اقدام فوری</div>
-          <div className="text-lg sm:text-2xl font-black font-mono mt-0.5 text-amber-700 sm:text-inherit">{stats.pendingNew}</div>
-          <div className="text-[10px] text-amber-700 font-bold mt-0.5 truncate">ثبت‌شده جدید</div>
+          <div className="text-[10px] font-bold opacity-85">در صف تأیید</div>
+          <div className="text-base sm:text-xl font-black font-mono mt-0.5 text-amber-700 sm:text-inherit">{stats.pendingNew}</div>
+          <div className="text-[10px] text-amber-700 font-bold mt-0.5 truncate">ثبت اولیه مشتری</div>
+        </div>
+
+        <div 
+          onClick={() => setStatusFilter('confirmed')}
+          className={`snap-start shrink-0 min-w-[120px] sm:min-w-0 flex-1 p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+            statusFilter === 'confirmed' 
+              ? 'bg-emerald-950 text-emerald-200 border-emerald-500 shadow-md ring-2 ring-emerald-500/20' 
+              : 'bg-emerald-50/80 text-emerald-900 border-emerald-200 hover:bg-emerald-100/70'
+          }`}
+        >
+          <div className="text-[10px] font-bold opacity-85">مرحله ۱: تأیید شده</div>
+          <div className="text-base sm:text-xl font-black font-mono mt-0.5 text-emerald-700 sm:text-inherit">{stats.confirmed}</div>
+          <div className="text-[10px] text-emerald-700 font-bold mt-0.5 truncate">تأیید ادمین</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('processing')}
-          className={`snap-start shrink-0 min-w-[130px] sm:min-w-0 flex-1 p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
-            statusFilter === 'processing' 
+          className={`snap-start shrink-0 min-w-[120px] sm:min-w-0 flex-1 p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+            statusFilter === 'processing' || statusFilter === 'packed'
               ? 'bg-blue-950 text-blue-200 border-blue-500 shadow-md ring-2 ring-blue-500/20' 
               : 'bg-blue-50/80 text-blue-900 border-blue-200 hover:bg-blue-100/70'
           }`}
         >
-          <div className="text-[10px] font-bold opacity-85">بسته‌بندی انبار</div>
-          <div className="text-lg sm:text-2xl font-black font-mono mt-0.5 text-blue-700 sm:text-inherit">{stats.inProcessing}</div>
-          <div className="text-[10px] text-blue-700 font-bold mt-0.5 truncate">آماده‌سازی</div>
+          <div className="text-[10px] font-bold opacity-85">مرحله ۲: دسته‌بندی</div>
+          <div className="text-base sm:text-xl font-black font-mono mt-0.5 text-blue-700 sm:text-inherit">{stats.inProcessing}</div>
+          <div className="text-[10px] text-blue-700 font-bold mt-0.5 truncate">بسته‌بندی انبار</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('sent_to_carrier')}
-          className={`snap-start shrink-0 min-w-[130px] sm:min-w-0 flex-1 p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+          className={`snap-start shrink-0 min-w-[120px] sm:min-w-0 flex-1 p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
             statusFilter === 'sent_to_carrier' 
               ? 'bg-purple-950 text-purple-200 border-purple-500 shadow-md ring-2 ring-purple-500/20' 
               : 'bg-purple-50/80 text-purple-900 border-purple-200 hover:bg-purple-100/70'
           }`}
         >
-          <div className="text-[10px] font-bold opacity-85">ارسال / باربری</div>
-          <div className="text-lg sm:text-2xl font-black font-mono mt-0.5 text-purple-700 sm:text-inherit">{stats.dispatched}</div>
-          <div className="text-[10px] text-purple-700 font-bold mt-0.5 truncate">دارای بیجک</div>
+          <div className="text-[10px] font-bold opacity-85">مرحله ۳: ارسال</div>
+          <div className="text-base sm:text-xl font-black font-mono mt-0.5 text-purple-700 sm:text-inherit">{stats.dispatched}</div>
+          <div className="text-[10px] text-purple-700 font-bold mt-0.5 truncate">باربری / بیجک</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('delivered')}
-          className={`snap-start shrink-0 min-w-[130px] sm:min-w-0 flex-1 p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+          className={`snap-start shrink-0 min-w-[120px] sm:min-w-0 flex-1 p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
             statusFilter === 'delivered' 
-              ? 'bg-emerald-950 text-emerald-200 border-emerald-500 shadow-md ring-2 ring-emerald-500/20' 
-              : 'bg-emerald-50/80 text-emerald-900 border-emerald-200 hover:bg-emerald-100/70'
+              ? 'bg-teal-950 text-teal-200 border-teal-500 shadow-md ring-2 ring-teal-500/20' 
+              : 'bg-teal-50/80 text-teal-900 border-teal-200 hover:bg-teal-100/70'
           }`}
         >
-          <div className="text-[10px] font-bold opacity-85">تحویل خریدار</div>
-          <div className="text-lg sm:text-2xl font-black font-mono mt-0.5 text-emerald-700 sm:text-inherit">{stats.delivered}</div>
-          <div className="text-[10px] text-emerald-700 font-bold mt-0.5 truncate">تکمیل شده</div>
+          <div className="text-[10px] font-bold opacity-85">مرحله ۴: تحویل</div>
+          <div className="text-base sm:text-xl font-black font-mono mt-0.5 text-teal-700 sm:text-inherit">{stats.delivered}</div>
+          <div className="text-[10px] text-teal-700 font-bold mt-0.5 truncate">تحویل خریدار</div>
         </div>
       </div>
 
@@ -416,7 +440,7 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
 
         {/* Status Horizontal Pill Scroller */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar -mx-1 px-1">
-          {(['all', 'registered', 'processing', 'packed', 'sent_to_carrier', 'delivered'] as const).map((st) => {
+          {(['all', 'registered', 'confirmed', 'processing', 'packed', 'sent_to_carrier', 'delivered'] as const).map((st) => {
             const isSelected = statusFilter === st;
             const label = st === 'all' ? 'همه وضعیت‌ها' : ORDER_STATUS_CONFIG[st].label;
             return (
@@ -517,6 +541,17 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
                   </div>
                 </div>
 
+                {/* 4-Step Interactive Workflow Stepper Component */}
+                <div className="p-3 sm:p-4 bg-[#FAF7F2]/90 border-b border-[#E6DEC8]">
+                  <OrderWorkflowStepper 
+                    order={order} 
+                    onUpdateStatus={(newStatus, carrierName, waybillNumber, notes) => 
+                      onUpdateOrderStatus(order.id, newStatus, carrierName, waybillNumber, notes)
+                    } 
+                    onShowToast={showToast} 
+                  />
+                </div>
+
                 {/* Tracking & Quick Follow-up In-line / Bottom Drawer Editor */}
                 {isEditing && (
                   <div className="p-3.5 sm:p-5 bg-amber-50/70 border-b border-amber-200 animate-in fade-in duration-150">
@@ -545,11 +580,11 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
                           onChange={(e) => setEditStatus(e.target.value as StorefrontOrder['orderStatus'])}
                           className="w-full p-2.5 bg-white border border-stone-300 rounded-xl text-xs font-bold text-stone-900 focus:ring-2 focus:ring-[#D4AF37]"
                         >
-                          <option value="registered">۱. ثبت جدید (نیازمند پیگیری)</option>
-                          <option value="processing">۲. در حال آماده‌سازی و بسته‌بندی در انبار</option>
-                          <option value="packed">۳. بسته‌بندی شده (آماده ارسال)</option>
-                          <option value="sent_to_carrier">۴. تحویل باربری وطن / تیپاکس شده</option>
-                          <option value="delivered">۵. تحویل قطعی به مشتری</option>
+                          <option value="registered">ثبت جدید توسط مشتری (در صف تأیید)</option>
+                          <option value="confirmed">۱. تأیید شده توسط ادمین (آماده دسته‌بندی)</option>
+                          <option value="packed">۲. دسته‌بندی و بسته‌بندی در انبار</option>
+                          <option value="sent_to_carrier">۳. ارسال شده به باربری / صدور بیجک</option>
+                          <option value="delivered">۴. تحویل قطعی به خریدار</option>
                         </select>
                       </div>
 
@@ -643,18 +678,68 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
 
                       <div className="space-y-1.5 text-xs">
                         <div className="flex items-center justify-between">
-                          <span className="text-stone-500 text-[11px]">شماره موبایل:</span>
+                          <span className="text-stone-500 text-[11px]">شماره موبایل اصلی:</span>
                           <div className="flex items-center gap-1.5 font-mono font-bold text-stone-900">
                             <span>{order.customer.phone}</span>
                             <button
-                              onClick={() => handleCopy(order.customer.phone, 'شماره تلفن')}
+                              onClick={() => handleCopy(order.customer.phone, 'شماره موبایل')}
                               className="text-stone-400 hover:text-stone-700 p-1"
-                              title="کپی شماره"
+                              title="کپی شماره موبایل"
                             >
                               <Copy className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
+
+                        {order.customer.landlinePhone && (
+                          <div className="flex items-center justify-between bg-stone-100/70 p-1.5 rounded-lg border border-stone-200/80">
+                            <span className="text-stone-600 text-[11px] flex items-center gap-1">
+                              <span>تلفن ثابت:</span>
+                            </span>
+                            <div className="flex items-center gap-1.5 font-mono font-bold text-stone-900">
+                              <span>{order.customer.landlinePhone}</span>
+                              <a
+                                href={`tel:${order.customer.landlinePhone}`}
+                                className="text-emerald-700 hover:text-emerald-900 p-0.5"
+                                title="تماس با تلفن ثابت"
+                              >
+                                <Phone className="w-3 h-3" />
+                              </a>
+                              <button
+                                onClick={() => handleCopy(order.customer.landlinePhone || '', 'تلفن ثابت')}
+                                className="text-stone-400 hover:text-stone-700 p-0.5"
+                                title="کپی تلفن ثابت"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {order.customer.alternativePhone && (
+                          <div className="flex items-center justify-between bg-amber-50/70 p-1.5 rounded-lg border border-amber-200/80">
+                            <span className="text-amber-900 text-[11px] font-bold flex items-center gap-1">
+                              <span>شماره دوم / پشتیبان:</span>
+                            </span>
+                            <div className="flex items-center gap-1.5 font-mono font-bold text-stone-900">
+                              <span>{order.customer.alternativePhone}</span>
+                              <a
+                                href={`tel:${order.customer.alternativePhone}`}
+                                className="text-emerald-700 hover:text-emerald-900 p-0.5"
+                                title="تماس با شماره دوم"
+                              >
+                                <Phone className="w-3 h-3" />
+                              </a>
+                              <button
+                                onClick={() => handleCopy(order.customer.alternativePhone || '', 'شماره دوم')}
+                                className="text-stone-400 hover:text-stone-700 p-0.5"
+                                title="کپی شماره دوم"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex items-center justify-between">
                           <span className="text-stone-500 text-[11px]">مقصد:</span>

@@ -239,7 +239,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <p className="text-[10px] text-stone-500">کد: {p.sku} | موجودی: {p.packStock} پک ({p.packSize} تایی)</p>
                   </div>
                   <span className="text-[11px] font-black text-[#18181B] shrink-0 mr-2">
-                    {p.baseWholesalePricePerPack.toLocaleString('fa-IR')} ت
+                    {(p.baseWholesalePricePerPack || 0).toLocaleString('fa-IR')} ت
                   </span>
                 </button>
               ))}
@@ -317,7 +317,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <p className="text-[10px] text-stone-500">{inv.storeName} ({inv.city}) • {inv.paymentType === 'cash' ? 'نقدی' : 'چکی'}</p>
                   </div>
                   <span className="text-[11px] font-black text-emerald-900 shrink-0 mr-2">
-                    {inv.finalAmountToman.toLocaleString('fa-IR')} ت
+                    {(inv.finalAmountToman || 0).toLocaleString('fa-IR')} ت
                   </span>
                 </button>
               ))}
@@ -356,7 +356,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <p className="text-[10px] text-stone-500">سررسید: {chk.dueDate} • ش.چک: {chk.checkNumber}</p>
                   </div>
                   <span className="text-[11px] font-black text-purple-900 shrink-0 mr-2">
-                    {chk.amountToman.toLocaleString('fa-IR')} ت
+                    {(chk.amountToman || 0).toLocaleString('fa-IR')} ت
                   </span>
                 </button>
               ))}

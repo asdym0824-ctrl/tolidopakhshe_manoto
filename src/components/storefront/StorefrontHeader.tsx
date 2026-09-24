@@ -22,6 +22,7 @@ import {
 import { ManotoLogo } from '../common/ManotoLogo';
 import { BRAND_INFO } from '../../data/brandInfo';
 import { CustomerUser, Product, SiteSettings } from '../../types';
+import { toPersianDigits, formatPersianPrice } from '../../utils/persianWriting';
 
 // Helper for comprehensive Persian & Arabic text normalization
 const normalizePersian = (val: string = ''): string => {
@@ -143,8 +144,8 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE4D9] shadow-[0_2px_10px_rgba(24,24,27,0.03)] w-full max-w-full" dir="rtl">
       
-      {/* Top Announcement & Quick Contact Bar */}
-      <div className="bg-[#141416] text-[#FAF8F5] text-[11px] py-1.5 px-2.5 sm:px-4 border-b border-stone-800 w-full overflow-hidden">
+      {/* Top Announcement & Quick Contact Bar (Shown on desktop, hidden on mobile so main nav bar stays completely fixed & constant) */}
+      <div className="hidden md:block bg-[#141416] text-[#FAF8F5] text-[11px] py-1.5 px-2.5 sm:px-4 border-b border-stone-800 w-full overflow-hidden">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-4">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="bg-[#C5A059] text-[#141416] font-black px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] tracking-wide whitespace-nowrap shrink-0">
@@ -215,7 +216,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3 w-full">
+      <div id="storefront-main-navbar" className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3 w-full">
         <div className="flex items-center justify-between gap-1.5 sm:gap-4 w-full">
           
           {/* Mobile Hamburger Menu Trigger & Logo */}
@@ -277,7 +278,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                     handleViewAllResults();
                   }
                 }}
-                placeholder="جستجوی مدل، پارچه (کتان، مازراتی، پنبه) یا کد کالا..."
+                placeholder="جست‌وجوی مدل، پارچه (کرپ مازراتی، کتان، لینن) یا کد کالا..."
                 className="w-full pl-9 pr-10 py-2.5 rounded-2xl bg-white border border-[#EAE5DC] focus:outline-none focus:ring-2 focus:ring-[#18181B]/15 focus:border-[#18181B] text-xs text-stone-900 transition-all placeholder:text-stone-400 shadow-xs"
               />
               <Search className="w-4 h-4 text-stone-400 absolute right-3.5 top-3 pointer-events-none" />
@@ -290,7 +291,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                     setIsDesktopFocused(false);
                   }}
                   className="absolute left-3 top-2.5 p-0.5 text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors"
-                  title="پاک کردن جستجو"
+                  title="پاک کردن جست‌وجو"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -305,7 +306,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="font-extrabold text-stone-900">
-                      نتایج جستجو: <span className="text-[#8C6D37] font-mono">{liveResults.length}</span> مدل
+                      نتایج جست‌وجو: <span className="text-[#8C6D37]">{toPersianDigits(liveResults.length)}</span> مدل
                     </span>
                   </div>
                   <span className="text-[11px] text-stone-400 font-medium">کلید ↵ برای مشاهده در کاتالوگ</span>
@@ -332,7 +333,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                             />
                             {prod.colors && prod.colors.length > 0 && (
                               <span className="absolute bottom-0.5 right-0.5 bg-black/75 text-white text-[8px] font-bold px-1 rounded-sm">
-                                {prod.colors.length} رنگ
+                                {toPersianDigits(prod.colors.length)} رنگ
                               </span>
                             )}
                           </div>
@@ -342,7 +343,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                               {prod.name}
                             </h4>
                             <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                              <span className="bg-stone-100 text-stone-700 font-mono font-bold px-1.5 py-0.5 rounded-md border border-stone-200">
+                              <span className="bg-stone-100 text-stone-700 font-bold px-1.5 py-0.5 rounded-md border border-stone-200">
                                 {prod.sku}
                               </span>
                               <span className="bg-[#FAF7F2] text-[#8C6D37] font-medium px-1.5 py-0.5 rounded-md border border-[#E6DEC8]">
@@ -359,13 +360,14 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
 
                         {/* Price & Action */}
                         <div className="text-left flex-shrink-0 pl-1 pr-2 space-y-0.5">
-                          <div className="text-xs font-black text-stone-900 font-mono flex items-center justify-end gap-1">
+                          <div className="text-xs font-black text-stone-900 flex items-center justify-end gap-1">
                             <span>
-                              {isPartnerLoggedIn 
-                                ? (prod.colleaguePricePerPack || prod.baseWholesalePricePerPack).toLocaleString('fa-IR') 
-                                : prod.baseWholesalePricePerPack.toLocaleString('fa-IR')}
+                              {formatPersianPrice(
+                                isPartnerLoggedIn 
+                                  ? (prod.colleaguePricePerPack || prod.baseWholesalePricePerPack) 
+                                  : prod.baseWholesalePricePerPack
+                              )}
                             </span>
-                            <span className="text-[10px] font-normal text-stone-500">تومان</span>
                           </div>
                           <div className="text-[10px] text-stone-400 font-medium">
                             پک {prod.packSize} تایی عمده
@@ -519,8 +521,8 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
               <ShoppingBag className="w-4 h-4 text-emerald-100 shrink-0" />
               <span className="hidden sm:inline">سبد خرید</span>
               {cartItemsCount > 0 ? (
-                <span className="min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 bg-white text-emerald-800 font-black rounded-full flex items-center justify-center text-[10px] shadow-xs shrink-0 font-mono">
-                  {cartItemsCount}
+                <span className="min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 bg-white text-emerald-800 font-black rounded-full flex items-center justify-center text-[10px] shadow-xs shrink-0">
+                  {toPersianDigits(cartItemsCount)}
                 </span>
               ) : (
                 <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping hidden sm:inline-block shrink-0" />
@@ -548,7 +550,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                   handleViewAllResults();
                 }
               }}
-              placeholder="جستجوی مدل، پارچه یا کد کالا..."
+              placeholder="جست‌وجوی مدل، پارچه یا کد کالا..."
               className="w-full pl-9 pr-10 py-2 rounded-xl bg-white border border-[#EAE4D9] focus:outline-none focus:ring-2 focus:ring-[#18181B]/15 focus:border-[#18181B] text-xs text-stone-900 shadow-xs"
             />
             <Search className="w-4 h-4 text-stone-400 absolute right-3.5 top-2.5 pointer-events-none" />
@@ -561,7 +563,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                   setIsMobileFocused(false);
                 }}
                 className="absolute left-3 top-2.5 p-0.5 text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors"
-                title="پاک کردن جستجو"
+                title="پاک کردن جست‌وجو"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -575,7 +577,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   <span className="font-extrabold text-stone-900">
-                    یافت شده: <span className="text-[#8C6D37] font-mono">{liveResults.length}</span> مدل
+                    یافت‌شده: <span className="text-[#8C6D37]">{toPersianDigits(liveResults.length)}</span> مدل
                   </span>
                 </div>
                 <button
@@ -609,7 +611,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                             {prod.name}
                           </h4>
                           <div className="flex items-center gap-1 text-[10px] text-stone-500 flex-wrap">
-                            <span className="bg-stone-200 text-stone-800 font-mono font-bold px-1 rounded">
+                            <span className="bg-stone-200 text-stone-800 font-bold px-1 rounded">
                               {prod.sku}
                             </span>
                             <span className="bg-amber-50 text-[#8C6D37] font-medium px-1 rounded border border-amber-200">
@@ -620,14 +622,15 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                       </div>
 
                       <div className="text-left flex-shrink-0 pl-1 pr-2">
-                        <span className="text-xs font-black text-stone-900 block font-mono">
-                          {isPartnerLoggedIn 
-                            ? (prod.colleaguePricePerPack || prod.baseWholesalePricePerPack).toLocaleString('fa-IR') 
-                            : prod.baseWholesalePricePerPack.toLocaleString('fa-IR')}
-                          <span className="text-[9px] font-normal text-stone-500 mr-0.5">تومان</span>
+                        <span className="text-xs font-black text-stone-900 block">
+                          {formatPersianPrice(
+                            isPartnerLoggedIn 
+                              ? (prod.colleaguePricePerPack || prod.baseWholesalePricePerPack) 
+                              : prod.baseWholesalePricePerPack
+                          )}
                         </span>
                         <span className="text-[10px] text-stone-400 block">
-                          پک {prod.packSize} تایی
+                          پک {toPersianDigits(prod.packSize)} تایی
                         </span>
                       </div>
                     </div>
@@ -638,7 +641,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                     onClick={handleViewAllResults}
                     className="w-full py-2.5 bg-[#18181B] text-[#FAF7F2] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 mt-1.5 shadow-sm active:scale-[0.99]"
                   >
-                    <span>مشاهده همه {liveResults.length} مدل در کاتالوگ</span>
+                    <span>مشاهدهٔ همهٔ {toPersianDigits(liveResults.length)} مدل در کاتالوگ</span>
                     <ArrowLeft className="w-3.5 h-3.5 text-[#D4AF37]" />
                   </button>
                 </div>

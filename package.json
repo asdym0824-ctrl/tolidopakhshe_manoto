@@ -9,7 +9,8 @@
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "lint:fa": "python3 skills/persian-writing/scripts/fa_lint.py --check AGENTS.md src/data/brandInfo.ts src/data/mockData.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

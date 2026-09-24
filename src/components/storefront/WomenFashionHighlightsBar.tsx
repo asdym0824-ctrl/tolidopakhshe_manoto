@@ -40,11 +40,11 @@ export const WomenFashionHighlightsBar: React.FC<WomenFashionHighlightsBarProps>
                 طراحی، الگوسازی و دوخت اختصاصی پوشاک زنانه
               </span>
               <span className="hidden sm:inline-block bg-rose-100 text-rose-900 text-[9px] font-black px-2 py-0.5 rounded-full border border-rose-200">
-                مدل‌های زنانه ۱۴۰۳
+                کالکشن جدید زنانه ۱۴۰۴
               </span>
             </div>
             <p className="text-[10px] sm:text-[11px] text-stone-500 truncate mt-0.5">
-              تنخور آزاد و ژورنالی، بدون کشیدگی فاق، بافت کشسانی ۴ جهته و قواره خوش‌پوش بانوان
+              تن‌خور آزاد و ژورنالی، بدون کشیدگی فاق، بافت کشسانی ۴ جهته و قوارهٔ خوش‌پوش بانوان
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@ export const WomenFashionHighlightsBar: React.FC<WomenFashionHighlightsBarProps>
             className="py-1.5 px-3 rounded-xl bg-white hover:bg-amber-50 text-stone-800 hover:text-amber-900 border border-[#EAE4D9] hover:border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5 text-amber-600" />
-            <span>شناسنامه پارچه و شستشو</span>
+            <span>شناسنامهٔ پارچه و شست‌وشو</span>
           </button>
 
           {/* 3. Fast View Outfits */}
@@ -78,7 +78,7 @@ export const WomenFashionHighlightsBar: React.FC<WomenFashionHighlightsBarProps>
             className="py-1.5 px-3 rounded-xl bg-[#18181B] hover:bg-black text-[#D4AF37] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
           >
             <Shirt className="w-3.5 h-3.5" />
-            <span>ویترین تنخور</span>
+            <span>ویترین تن‌خور</span>
           </button>
         </div>
 

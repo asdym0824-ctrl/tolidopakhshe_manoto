@@ -262,7 +262,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
             </ul>
             <div className="text-[11px] text-stone-400 font-sans pt-1 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>پاسخگویی ۸:۳۰ الی ۱۹:۰۰ همه روزه</span>
+              <span>پاسخ‌گویی همه‌روزه از ۸:۳۰ الی ۱۹:۰۰ (روزهای کاری بازار تهران)</span>
             </div>
           </div>
 
@@ -271,7 +271,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
         {/* Bottom copyright line */}
         <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-stone-500">
           <p>
-            تمامی حقوق مادی و معنوی متعلق به <strong>موسسه تولید و پخش پوشاک من و تو (اسدی) - MANOTO DRESS</strong> می‌باشد.
+            تمامی حقوق مادی و معنوی متعلق به <strong>تولید و پخش پوشاک «من و تو» (اسدی) — MANOTO DRESS</strong> است.
           </p>
           <p className="flex items-center gap-1">
             <span className="bg-stone-800 text-stone-300 px-2 py-0.5 rounded text-[10px] font-mono">

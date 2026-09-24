@@ -109,9 +109,9 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
 export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
   {
     id: 'banner-1',
-    title: 'خرید مستقیم از کارگاه تولیدی • بدون واسطه بازار بزرگ',
+    title: 'خرید مستقیم از کارگاه تولیدی • بدون واسطهٔ بازار بزرگ',
     subtitle: 'ارسال سریع روزانه با باربری وطن و پیام‌گیر از میدان شوش به تمام شهرهای ایران با صدور آنی بیجک رسمی باربری',
-    badgeText: '✨ ویژه بنکداران و همکاران سراسر کشور',
+    badgeText: '✨ ویژهٔ بنکداران و همکاران سراسر کشور',
     tagline: 'تضمین کیفیت دوخت ۵ لا، کش‌دوزی گنی و ثبات رنگ پارچه',
     buttonText: 'درخواست فاکتور و قیمت همکاری',
     buttonAction: 'wholesale_modal',
@@ -124,10 +124,10 @@ export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
   },
   {
     id: 'banner-2',
-    title: 'عضویت در کانال رسمی تلگرام و روبیکای پوشاک من و تو',
-    subtitle: 'مشاهده فیلم‌های تنخور ژورنالی، تست کشسانی پارچه و اعلام زنده قیمت پک‌های جور هر روز ساعت ۱۱ و ۱۷',
+    title: 'عضویت در کانال رسمی تلگرام و روبیکای پوشاک «من و تو»',
+    subtitle: 'مشاهدهٔ ویدیوهای تن‌خور ژورنالی، تست کشسانی پارچه و اعلام زندهٔ قیمت پک‌های جور هر روز ساعت ۱۱ و ۱۷',
     badgeText: '📢 اطلاع از شارژ بارهای جدید',
-    tagline: 'بیش از ۱۲,۰۰۰ همکار فعال و مغازه‌دار در سراسر کشور',
+    tagline: 'بیش از ۱۲٬۰۰۰ همکار فعال و مغازه‌دار در سراسر کشور',
     buttonText: 'ورود به کانال تلگرام',
     buttonAction: 'telegram',
     secondaryButtonText: 'پشتیبانی واتساپ / ایتا',
@@ -140,10 +140,10 @@ export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
   {
     id: 'banner-3',
     title: 'تست حضوری، لمس پارچه و خرید دست‌اول در بازار تهران',
-    subtitle: 'پاساژ المهدی ۴، پلاک ۲۴۲ • همه روزه ۸:۳۰ الی ۱۹:۰۰ (دسترسی فوری ۵ دقیقه‌ای با مترو خیام و ۱۵ خرداد)',
+    subtitle: 'پاساژ المهدی ۴، پلاک ۲۴۲ • همه‌روزه از ۸:۳۰ الی ۱۹:۰۰ (دسترسی سریع ۵ دقیقه‌ای از مترو خیام و ۱۵ خرداد)',
     badgeText: '📍 خرید حضوری در بازار',
-    tagline: 'پذیرایی و ثبت فاکتور رسمی با تسویه نقدی و چکی',
-    buttonText: 'مشاهده نقشه و راهنمای مترو',
+    tagline: 'میزبانی و ثبت فاکتور رسمی با تسویهٔ نقدی و چکی',
+    buttonText: 'مشاهدهٔ نقشه و راهنمای مترو',
     buttonAction: 'about_modal',
     secondaryButtonText: 'تماس مستقیم با مدیریت (اسدی)',
     secondaryButtonAction: 'call_sales',
@@ -155,10 +155,10 @@ export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
   {
     id: 'banner-4',
     title: 'تولید سفارشی با مارک، سایزبندی و تیراژ اختصاصی شما',
-    subtitle: 'آماده‌سازی سفارشات تیراژ بالای ۳۰۰ عدد در کارگاه‌های اختصاصی خیام با ضمانت زمان‌بندی و کیفیت درجه یک',
+    subtitle: 'آماده‌سازی سفارش‌های تیراژ بالای ۳۰۰ عدد در کارگاه‌های اختصاصی خیام با ضمانت زمان‌بندی و کیفیت درجه‌یک',
     badgeText: '✂️ خط تولید اختصاصی',
-    tagline: 'تولید با الگو و ژورنال اختصاصی برند شما',
-    buttonText: 'تماس با واحد سفارشات عمده',
+    tagline: 'تولید با الگو و ژورنال اختصاصی فروشگاه شما',
+    buttonText: 'تماس با واحد سفارش‌های عمده',
     buttonAction: 'call_sales',
     secondaryButtonText: 'اطلاعات کارگاه‌های تولیدی',
     secondaryButtonAction: 'about_modal',
@@ -171,9 +171,9 @@ export const DEFAULT_STOREFRONT_BANNERS: StorefrontBanner[] = [
 
 export const DEFAULT_PROMO_POPUP: OccasionPromoPopupConfig = {
   isActive: true,
-  occasionTitle: 'جشنواره حراج ویژه مناسبتی بازار بزرگ',
-  occasionSubtitle: 'تخفیف شگفت‌انگیز کارگاه تولیدی من و تو (اسدی) روی پرفروش‌ترین مدل فصل',
-  badgeText: '🔥 آفر استثنایی و محدود',
+  occasionTitle: 'جشنوارهٔ حراج ویژه مناسبتی بازار بزرگ',
+  occasionSubtitle: 'تخفیف استثنایی کارگاه تولیدی «من و تو» (اسدی) روی پرفروش‌ترین مدل فصل',
+  badgeText: '🔥 پیشنهاد ویژه و محدود',
   targetProductId: 'prod-1', // شلوار بگ کتان لایت تابستانه کمرکش
   discountPercent: 25,
   discountCouponCode: 'MANOTO-GOLD',
@@ -394,6 +394,9 @@ export default function App() {
     waybillNumber?: string,
     notes?: string
   ) => {
+    const now = new Date();
+    const formattedDate = `${now.toLocaleDateString('fa-IR', { year: 'numeric', month: '2-digit', day: '2-digit' })} ساعت ${now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}`;
+
     setStorefrontOrders(prev => prev.map(ord => {
       if (ord.id === orderId) {
         return {
@@ -402,6 +405,11 @@ export default function App() {
           carrierName: carrierName !== undefined ? carrierName : ord.carrierName,
           waybillNumber: waybillNumber !== undefined ? waybillNumber : ord.waybillNumber,
           notes: notes ? (ord.notes ? `${ord.notes} | ${notes}` : notes) : ord.notes,
+          adminConfirmedAt: newStatus === 'confirmed' ? (ord.adminConfirmedAt || formattedDate) : ord.adminConfirmedAt,
+          adminConfirmedBy: newStatus === 'confirmed' ? (ord.adminConfirmedBy || 'ادمین سفارش‌ها (اسدی)') : ord.adminConfirmedBy,
+          packedAt: (newStatus === 'packed' || newStatus === 'processing') ? (ord.packedAt || formattedDate) : ord.packedAt,
+          shippedAt: newStatus === 'sent_to_carrier' ? (ord.shippedAt || formattedDate) : ord.shippedAt,
+          deliveredAt: newStatus === 'delivered' ? (ord.deliveredAt || formattedDate) : ord.deliveredAt,
         };
       }
       return ord;

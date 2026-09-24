@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../../types';
 import { Sparkles, Package, ShoppingBag, Flame, Layers, Film, Play, Gift } from 'lucide-react';
+import { toPersianDigits } from '../../utils/persianWriting';
 
 interface MobileCategoryStoriesProps {
   categories: string[];
@@ -44,18 +45,29 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
   return (
     <div 
       id="storefront-stories-carousel"
-      className="backdrop-blur-md rounded-3xl p-3.5 space-y-3 transition-all duration-300 overflow-hidden" 
+      className="relative overflow-hidden rounded-3xl p-3.5 sm:p-4.5 space-y-3.5 bg-white/95 backdrop-blur-xl border border-[#EAE4D9] shadow-[0_4px_24px_rgba(24,24,27,0.05)] transition-all duration-300" 
       dir="rtl"
     >
+      {/* Subtle Atelier Ambient Glow */}
+      <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
       
       {/* Top Header with Swipe Hint */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-1.5 text-xs font-black text-stone-900">
-          <Layers className="w-4 h-4 text-[#8C6D37]" />
-          <span>دسته‌بندی و کالکشن‌های پوشاک</span>
+      <div className="flex items-center justify-between px-1 relative z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs">
+            <Layers className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs sm:text-sm font-black text-stone-900">استوری و دسته‌بندی مدل‌ها</span>
+              <span className="text-[9px] font-bold text-[#8C6D37] bg-amber-50 border border-[#D4AF37]/30 px-1.5 py-0.5 rounded-md">من و تو</span>
+            </div>
+            <p className="text-[10px] text-stone-500 hidden xs:block">انتخاب سریع مدل‌های شلوار، کارگو، مازراتی و پرفروش‌های راسته</p>
+          </div>
         </div>
-        <div className="flex items-center gap-1 text-[11px] text-[#8C6D37] bg-amber-50 border border-[#D4AF37]/30 px-2 py-0.5 rounded-full font-medium animate-pulse">
-          <span>👈 به چپ بکشید</span>
+        <div className="flex items-center gap-1 text-[10.5px] text-[#8C6D37] bg-gradient-to-r from-amber-50 to-orange-50 border border-[#D4AF37]/30 px-2.5 py-1 rounded-full font-bold shadow-2xs">
+          <span>👈 ورق بزنید</span>
         </div>
       </div>
 
@@ -99,14 +111,14 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
             }`}>
               <div className="w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-stone-900 text-[#FAF7F2] flex flex-col items-center justify-center p-1 border-2 border-white">
                 <Play className="w-5 h-5 text-[#D4AF37] fill-[#D4AF37] ml-0.5" />
-                <span className="text-[9px] font-black text-white">فیلم تنخور</span>
+                <span className="text-[9px] font-black text-white">ویدیو تن‌خور</span>
               </div>
               <span className="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[8.5px] font-black px-1.5 py-0.2 rounded-full shadow-xs">
                 {isVideoFilterActive ? 'فعال ✓' : 'ریلز'}
               </span>
             </div>
             <span className="text-[11px] font-bold text-stone-800 group-hover:text-purple-700 text-center max-w-[68px] truncate">
-              {isVideoFilterActive ? 'فقط ویدیو' : 'ویدیو تنخور'}
+              {isVideoFilterActive ? 'فقط ویدیو' : 'ویدیو تن‌خور'}
             </span>
           </button>
         )}
@@ -121,7 +133,7 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
             <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-rose-500 via-amber-500 to-yellow-300 group-hover:scale-105 transition-transform duration-200 shadow-xs animate-pulse">
               <div className="w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 text-white flex flex-col items-center justify-center p-1 border-2 border-white">
                 <Gift className="w-5 h-5 text-yellow-200" />
-                <span className="text-[9px] font-black text-yellow-100">آفر ویژه</span>
+                <span className="text-[9px] font-black text-yellow-100">پیشنهاد ویژه</span>
               </div>
               <span className="absolute -bottom-1 -right-1 bg-black text-[#D4AF37] text-[8.5px] font-black px-1.5 py-0.2 rounded-full shadow-xs">
                 تخفیف
@@ -171,7 +183,7 @@ export const MobileCategoryStories: React.FC<MobileCategoryStoriesProps> = ({
                       : 'bg-white text-stone-700 border border-[#E6DEC8]'
                   }`}
                 >
-                  {count}
+                  {toPersianDigits(count)}
                 </span>
               </div>
 

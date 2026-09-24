@@ -339,4 +339,66 @@
   animation: golden-shimmer-sweep 2.8s ease-in-out infinite;
 }
 
+/* ========================================================================= */
+/* 🖨️ OFFICIAL INVOICE PRINT STYLES (A4 Portrait - Commercial Standard)       */
+/* ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide everything outside the formal printable invoice */
+  header,
+  footer,
+  nav,
+  #app-header,
+  #app-footer,
+  #admin-panel-root,
+  .no-print,
+  button,
+  .btn-print-hide {
+    display: none !important;
+  }
+
+  /* Show and stretch printable invoice sheet */
+  .printable-formal-invoice {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Ensure tables and borders render crisp in print */
+  .printable-formal-invoice table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  .printable-formal-invoice th,
+  .printable-formal-invoice td {
+    border-color: #333333 !important;
+  }
+
+  .printable-formal-invoice .print-black-text {
+    color: #000000 !important;
+  }
+}
+
 

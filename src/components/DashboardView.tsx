@@ -127,6 +127,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   };
 
+  // Mobile ergonomic smooth navigation with top-scroll
+  const handleModuleNavigate = (tab: ModuleTab) => {
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } catch {}
+    onNavigate(tab);
+  };
+
   // ----------------------------------------------------
   // METRICS & CALCULATIONS
   // ----------------------------------------------------
@@ -576,231 +584,355 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* SUB-VIEW 2: 🧭 SUPER ADMIN ALL-MODULES DIRECTORY (Total Accessibility)    */}
         {/* ========================================================================= */}
         {mobileDashboardTab === 'all_modules' && (
-          <div className="space-y-3 animate-in fade-in duration-150">
+          <div className="space-y-3.5 animate-in fade-in duration-150">
             {/* Domain Group 1: Production & Inventory */}
-            <div className="space-y-1.5">
-              <span className="text-[10.5px] font-black text-stone-500 px-1">تولید، انبار و بهای تمام‌شده:</span>
+            <div className="space-y-2">
+              <span className="flex items-center justify-between px-1.5 py-0.5 w-full">
+                <span className="text-[11px] font-black text-stone-800 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-xs" />
+                  <span>تولید، انبارداری و بهای تمام‌شده کالا</span>
+                </span>
+                <span className="text-[9.5px] font-bold text-stone-400 font-mono">۲ ماژول پایه</span>
+              </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 
-                {/* Inventory */}
+                {/* 1. Inventory & Stock */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('inventory')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-inventory"
+                  onClick={() => handleModuleNavigate('inventory')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/60 flex items-center justify-center shrink-0">
-                      <Package className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-800 border border-amber-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Package className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">انبارداری و موجودی کالا</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        انبارداری و موجودی کالا
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
                         {totalPacksInStock} پک موجود • تنظیم درصدی قیمت
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-amber-500/10 text-amber-900 border border-amber-300/60 shrink-0">
+                      {totalPacksInStock} پک
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
-                {/* Production */}
+                {/* 2. Production & Workshop */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('production')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-production"
+                  onClick={() => handleModuleNavigate('production')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-800 border border-indigo-200/60 flex items-center justify-center shrink-0">
-                      <Scissors className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-800 border border-indigo-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Scissors className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">کارگاه تولید و دوزندگی</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        کارگاه تولید و دوزندگی
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
                         {productionBatches.length} پارت در کارگاه • پارچه و دوزنده
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-indigo-500/10 text-indigo-900 border border-indigo-300/60 shrink-0">
+                      {productionBatches.length} پارت
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
 
             {/* Domain Group 2: Sales, Invoices & Finance */}
-            <div className="space-y-1.5">
-              <span className="text-[10.5px] font-black text-stone-500 px-1">فروش، فاکتور و خزانه مالی:</span>
+            <div className="space-y-2">
+              <span className="flex items-center justify-between px-1.5 py-0.5 w-full">
+                <span className="text-[11px] font-black text-stone-800 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-xs" />
+                  <span>فروش، صدور فاکتور و خزانه مالی</span>
+                </span>
+                <span className="text-[9.5px] font-bold text-stone-400 font-mono">۲ ماژول نقدینگی</span>
+              </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 
-                {/* Sales */}
+                {/* 3. Sales & Invoicing */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('sales')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-sales"
+                  onClick={() => handleModuleNavigate('sales')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/60 flex items-center justify-center shrink-0">
-                      <Receipt className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-800 border border-emerald-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Receipt className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">صدور فاکتور و فروش</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
-                        {invoices.length} فاکتور ثبت شده • تسویه نقدی و چکی
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        صدور فاکتور و فروش
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
+                        {invoices.length} فاکتور ثبت‌شده • تسویه نقدی و چکی
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-emerald-500/10 text-emerald-900 border border-emerald-300/60 shrink-0">
+                      {invoices.length} فاکتور
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
-                {/* Finance */}
+                {/* 4. Finance & Checks */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('finance')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-finance"
+                  onClick={() => handleModuleNavigate('finance')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-800 border border-purple-200/60 flex items-center justify-center shrink-0">
-                      <CreditCard className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-800 border border-purple-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <CreditCard className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">خزانه و چک‌های صیادی</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        خزانه و چک‌های صیادی
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
                         {pendingChecks.length} چک در جریان • تقویم سررسید
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-purple-500/10 text-purple-900 border border-purple-300/60 shrink-0">
+                      {pendingChecks.length} چک باز
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
 
             {/* Domain Group 3: Customers & Logistics */}
-            <div className="space-y-1.5">
-              <span className="text-[10.5px] font-black text-stone-500 px-1">مشتریان، وب‌سایت و توزیع:</span>
+            <div className="space-y-2">
+              <span className="flex items-center justify-between px-1.5 py-0.5 w-full">
+                <span className="text-[11px] font-black text-stone-800 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shadow-xs" />
+                  <span>مشتریان، وب‌سایت و توزیع باربری</span>
+                </span>
+                <span className="text-[9.5px] font-bold text-stone-400 font-mono">۳ ماژول ارتباطی</span>
+              </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 
-                {/* Wholesale CRM */}
+                {/* 5. Wholesale CRM */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('crm')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-crm"
+                  onClick={() => handleModuleNavigate('crm')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-800 border border-sky-200/60 flex items-center justify-center shrink-0">
-                      <Users className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-800 border border-sky-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Users className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">همکاران عمده (CRM)</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
-                        {customers.length} همکار بازار • سقف اعتبار
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        همکاران عمده (CRM)
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
+                        {customers.length} همکار سراسر کشور • سقف اعتبار
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-sky-500/10 text-sky-900 border border-sky-300/60 shrink-0">
+                      {customers.length} همکار
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
-                {/* Retail Customers */}
+                {/* 6. Retail Customers */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('retail_customers')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-retail-customers"
+                  onClick={() => handleModuleNavigate('retail_customers')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-800 border border-teal-200/60 flex items-center justify-center shrink-0">
-                      <ShoppingBasket className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-800 border border-teal-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <ShoppingBasket className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">مشتریان خرد سایت</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        مشتریان خرد سایت
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
                         سفارشات تک‌فروشی آنلاین و آدرس‌ها
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-teal-500/10 text-teal-900 border border-teal-300/60 shrink-0">
+                      تک‌فروشی
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
-                {/* Logistics */}
+                {/* 7. Logistics */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('logistics')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-logistics"
+                  onClick={() => handleModuleNavigate('logistics')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/60 flex items-center justify-center shrink-0">
-                      <Truck className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-800 border border-orange-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Truck className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">لجستیک و باربری</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
-                        بیجک وطن، تیپاکس و بسته‌بندی
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        لجستیک و باربری
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
+                        بیجک وطن، تیپاکس و بسته‌بندی پلاک ۲۴۲
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-orange-500/10 text-orange-900 border border-orange-300/60 shrink-0">
+                      بارنامه
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
 
             {/* Domain Group 4: Storefront, AI & Security Root */}
-            <div className="space-y-1.5">
-              <span className="text-[10.5px] font-black text-stone-500 px-1">تنظیمات سایت، هوش مصنوعی و سوپر ادمین:</span>
+            <div className="space-y-2">
+              <span className="flex items-center justify-between px-1.5 py-0.5 w-full">
+                <span className="text-[11px] font-black text-stone-800 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#18181B] shadow-xs" />
+                  <span>تنظیمات ویترین، هوش مصنوعی و سوپر ادمین</span>
+                </span>
+                <span className="text-[9.5px] font-bold text-stone-400 font-mono">۳ ماژول راهبردی</span>
+              </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 
-                {/* Storefront */}
+                {/* 8. Storefront & Site CMS */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('storefront')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-storefront"
+                  onClick={() => handleModuleNavigate('storefront')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-stone-100 text-stone-800 border border-stone-200 flex items-center justify-center shrink-0">
-                      <ShoppingBag className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-stone-900 text-[#D4AF37] border border-stone-700/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <ShoppingBag className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">ویترین و تنظیمات سایت</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        ویترین و تنظیمات سایت
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
                         اسلایدر، بنرها و شرایط ارسال
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-stone-100 text-stone-800 border border-stone-300/80 shrink-0">
+                      ویترین زنده
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
-                {/* AI Marketing */}
+                {/* 9. AI Marketing */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('marketing')}
-                  className="p-3 bg-white hover:bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] shadow-2xs text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-marketing"
+                  onClick={() => handleModuleNavigate('marketing')}
+                  className="group relative p-3 sm:p-3.5 bg-white/95 hover:bg-white rounded-2xl border border-[#E2DAD0] hover:border-[#D4AF37]/60 active:border-[#18181B] shadow-[0_2px_8px_rgba(24,24,27,0.03)] active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-800 border border-violet-200/60 flex items-center justify-center shrink-0">
-                      <Share2 className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-800 border border-violet-300/70 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Share2 className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-stone-900 truncate">دستیار هوش مصنوعی</h4>
-                      <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-stone-900 group-hover:text-black truncate leading-tight">
+                        دستیار هوش مصنوعی
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-medium truncate mt-0.5">
                         کپشن‌نویسی تلگرام و روبیکا
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-stone-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-violet-500/10 text-violet-900 border border-violet-300/60 shrink-0">
+                      تولید محتوا
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-stone-100 group-hover:bg-[#18181B] group-hover:text-[#D4AF37] text-stone-400 flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
-                {/* Super Admin Roles & Backup */}
+                {/* 10. Super Admin Roles & Backup */}
                 <button
                   type="button"
-                  onClick={() => onNavigate('roles')}
-                  className="p-3 bg-gradient-to-r from-[#18181B] to-stone-900 text-[#FAF7F2] rounded-2xl border border-stone-800 shadow-sm text-right transition-all flex items-center justify-between gap-2.5 active:scale-98 cursor-pointer min-h-[56px]"
+                  id="mobile-mod-roles"
+                  onClick={() => handleModuleNavigate('roles')}
+                  className="group relative p-3 sm:p-3.5 bg-gradient-to-r from-[#18181B] via-[#242428] to-[#18181B] text-[#FAF7F2] rounded-2xl border border-stone-800 ring-1 ring-[#D4AF37]/35 shadow-md active:scale-[0.985] text-right transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer min-h-[64px] touch-manipulation select-none"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-[#27272A] text-[#D4AF37] border border-[#D4AF37]/30 flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-4.5 h-4.5" />
+                    <div className="w-10 h-10 rounded-xl bg-[#27272A] text-[#D4AF37] border border-[#D4AF37]/40 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                      <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-black text-white truncate">امنیت و کنترل سوپر ادمین</h4>
-                      <p className="text-[10px] text-stone-300 truncate mt-0.5">
+                      <h4 className="text-xs sm:text-[13px] font-black text-white truncate leading-tight">
+                        امنیت و کنترل سوپر ادمین
+                      </h4>
+                      <p className="text-[10px] text-stone-300 truncate mt-0.5 font-medium">
                         دسترسی روت • بک‌آپ دیتابیس و اکسل
                       </p>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black font-mono bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 shrink-0">
+                      سطح ۱ روت
+                    </span>
+                    <div className="w-6 h-6 rounded-lg bg-[#27272A] group-hover:bg-[#D4AF37] group-hover:text-[#18181B] text-[#D4AF37] flex items-center justify-center transition-colors shrink-0">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </button>
 
               </div>

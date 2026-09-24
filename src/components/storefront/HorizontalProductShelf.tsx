@@ -18,6 +18,7 @@ import {
   Truck,
   Play
 } from 'lucide-react';
+import { toPersianDigits, formatPersianPrice } from '../../utils/persianWriting';
 
 interface HorizontalProductShelfProps {
   id?: string;
@@ -220,10 +221,14 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
             const isAdded = Boolean(addedFeedback[product.id]);
 
             // Pricing
-            const wholesaleUnitPrice = isPartnerLoggedIn ? product.colleaguePricePerUnit : product.baseWholesalePricePerUnit;
-            const wholesalePackPrice = isPartnerLoggedIn ? product.colleaguePricePerPack : product.baseWholesalePricePerPack;
+            const wholesaleUnitPrice = isPartnerLoggedIn 
+              ? (product.colleaguePricePerUnit || product.baseWholesalePricePerUnit || 0) 
+              : (product.baseWholesalePricePerUnit || 0);
+            const wholesalePackPrice = isPartnerLoggedIn 
+              ? (product.colleaguePricePerPack || product.baseWholesalePricePerPack || 0) 
+              : (product.baseWholesalePricePerPack || 0);
             const defaultMarkup = product.retailMarkupPercent || 35;
-            const retailUnitPrice = product.retailPricePerUnit || Math.round((product.baseWholesalePricePerUnit * (1 + defaultMarkup / 100)) / 5000) * 5000;
+            const retailUnitPrice = product.retailPricePerUnit || (product.baseWholesalePricePerUnit ? Math.round((product.baseWholesalePricePerUnit * (1 + defaultMarkup / 100)) / 5000) * 5000 : 0);
 
             return (
               <div
@@ -362,16 +367,15 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                     {currentMode === 'wholesale_pack' ? (
                       <div className="space-y-0.5">
                         <div className="flex items-baseline justify-between gap-1">
-                          <span className="text-[8.5px] text-stone-500">پک {product.packSize} تایی:</span>
+                          <span className="text-[8.5px] text-stone-500">پک {toPersianDigits(product.packSize)} تایی:</span>
                           <span className="text-[11px] sm:text-xs font-black text-stone-900">
-                            {wholesalePackPrice.toLocaleString('fa-IR')}{' '}
-                            <span className="text-[8px] font-normal text-stone-500">ت</span>
+                            {formatPersianPrice(wholesalePackPrice)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-[8.5px] text-stone-600 pt-0.5 border-t border-[#EAE4D9]/60">
                           <span className="text-stone-400">هر عدد:</span>
                           <span className="font-bold text-[#8C6D37]">
-                            {wholesaleUnitPrice.toLocaleString('fa-IR')} ت
+                            {formatPersianPrice(wholesaleUnitPrice)}
                           </span>
                         </div>
                       </div>
@@ -380,8 +384,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                         <div className="flex items-baseline justify-between gap-1">
                           <span className="text-[8.5px] text-stone-500">تک‌فروشی:</span>
                           <span className="text-[11px] sm:text-xs font-black text-[#8C6D37]">
-                            {retailUnitPrice.toLocaleString('fa-IR')}{' '}
-                            <span className="text-[8px] font-normal text-stone-500">ت</span>
+                            {formatPersianPrice(retailUnitPrice)}
                           </span>
                         </div>
                         <div className="text-[8px] text-emerald-800 font-bold flex items-center gap-0.5 pt-0.5 border-t border-[#EAE4D9]/60">
