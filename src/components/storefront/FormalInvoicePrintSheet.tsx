@@ -231,7 +231,23 @@ export const FormalInvoicePrintSheet: React.FC<FormalInvoicePrintSheetProps> = (
               <div className="sm:col-span-3 pt-1 border-t border-stone-200">
                 <span className="text-stone-500">نشانی دقیق تحویل مرسوله:</span>{' '}
                 <span className="text-stone-900 font-medium">{order.customer.address}</span>
+                {order.customer.buildingNumber && (
+                  <span className="mr-2 text-stone-800">
+                    ، پلاک: <strong>{order.customer.buildingNumber}</strong>
+                  </span>
+                )}
+                {order.customer.unitNumber && (
+                  <span className="mr-2 text-stone-800">
+                    ، واحد: <strong>{order.customer.unitNumber}</strong>
+                  </span>
+                )}
               </div>
+              {order.customer.notes && (
+                <div className="sm:col-span-3 pt-1 border-t border-stone-100 text-stone-700 text-[11px]">
+                  <span className="text-stone-500 font-medium">توضیحات و هماهنگی‌های خریدار:</span>{' '}
+                  <span className="text-stone-900">{order.customer.notes}</span>
+                </div>
+              )}
             </div>
           </div>
 

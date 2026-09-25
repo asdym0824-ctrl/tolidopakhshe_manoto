@@ -83,7 +83,10 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         province: prev.province || loggedInCustomer.province,
         city: prev.city || loggedInCustomer.city,
         address: prev.address || loggedInCustomer.address,
+        buildingNumber: prev.buildingNumber || loggedInCustomer.buildingNumber,
+        unitNumber: prev.unitNumber || loggedInCustomer.unitNumber,
         postalCode: prev.postalCode || loggedInCustomer.postalCode,
+        notes: prev.notes || loggedInCustomer.notes || '',
       }));
     }
   }, [loggedInCustomer]);
@@ -96,9 +99,11 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
     alternativePhone: loggedInCustomer?.alternativePhone || '',
     province: loggedInCustomer?.province || (isPartnerLoggedIn ? 'اصفهان' : 'تهران'),
     city: loggedInCustomer?.city || (isPartnerLoggedIn ? 'اصفهان' : 'تهران'),
-    address: loggedInCustomer?.address || (isPartnerLoggedIn ? 'خیابان عبدالرزاق، پاساژ کلاهدوزان، پلاک ۱۸' : ''),
+    address: loggedInCustomer?.address || (isPartnerLoggedIn ? 'خیابان عبدالرزاق، پاساژ کلاهدوزان' : ''),
+    buildingNumber: loggedInCustomer?.buildingNumber || (isPartnerLoggedIn ? '۱۸' : ''),
+    unitNumber: loggedInCustomer?.unitNumber || (isPartnerLoggedIn ? 'واحد ۲۴۲' : ''),
     postalCode: loggedInCustomer?.postalCode || '',
-    notes: '',
+    notes: loggedInCustomer?.notes || '',
     isPartnerWholesale: isPartnerLoggedIn || loggedInCustomer?.isPartnerWholesale,
     storeName: loggedInCustomer?.storeName || (isPartnerLoggedIn ? 'پخش عمده پوشاک محمدی' : ''),
   });
@@ -221,6 +226,10 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         province: customer.province || 'تهران',
         city: customer.city || 'تهران',
         address: customer.address || '',
+        buildingNumber: customer.buildingNumber,
+        unitNumber: customer.unitNumber,
+        postalCode: customer.postalCode,
+        notes: customer.notes,
         registeredAt: new Date().toLocaleDateString('fa-IR'),
       };
 
@@ -255,7 +264,10 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         province: existingUser.province || prev.province,
         city: existingUser.city || prev.city,
         address: existingUser.address || prev.address,
+        buildingNumber: existingUser.buildingNumber || prev.buildingNumber,
+        unitNumber: existingUser.unitNumber || prev.unitNumber,
         postalCode: existingUser.postalCode || prev.postalCode,
+        notes: existingUser.notes || prev.notes,
       }));
       setAuthSuccessBanner(`ورود موفقیت‌آمیز به حساب • خوش آمدید ${existingUser.fullName || ''}`);
     }
@@ -303,7 +315,10 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         province: customer.province,
         city: customer.city,
         address: customer.address,
+        buildingNumber: customer.buildingNumber,
+        unitNumber: customer.unitNumber,
         postalCode: customer.postalCode,
+        notes: customer.notes,
       });
     }
 
@@ -792,24 +807,76 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         required
                         value={customer.address}
                         onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
-                        placeholder="خیابان اصلی، کوچه، پلاک، طبقه و واحد"
+                        placeholder="خیابان اصلی، خیابان فرعی، کوچه و جزئیات مسیر"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-800 resize-none bg-[#FAF7F2]"
                       />
                       <MapPin className="w-4 h-4 text-stone-400 absolute left-3 top-3 pointer-events-none" />
                     </div>
                   </div>
 
+                  {/* Plaque / Building Number */}
+                  <div>
+                    <label className="text-xs font-semibold text-stone-700 block mb-1">
+                      پلاک:
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customer.buildingNumber || ''}
+                        onChange={(e) => setCustomer({ ...customer, buildingNumber: e.target.value })}
+                        placeholder="مثال: ۱۸ یا ۲۴۲"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-800 bg-[#FAF7F2]"
+                      />
+                      <Hash className="w-4 h-4 text-stone-400 absolute left-3 top-3 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Unit / Floor */}
+                  <div>
+                    <label className="text-xs font-semibold text-stone-700 block mb-1">
+                      واحد / طبقه:
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customer.unitNumber || ''}
+                        onChange={(e) => setCustomer({ ...customer, unitNumber: e.target.value })}
+                        placeholder="مثال: واحد ۲ یا طبقه ۳"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-800 bg-[#FAF7F2]"
+                      />
+                      <Layers className="w-4 h-4 text-stone-400 absolute left-3 top-3 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Postal Code */}
                   <div className="sm:col-span-2">
                     <label className="text-xs font-semibold text-stone-700 block mb-1">
                       کد پستی (اختیاری):
                     </label>
                     <input
                       type="text"
-                      value={customer.postalCode}
+                      value={customer.postalCode || ''}
                       onChange={(e) => setCustomer({ ...customer, postalCode: e.target.value })}
                       placeholder="کد پستی ۱۰ رقمی"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-800 font-mono bg-[#FAF7F2]"
                     />
+                  </div>
+
+                  {/* Order & Delivery Notes */}
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-stone-700 block mb-1">
+                      توضیحات و هماهنگی‌های لازم جهت ارسال و تحویل مرسوله (اختیاری):
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        rows={2}
+                        value={customer.notes || ''}
+                        onChange={(e) => setCustomer({ ...customer, notes: e.target.value })}
+                        placeholder="توضیحات لازم برای راننده باربری یا پیک، نام فروشگاه، ساعت کاری و تحویل بار..."
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDD5C0] focus:outline-none focus:ring-2 focus:ring-[#18181B]/20 focus:border-[#18181B] text-xs text-stone-800 resize-none bg-[#FAF7F2]"
+                      />
+                      <FileText className="w-4 h-4 text-stone-400 absolute left-3 top-3 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
               </div>
