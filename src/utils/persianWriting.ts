@@ -178,3 +178,61 @@ export function cleanPersianTypography(text: string): string {
 
   return res;
 }
+
+/**
+ * تبدیل مبالغ عددی به حروف فارسی رسمی ویژه اسناد تجاری و فاکتورها
+ * مثال: numberToPersianWords(1850000) => "یک میلیون و هشتصد و پنجاه هزار تومان"
+ */
+export function numberToPersianWords(num: number | null | undefined): string {
+  if (!num || num === 0) return 'صفر تومان';
+  const units = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'];
+  const teens = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];
+  const tens = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
+  const hundreds = ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
+  const thousands = ['', 'هزار', 'میلیون', 'میلیارد', 'تریلیون'];
+
+  function convertChunk(n: number): string {
+    let result = '';
+    const h = Math.floor(n / 100);
+    const t = Math.floor((n % 100) / 10);
+    const u = n % 10;
+
+    if (h > 0) {
+      result += hundreds[h];
+    }
+
+    const remainder = n % 100;
+    if (remainder >= 10 && remainder < 20) {
+      if (result) result += ' و ';
+      result += teens[remainder - 10];
+    } else {
+      if (t > 1) {
+        if (result) result += ' و ';
+        result += tens[t];
+      }
+      if (u > 0) {
+        if (result) result += ' و ';
+        result += units[u];
+      }
+    }
+    return result;
+  }
+
+  const chunks: number[] = [];
+  let temp = Math.floor(num);
+  while (temp > 0) {
+    chunks.push(temp % 1000);
+    temp = Math.floor(temp / 1000);
+  }
+
+  const words: string[] = [];
+  for (let i = chunks.length - 1; i >= 0; i--) {
+    if (chunks[i] > 0) {
+      const chunkWord = convertChunk(chunks[i]);
+      const suffix = thousands[i];
+      words.push(suffix ? `${chunkWord} ${suffix}` : chunkWord);
+    }
+  }
+
+  return words.join(' و ') + ' تومان';
+}

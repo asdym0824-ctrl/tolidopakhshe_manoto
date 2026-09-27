@@ -365,11 +365,39 @@
   nav,
   #app-header,
   #app-footer,
-  #admin-panel-root,
   .no-print,
   button,
   .btn-print-hide {
     display: none !important;
+  }
+
+  /* When printing, show the printable invoice whether from storefront or inperson modal */
+  #admin-panel-root:not(:has(.printable-formal-invoice)) {
+    display: none !important;
+  }
+
+  /* When printing from modal, reset modal overlay and wrapper */
+  #inperson-invoice-modal-overlay,
+  .modal-print-wrapper {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    z-index: auto !important;
+  }
+
+  #inperson-invoice-modal-card {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Show and stretch printable invoice sheet */
@@ -379,7 +407,7 @@
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: none !important;
+    border: 2px solid #222 !important;
     box-shadow: none !important;
     background: #ffffff !important;
     color: #000000 !important;

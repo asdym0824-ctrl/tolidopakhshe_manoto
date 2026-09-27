@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Users, 
   UserPlus, 
@@ -27,7 +27,13 @@ import {
   UserCheck,
   AlertTriangle,
   Gift,
-  ArrowUpRight
+  ArrowUpRight,
+  Building2,
+  DollarSign,
+  CheckCircle2,
+  Calendar,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Customer, CustomerType, CustomerTier, PaymentTerms, CheckItem, Invoice, WholesaleLoyaltyTier } from '../types';
 import { ExcelCustomerModal } from './common/ExcelCustomerModal';
@@ -59,6 +65,28 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
   
   // Selected Customer for Details
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  // Fullscreen Table Mode
+  const [isTableFullscreen, setIsTableFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsTableFullscreen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isTableFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isTableFullscreen]);
 
   // Modals
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
@@ -480,187 +508,434 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
             </span>
           </div>
 
-          {/* Customers Table */}
-          <div className="bg-white rounded-2xl border border-[#E6DEC8] shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
-                <thead className="bg-[#FAF7F2] text-stone-700 border-b border-[#E6DEC8] font-bold">
+          {/* Customers Table Container */}
+          <div className={`transition-all duration-200 ${
+            isTableFullscreen
+              ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+              : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+          }`}>
+            {/* Fullscreen Notice Banner */}
+            {isTableFullscreen && (
+              <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه دفتر مشتریان و همکاران عمده فعال است</span>
+                  <span className="text-stone-400 hidden sm:inline">| برای خروج کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
+                </div>
+                <button
+                  onClick={() => setIsTableFullscreen(false)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>خروج از تمام‌صفحه</span>
+                </button>
+              </div>
+            )}
+
+            {/* Header Strip */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                  <Users className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                    <span>دفتر جامع مشتریان، بنکداران و همکاران عمده‌فروش سراسر کشور</span>
+                    <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full font-mono">
+                      {customers.length.toLocaleString('fa-IR')} مخاطب کل
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    پایش سوابق وصولی چک‌های صیادی، سقف اعتبار خرید، باشگاه وفاداری و معرفی همکاران جدید
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                {/* Fullscreen Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                    isTableFullscreen
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
+                      : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'
+                  }`}
+                  title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (Esc)' : 'بزرگنمایی جدول به تمام‌صفحه'}
+                >
+                  {isTableFullscreen ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>کوچک‌نمایی</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                      <span>تمام‌صفحه</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="text-xs text-stone-500 font-medium hidden sm:flex items-center gap-1">
+                  <span>نمای جاری:</span>
+                  <strong className="text-stone-900 font-black">{filteredCustomers.length.toLocaleString('fa-IR')} مشتری</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics Ribbon */}
+            {(() => {
+              const totalPurchasesSum = filteredCustomers.reduce((s, c) => s + c.totalPurchasesToman, 0);
+              const checkEligibleCount = filteredCustomers.filter(c => c.paymentTerms === 'check_eligible').length;
+              const totalReferrals = filteredCustomers.reduce((s, c) => s + (c.referralCount || 0), 0);
+
+              return (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shrink-0 shadow-2xs">
+                      <Users className="w-5 h-5 text-[#D4AF37]" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] text-stone-500 block truncate">مخاطبان فیلترشده</span>
+                      <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                        {filteredCustomers.length.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">همکار</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
+                      <DollarSign className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] text-stone-500 block truncate">مجموع خرید ثبت‌شده</span>
+                      <span className="text-sm sm:text-base font-black text-emerald-950 block truncate">
+                        {totalPurchasesSum.toLocaleString('fa-IR')} <span className="text-xs font-bold text-emerald-700">تومان</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#8C6D37]/15 text-[#8C6D37] flex items-center justify-center shrink-0 shadow-2xs">
+                      <CreditCard className="w-5 h-5 text-[#8C6D37]" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] text-stone-500 block truncate">اعتبار چک صیادی</span>
+                      <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                        {checkEligibleCount.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">مشتری مجاز</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+                      <Gift className="w-5 h-5 text-amber-700" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] text-stone-500 block truncate">معرفی همکاران جدید</span>
+                      <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                        {totalReferrals.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">معرفی</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Master Table */}
+            <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
                   <tr>
-                    <th className="p-3.5">نام مشتری و فروشگاه</th>
-                    <th className="p-3.5">شماره تماس و شهر</th>
-                    <th className="p-3.5">نوع و سطح وفاداری</th>
-                    <th className="p-3.5">سابقه چک‌های صیادی (Check Risk)</th>
-                    <th className="p-3.5">شرایط پرداخت مجاز</th>
-                    <th className="p-3.5">جمع خرید کل</th>
-                    <th className="p-3.5">معرفی همکار</th>
-                    <th className="p-3.5 text-center">اقدام سریع</th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>نام مشتری و فروشگاه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>تماس و موقعیت</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>نوع و سطح وفاداری</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>سابقه اعتبار چک (Sayad Risk)</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>شرایط پرداخت و سقف</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>مجموع خرید کل</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>معرفی همکار</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>اقدام سریع</span>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#FAF7F2]">
-                  {filteredCustomers.map((cust) => {
-                    const checkStats = getCustomerCheckStats(cust.id);
-                    const loyalty = getCustomerLoyaltyTier(cust);
-
-                    return (
-                      <tr key={cust.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                        
-                        {/* Name & Store */}
-                        <td className="p-3.5">
-                          <div>
-                            <span 
-                              onClick={() => setSelectedCustomer(cust)}
-                              className="font-black text-[#18181B] hover:text-[#8C6D37] cursor-pointer block text-xs"
-                            >
-                              {cust.name}
-                            </span>
-                            <span className="text-[11px] text-stone-500 font-medium">
-                              {cust.storeName}
-                            </span>
-                            {cust.tags.length > 0 && (
-                              <div className="flex items-center gap-1 mt-1">
-                                {cust.tags.slice(0, 2).map((t, idx) => (
-                                  <span key={idx} className="text-[9px] bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-1.5 py-0.2 rounded-md font-bold">
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                <tbody className="divide-y divide-[#EFE9DC]">
+                  {filteredCustomers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                          <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
+                            <Search className="w-6 h-6 text-stone-400" />
                           </div>
-                        </td>
-
-                        {/* Phone & City */}
-                        <td className="p-3.5">
-                          <div className="font-mono font-bold text-stone-800 text-[11px] dir-ltr text-right">
-                            {cust.phone}
-                          </div>
-                          <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
-                            <MapPin className="w-3 h-3 text-stone-400" />
-                            <span>{cust.city}</span>
-                          </div>
-                        </td>
-
-                        {/* Type & Loyalty Badge */}
-                        <td className="p-3.5">
-                          <div className="space-y-1">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border inline-block ${
-                              cust.type === 'partner_wholesale' ? 'bg-[#FAF7F2] text-[#8C6D37] border-[#DDD5C0]' :
-                              cust.type === 'online_shop' ? 'bg-amber-50 text-amber-900 border-amber-200' :
-                              cust.type === 'retail' ? 'bg-emerald-50 text-emerald-900 border-emerald-200' :
-                              'bg-stone-100 text-stone-800 border-stone-200'
-                            }`}>
-                              {cust.type === 'partner_wholesale' ? 'عمده‌فروش همکار' :
-                               cust.type === 'online_shop' ? 'آنلاین‌شاپ / فروشگاه' :
-                               cust.type === 'retail' ? 'مشتری تکی' : 'مغازه‌دار شهرستان'}
-                            </span>
-                            {loyalty.tier === 'partner_gold_vip' && (
-                              <div className="text-[10px] text-[#8C6D37] font-black flex items-center gap-1">
-                                <Crown className="w-3 h-3 text-[#D4AF37]" />
-                                <span>طلایی VIP (۴٪ تخفیف)</span>
-                              </div>
-                            )}
-                            {loyalty.tier === 'partner_silver' && (
-                              <div className="text-[10px] text-stone-600 font-bold flex items-center gap-1">
-                                <Award className="w-3 h-3 text-stone-400" />
-                                <span>نقره‌ای (۲٪ تخفیف)</span>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Check Risk History (Fix 2) */}
-                        <td className="p-3.5">
-                          {checkStats.hasBouncedHistory ? (
-                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg font-bold text-[11px]">
-                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                              <span>سابقه {checkStats.bouncedCount} چک برگشتی</span>
-                            </span>
-                          ) : checkStats.isCleanHistory ? (
-                            <div>
-                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-lg font-bold text-[11px]">
-                                <CheckCircle className="w-3 h-3 text-emerald-600 shrink-0" />
-                                <span>{checkStats.clearedCount} چک وصول به‌موقع</span>
-                              </span>
-                              <div className="text-[10px] text-stone-400 mt-0.5">
-                                امتیاز اعتبار صیادی: {cust.trustScore}/۱۰۰
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-[11px] text-stone-500 bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-lg">
-                              فاقد سابقه چک صیادی
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Payment Terms */}
-                        <td className="p-3.5">
-                          {cust.paymentTerms === 'check_eligible' ? (
-                            <div>
-                              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg inline-flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3 text-emerald-600" />
-                                مجاز به چک صیادی
-                              </span>
-                              <div className="text-[10px] text-stone-400 mt-0.5">
-                                سقف: {(cust.checkLimitToman / 1000000).toFixed(0)} میلیون ت
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-[11px] font-bold text-stone-700 bg-[#FAF7F2] border border-[#DDD5C0] px-2 py-0.5 rounded-lg">
-                              فقط نقدی / واریز
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Total Purchases */}
-                        <td className="p-3.5">
-                          <span className="font-black text-[#18181B] block">
-                            {cust.totalPurchasesToman.toLocaleString('fa-IR')} ت
-                          </span>
-                          <span className="text-[10px] text-stone-400">
-                            {cust.orderCount} سفارش ثبت شده
-                          </span>
-                        </td>
-
-                        {/* Referral Count (Fix 3) */}
-                        <td className="p-3.5">
+                          <h4 className="text-sm font-extrabold text-stone-900">هیچ مشتری‌ای یافت نشد</h4>
+                          <p className="text-xs text-stone-500 mt-1">
+                            با فیلتر انتخابی یا عبارت جستجوی «{searchQuery}» مخاطبی ثبت نشده است.
+                          </p>
                           <button
                             onClick={() => {
-                              setReferringCustomer(cust);
-                              setIsReferralModalOpen(true);
+                              setSearchQuery('');
+                              setSelectedType('all');
+                              setSelectedTrustFilter('all');
                             }}
-                            className="text-[11px] bg-[#FAF7F2] hover:bg-[#E6DEC8] border border-[#DDD5C0] text-stone-800 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-colors"
-                            title="ثبت معرفی همکار جدید توسط این مشتری"
+                            className="mt-3.5 px-4 py-1.5 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-900 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                           >
-                            <Gift className="w-3 h-3 text-[#8C6D37]" />
-                            <span>{cust.referralCount || 0} معرف</span>
+                            مشاهده همه مخاطبان
                           </button>
-                        </td>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCustomers.map((cust) => {
+                      const checkStats = getCustomerCheckStats(cust.id);
+                      const loyalty = getCustomerLoyaltyTier(cust);
 
-                        {/* Actions */}
-                        <td className="p-3.5 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              onClick={() => handleOpenFollowUpMessage(cust)}
-                              className="p-2 text-[#8C6D37] hover:bg-[#FAF7F2] rounded-xl transition-colors border border-transparent hover:border-[#DDD5C0]"
-                              title="ارسال پیام آماده کاتالوگ یا پیگیری"
-                            >
-                              <MessageSquare className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setSelectedCustomer(cust)}
-                              className="p-2 text-stone-600 hover:text-[#18181B] hover:bg-[#FAF7F2] rounded-xl transition-colors border border-transparent hover:border-[#DDD5C0]"
-                              title="مشاهده پرونده کامل"
-                            >
-                              <FileText className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                      return (
+                        <tr
+                          key={cust.id}
+                          className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                        >
+                          {/* Column 1: Name & Store */}
+                          <td className="p-3.5 align-middle">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8C6D37] to-[#D4AF37] text-white font-black flex items-center justify-center text-xs shadow-2xs shrink-0">
+                                {cust.name ? cust.name.charAt(0) : 'م'}
+                              </div>
+                              <div className="min-w-0">
+                                <span
+                                  onClick={() => setSelectedCustomer(cust)}
+                                  className="font-extrabold text-stone-900 hover:text-[#8C6D37] cursor-pointer block text-xs sm:text-sm truncate transition-colors"
+                                >
+                                  {cust.name}
+                                </span>
+                                <div className="flex items-center gap-1 text-[11px] text-stone-600 mt-0.5 truncate">
+                                  <Building2 className="w-3 h-3 text-stone-400 shrink-0" />
+                                  <span className="truncate">{cust.storeName}</span>
+                                </div>
+                                {cust.tags.length > 0 && (
+                                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                    {cust.tags.slice(0, 2).map((t, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="text-[9px] bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-1.5 py-0.2 rounded-md font-bold"
+                                      >
+                                        {t}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
 
-                      </tr>
-                    );
-                  })}
+                          {/* Column 2: Phone & City */}
+                          <td className="p-3.5 align-middle whitespace-nowrap">
+                            <div className="font-mono font-bold text-stone-900 text-xs dir-ltr text-right">
+                              {cust.phone}
+                            </div>
+                            <div className="text-[11px] text-stone-600 flex items-center gap-1 mt-1">
+                              <MapPin className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                              <span className="font-medium">{cust.city}</span>
+                            </div>
+                          </td>
+
+                          {/* Column 3: Type & Loyalty */}
+                          <td className="p-3.5 align-middle whitespace-nowrap">
+                            <div className="space-y-1">
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border inline-block ${
+                                  cust.type === 'partner_wholesale'
+                                    ? 'bg-[#FAF7F2] text-[#8C6D37] border-[#DDD5C0]'
+                                    : cust.type === 'online_shop'
+                                    ? 'bg-amber-50 text-amber-900 border-amber-200'
+                                    : cust.type === 'retail'
+                                    ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                                    : 'bg-stone-100 text-stone-800 border-stone-200'
+                                }`}
+                              >
+                                {cust.type === 'partner_wholesale'
+                                  ? 'عمده‌فروش همکار'
+                                  : cust.type === 'online_shop'
+                                  ? 'آنلاین‌شاپ / فروشگاه'
+                                  : cust.type === 'retail'
+                                  ? 'مشتری تکی'
+                                  : 'مغازه‌دار شهرستان'}
+                              </span>
+                              {loyalty.tier === 'partner_gold_vip' && (
+                                <div className="text-[10px] text-[#8C6D37] font-black flex items-center gap-1">
+                                  <Crown className="w-3 h-3 text-[#D4AF37]" />
+                                  <span>طلایی VIP (۴٪ تخفیف)</span>
+                                </div>
+                              )}
+                              {loyalty.tier === 'partner_silver' && (
+                                <div className="text-[10px] text-stone-600 font-bold flex items-center gap-1">
+                                  <Award className="w-3 h-3 text-stone-400" />
+                                  <span>نقره‌ای (۲٪ تخفیف)</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Column 4: Check Risk */}
+                          <td className="p-3.5 align-middle whitespace-nowrap">
+                            {checkStats.hasBouncedHistory ? (
+                              <span className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-900 border border-rose-200 px-2.5 py-1 rounded-lg font-bold text-[11px] shadow-2xs">
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                <span>سابقه {checkStats.bouncedCount} چک برگشتی</span>
+                              </span>
+                            ) : checkStats.isCleanHistory ? (
+                              <div>
+                                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-0.5 rounded-lg font-bold text-[11px] shadow-2xs">
+                                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <span>{checkStats.clearedCount} چک وصول به‌موقع</span>
+                                </span>
+                                <div className="text-[10px] text-stone-500 mt-1 font-mono">
+                                  امتیاز اعتبار: {cust.trustScore.toLocaleString('fa-IR')}/۱۰۰
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-stone-600 bg-stone-100 border border-stone-200 px-2.5 py-0.5 rounded-lg inline-block">
+                                بدون سابقه چک صیادی
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Column 5: Payment Terms */}
+                          <td className="p-3.5 align-middle whitespace-nowrap">
+                            {cust.paymentTerms === 'check_eligible' ? (
+                              <div>
+                                <span className="text-[11px] font-bold text-emerald-900 bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 shadow-2xs">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>مجاز به چک صیادی</span>
+                                </span>
+                                <div className="text-[10px] text-stone-500 mt-1">
+                                  سقف: {(cust.checkLimitToman / 1000000).toLocaleString('fa-IR')} میلیون تومان
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] font-bold text-stone-800 bg-[#FAF7F2] border border-[#DDD5C0] px-2.5 py-0.5 rounded-lg inline-block">
+                                فقط نقدی / کارتخوان
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Column 6: Total Purchases */}
+                          <td className="p-3.5 align-middle whitespace-nowrap">
+                            <div className="text-sm font-black text-stone-950 font-sans tracking-tight">
+                              {cust.totalPurchasesToman.toLocaleString('fa-IR')}{' '}
+                              <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
+                            </div>
+                            <span className="text-[10px] text-stone-500 font-mono block mt-0.5">
+                              {cust.orderCount.toLocaleString('fa-IR')} فاکتور صادر شده
+                            </span>
+                          </td>
+
+                          {/* Column 7: Referral Count */}
+                          <td className="p-3.5 align-middle whitespace-nowrap">
+                            <button
+                              onClick={() => {
+                                setReferringCustomer(cust);
+                                setIsReferralModalOpen(true);
+                              }}
+                              className="text-xs bg-[#FAF7F2] hover:bg-[#E6DEC8] border border-[#DDD5C0] text-stone-800 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                              title="ثبت معرفی همکار جدید توسط این مشتری"
+                            >
+                              <Gift className="w-3.5 h-3.5 text-[#8C6D37]" />
+                              <span>{(cust.referralCount || 0).toLocaleString('fa-IR')} معرف</span>
+                            </button>
+                          </td>
+
+                          {/* Column 8: Actions */}
+                          <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleOpenFollowUpMessage(cust)}
+                                className="p-2 bg-[#FAF7F2] text-[#8C6D37] hover:bg-[#EDE5D3] rounded-xl transition-all border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                                title="ارسال پیام آماده کاتالوگ یا پیگیری"
+                              >
+                                <MessageSquare className="w-4 h-4 text-[#8C6D37]" />
+                              </button>
+                              <button
+                                onClick={() => setSelectedCustomer(cust)}
+                                className="p-2 bg-[#FAF7F2] text-stone-700 hover:text-stone-900 hover:bg-[#EDE5D3] rounded-xl transition-all border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                                title="مشاهده پرونده کامل مشتری"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
+
+            {/* Bottom Summary Strip */}
+            {(() => {
+              const totalPurchasesSum = filteredCustomers.reduce((s, c) => s + c.totalPurchasesToman, 0);
+              const totalOrdersSum = filteredCustomers.reduce((s, c) => s + c.orderCount, 0);
+
+              return (
+                <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-bold text-stone-800">
+                      نمایش {filteredCustomers.length.toLocaleString('fa-IR')} از {customers.length.toLocaleString('fa-IR')} همکار و مخاطب
+                    </span>
+                    <span className="text-stone-300 hidden sm:inline">|</span>
+                    <span>
+                      تعداد کل فاکتورها: <strong className="text-stone-900 font-mono">{totalOrdersSum.toLocaleString('fa-IR')}</strong> فقره
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-stone-500 font-medium">مجموع گردش کل مشتریان این نما:</span>
+                    <span className="text-sm font-black text-stone-950 font-sans bg-white px-3 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                      {totalPurchasesSum.toLocaleString('fa-IR')} <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
         </div>
       )}
@@ -738,103 +1013,270 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
             </div>
           </div>
 
-          {/* Wholesale Partners Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {wholesaleCustomers.map((cust) => {
-              const loyalty = getCustomerLoyaltyTier(cust);
-              const checkStats = getCustomerCheckStats(cust.id);
-
-              return (
-                <div 
-                  key={cust.id} 
-                  className={`bg-white rounded-2xl border p-5 shadow-xs flex flex-col justify-between space-y-4 ${
-                    loyalty.tier === 'partner_gold_vip' ? 'border-[#D4AF37] ring-1 ring-[#D4AF37]/30' : 'border-[#E6DEC8]'
-                  }`}
-                >
-                  <div>
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-black text-sm text-[#18181B]">{cust.name}</h4>
-                        <span className="text-xs text-stone-500">{cust.storeName} • {cust.city}</span>
-                      </div>
-
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 ${
-                        loyalty.tier === 'partner_gold_vip' ? 'bg-[#D4AF37] text-stone-950' :
-                        loyalty.tier === 'partner_silver' ? 'bg-stone-200 text-stone-800' : 'bg-stone-100 text-stone-600'
-                      }`}>
-                        {loyalty.tier === 'partner_gold_vip' && <Crown className="w-3 h-3" />}
-                        <span>{loyalty.label}</span>
-                      </span>
-                    </div>
-
-                    {/* Progress Bar towards Next Tier */}
-                    <div className="mt-3.5 space-y-1">
-                      <div className="flex justify-between text-[11px] text-stone-600">
-                        <span>پیشرفت سطح وفاداری:</span>
-                        <strong className="text-stone-900">{loyalty.progressPct}٪</strong>
-                      </div>
-                      <div className="w-full bg-stone-100 rounded-full h-2 overflow-hidden border border-stone-200">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            loyalty.tier === 'partner_gold_vip' ? 'bg-[#D4AF37]' : 'bg-[#18181B]'
-                          }`}
-                          style={{ width: `${loyalty.progressPct}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] text-stone-400">
-                        <span>خرید کل: {cust.totalPurchasesToman.toLocaleString('fa-IR')} ت</span>
-                        <span>هدف: {loyalty.nextTierThresholdToman.toLocaleString('fa-IR')} ت</span>
-                      </div>
-                    </div>
-
-                    {/* Partner Details */}
-                    <div className="mt-3 bg-[#FAF7F2] p-3 rounded-xl border border-[#DDD5C0] text-xs space-y-1.5">
-                      <div className="flex justify-between">
-                        <span className="text-stone-600">مزیت تخفیف فعال:</span>
-                        <strong className="text-emerald-800 font-black">
-                          {loyalty.discountPct > 0 ? `${loyalty.discountPct}٪ تخفیف روی فاکتور` : 'قیمت پایه عمده'}
-                        </strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-stone-600">سابقه صیادی:</span>
-                        <span className="font-bold text-stone-800">
-                          {checkStats.hasBouncedHistory ? '⚠️ دارای برگشتی' : checkStats.clearedCount > 0 ? `✅ ${checkStats.clearedCount} چک پاس‌شده` : 'فاقد چک'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-stone-600">معرفی همکار جدید:</span>
-                        <span className="font-black text-[#8C6D37]">
-                          {cust.referralCount || 0} نفر بنکدار
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-[#E6DEC8]">
-                    <button
-                      onClick={() => {
-                        setReferringCustomer(cust);
-                        setIsReferralModalOpen(true);
-                      }}
-                      className="flex-1 text-xs bg-[#FAF7F2] hover:bg-[#E6DEC8] text-[#18181B] font-bold py-2 rounded-xl border border-[#DDD5C0] transition-colors flex items-center justify-center gap-1"
-                    >
-                      <UserPlus className="w-3.5 h-3.5 text-[#8C6D37]" />
-                      <span>+ ثبت معرفی جدید</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleOpenFollowUpMessage(cust)}
-                      className="p-2 text-[#18181B] hover:bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl transition-colors"
-                      title="ارسال پیام اختصاصی"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </button>
-                  </div>
+          {/* Wholesale Partners Master Table */}
+          <div className={`transition-all duration-200 ${
+            isTableFullscreen
+              ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+              : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+          }`}>
+            {/* Fullscreen Notice Banner */}
+            {isTableFullscreen && (
+              <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه جدول باشگاه وفاداری فعال است</span>
+                  <span className="text-stone-400 hidden sm:inline">| برای خروج کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
                 </div>
-              );
-            })}
+                <button
+                  onClick={() => setIsTableFullscreen(false)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>خروج از تمام‌صفحه</span>
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                  <Crown className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                    <span>جدول کاردکس همکاران عمده، رتبه‌بندی وفاداری و پاداش پارت</span>
+                    <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full font-mono">
+                      {wholesaleCustomers.length.toLocaleString('fa-IR')} همکار فعال
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    تخفیف‌های پلکانی ۲٪ و ۴٪ پارت، اولویت حواله باربری، سقف چک صیادی و ثبت معرف‌های جدید
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                {/* Fullscreen Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                    isTableFullscreen
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
+                      : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'
+                  }`}
+                  title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (Esc)' : 'بزرگنمایی جدول به تمام‌صفحه'}
+                >
+                  {isTableFullscreen ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>کوچک‌نمایی</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                      <span>تمام‌صفحه</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Master Table of Wholesale Loyalty Partners */}
+            <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
+                  <tr>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>همکار و نام فروشگاه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>شهر و استان</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>سطح باشگاه و نشان</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>گردش خرید ۱۲ ماهه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Award className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>پیشرفت تا سطح بعد</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>تخفیف روی فاکتور</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>وضعیت چک صیادی</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                      <span>ثبت معرف / پیام</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EFE9DC]">
+                  {wholesaleCustomers.map((cust) => {
+                    const loyalty = getCustomerLoyaltyTier(cust);
+                    const checkStats = getCustomerCheckStats(cust.id);
+
+                    return (
+                      <tr
+                        key={cust.id}
+                        className={`hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80 ${
+                          loyalty.tier === 'partner_gold_vip' ? 'border-r-4 border-r-[#D4AF37]' : ''
+                        }`}
+                      >
+                        {/* Column 1: Partner & Store */}
+                        <td className="p-3.5 align-middle">
+                          <strong className="font-extrabold text-stone-900 block text-xs sm:text-sm">
+                            {cust.name}
+                          </strong>
+                          <span className="text-[11px] text-stone-500 block mt-0.5">
+                            {cust.storeName}
+                          </span>
+                        </td>
+
+                        {/* Column 2: City */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-stone-900 font-bold text-xs">
+                            <MapPin className="w-3.5 h-3.5 text-[#8C6D37] shrink-0" />
+                            <span>{cust.city}</span>
+                          </div>
+                        </td>
+
+                        {/* Column 3: Tier Badge */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex items-center gap-1 border shadow-2xs ${
+                            loyalty.tier === 'partner_gold_vip' ? 'bg-[#D4AF37] text-stone-950 border-[#D4AF37]' :
+                            loyalty.tier === 'partner_silver' ? 'bg-stone-200 text-stone-800 border-stone-300' :
+                            'bg-[#FAF7F2] text-[#8C6D37] border-[#DDD5C0]'
+                          }`}>
+                            {loyalty.tier === 'partner_gold_vip' && <Crown className="w-3.5 h-3.5" />}
+                            <span>{loyalty.label}</span>
+                          </span>
+                        </td>
+
+                        {/* Column 4: Purchases */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-sm font-black text-emerald-950 font-sans">
+                            {cust.totalPurchasesToman.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-emerald-700">تومان</span>
+                          </div>
+                        </td>
+
+                        {/* Column 5: Progress Bar */}
+                        <td className="p-3.5 align-middle min-w-[140px]">
+                          <div className="flex justify-between text-[10px] text-stone-500 mb-1">
+                            <span>پیشرفت: {loyalty.progressPct}٪</span>
+                            <span>هدف: {loyalty.nextTierThresholdToman.toLocaleString('fa-IR')} ت</span>
+                          </div>
+                          <div className="w-full bg-stone-100 rounded-full h-2 overflow-hidden border border-stone-200">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                loyalty.tier === 'partner_gold_vip' ? 'bg-[#D4AF37]' : 'bg-stone-800'
+                              }`}
+                              style={{ width: `${loyalty.progressPct}%` }}
+                            />
+                          </div>
+                        </td>
+
+                        {/* Column 6: Discount */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className={`text-xs font-black px-2.5 py-1 rounded-lg border font-mono ${
+                            loyalty.discountPct > 0 
+                              ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                              : 'bg-stone-100 text-stone-700 border-stone-300'
+                          }`}>
+                            {loyalty.discountPct > 0 ? `${loyalty.discountPct}٪ تخفیف کل فاکتور` : 'قیمت پایه عمده'}
+                          </span>
+                        </td>
+
+                        {/* Column 7: Check stats */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border ${
+                            checkStats.hasBouncedHistory 
+                              ? 'bg-rose-50 text-rose-800 border-rose-200'
+                              : checkStats.clearedCount > 0 
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : 'bg-stone-100 text-stone-700 border-stone-200'
+                          }`}>
+                            {checkStats.hasBouncedHistory ? '⚠️ دارای چک برگشتی' : checkStats.clearedCount > 0 ? `✅ ${checkStats.clearedCount} چک پاس‌شده` : 'فاقد چک'}
+                          </span>
+                        </td>
+
+                        {/* Column 8: Actions */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setReferringCustomer(cust);
+                                setIsReferralModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 bg-[#FAF7F2] text-[#8C6D37] hover:bg-[#E6DEC8] rounded-xl transition-all border border-[#DDD5C0] font-bold text-xs cursor-pointer shadow-2xs flex items-center gap-1"
+                              title="ثبت معرفی همکار جدید توسط این مشتری"
+                            >
+                              <UserPlus className="w-3.5 h-3.5 text-[#8C6D37]" />
+                              <span>+ معرفی ({cust.referralCount || 0})</span>
+                            </button>
+                            <button
+                              onClick={() => handleOpenFollowUpMessage(cust)}
+                              className="p-1.5 text-stone-700 hover:text-stone-900 hover:bg-[#E6DEC8] rounded-xl transition-all border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                              title="ارسال پیام اختصاصی"
+                            >
+                              <MessageSquare className="w-4 h-4 text-[#8C6D37]" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Bottom Summary Strip */}
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-stone-800">
+                  تعداد کل اعضای باشگاه همکاران: {wholesaleCustomers.length.toLocaleString('fa-IR')} بنکدار
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  طلایی VIP: <strong className="text-amber-800 font-mono">{goldVipCount.toLocaleString('fa-IR')}</strong> همکار
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  نقره‌ای: <strong className="text-stone-900 font-mono">{silverCount.toLocaleString('fa-IR')}</strong> همکار
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-stone-500 font-medium">سیاست قیمت‌گذاری:</span>
+                <span className="font-bold text-stone-900 bg-white px-2.5 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                  اعمال خودکار تخفیف پارت در صدور فاکتور
+                </span>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -852,53 +1294,190 @@ export const CustomerCRMModule: React.FC<CustomerCRMModuleProps> = ({
                 سیستم یادآوری پیگیری خودکار مشتریان غیرفعال
               </h3>
               <p className="text-xs text-stone-600 leading-relaxed mt-1">
-                مشتریانی که بیش از ۲۵ روز است سفارش جدیدی ثبت نکرده‌اند یا بدهی دارند در این لیست قرار می‌گیرند. با ۱ کلیک پیام کاتالوگ تابستانه را در واتساپ، تلگرام یا پیامک ارسال کنید.
+                مشتریانی که بیش از ۲۵ روز است سفارش جدیدی ثبت نکرده‌اند یا بدهی دارند در این کاردکس قرار می‌گیرند. با ۱ کلیک پیام کاتالوگ تابستانه را در واتساپ، تلگرام یا پیامک ارسال کنید.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {inactiveQueue.map((cust) => (
-              <div key={cust.id} className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-black text-sm text-[#18181B]">{cust.name}</h4>
-                      <p className="text-xs text-stone-500">{cust.storeName} • شهر {cust.city}</p>
-                    </div>
-                    <span className="bg-rose-50 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-rose-200">
-                      نیازمند پیگیری
-                    </span>
-                  </div>
-
-                  <div className="mt-3 p-3.5 bg-[#FAF7F2] rounded-xl text-xs text-stone-700 border border-[#DDD5C0]">
-                    <span className="font-bold text-[#18181B] block mb-1">علت پیگیری:</span>
-                    <p className="text-stone-600 leading-relaxed">{cust.followUpReason}</p>
-                  </div>
-
-                  <div className="mt-2 flex items-center justify-between text-xs text-stone-500 pt-2 border-t border-[#E6DEC8]">
-                    <span>آخرین سفارش: {cust.lastOrderDate}</span>
-                    <span>موبایل: {cust.phone}</span>
-                  </div>
+          {/* Master Table of Inactive Customers Follow-up */}
+          <div className="bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                  <Clock className="w-5 h-5 text-[#D4AF37]" />
                 </div>
-
-                <div className="flex items-center gap-2 pt-2">
-                  <button
-                    onClick={() => handleOpenFollowUpMessage(cust)}
-                    className="flex-1 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs border border-[#3F3F46]"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>تولید و ارسال پیام آماده</span>
-                  </button>
-                  <button
-                    onClick={() => setSelectedCustomer(cust)}
-                    className="bg-[#FAF7F2] hover:bg-[#E6DEC8] text-stone-800 text-xs px-3.5 py-2.5 rounded-xl font-bold border border-[#DDD5C0]"
-                  >
-                    پرونده
-                  </button>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                    <span>کاردکس صف پیگیری مشتریان و طرف‌حساب‌های غیرفعال</span>
+                    <span className="text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full font-mono">
+                      {inactiveQueue.length.toLocaleString('fa-IR')} مخاطب نیازمند تماس
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    ارسال آنی پیام با متن آماده بازاریابی و کاتالوگ جدید جهت فعال‌سازی مجدد حساب
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
+                  <tr>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>نام مشتری و فروشگاه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>شهر و استان</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>شماره تماس</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>علت پیگیری و تاخیر</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>آخرین سفارش ثبت‌شده</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>وضعیت پیگیری</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                      <span>اقدامات سریع</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EFE9DC]">
+                  {inactiveQueue.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                          <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-emerald-600 mb-3 shadow-2xs">
+                            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                          </div>
+                          <h4 className="text-sm font-extrabold text-stone-900">هیچ مشتری نیازمند پیگیری وجود ندارد</h4>
+                          <p className="text-xs text-stone-500 mt-1">
+                            تمامی همکاران در چرخه سفارش‌گذاری منظم قرار دارند.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    inactiveQueue.map((cust) => (
+                      <tr
+                        key={cust.id}
+                        className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                      >
+                        {/* Column 1: Customer & Store */}
+                        <td className="p-3.5 align-middle">
+                          <strong className="font-extrabold text-stone-900 block text-xs sm:text-sm">
+                            {cust.name}
+                          </strong>
+                          <span className="text-[11px] text-stone-500 block mt-0.5">
+                            {cust.storeName}
+                          </span>
+                        </td>
+
+                        {/* Column 2: City */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-stone-900 font-bold text-xs">
+                            <MapPin className="w-3.5 h-3.5 text-[#8C6D37] shrink-0" />
+                            <span>{cust.city}</span>
+                          </div>
+                        </td>
+
+                        {/* Column 3: Phone */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="font-mono font-bold text-stone-800 text-xs dir-ltr text-right block">
+                            {cust.phone}
+                          </span>
+                        </td>
+
+                        {/* Column 4: Reason */}
+                        <td className="p-3.5 align-middle max-w-[240px]">
+                          <span className="text-xs text-stone-800 block line-clamp-2">
+                            {cust.followUpReason}
+                          </span>
+                        </td>
+
+                        {/* Column 5: Last Order Date */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="font-mono text-xs text-stone-600">
+                            {cust.lastOrderDate}
+                          </span>
+                        </td>
+
+                        {/* Column 6: Status */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="bg-rose-50 text-rose-800 border border-rose-200 text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
+                            <span>نیازمند پیگیری فوری</span>
+                          </span>
+                        </td>
+
+                        {/* Column 7: Actions */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleOpenFollowUpMessage(cust)}
+                              className="px-3 py-1.5 bg-gradient-to-r from-stone-900 to-[#18181B] hover:from-black hover:to-stone-900 text-[#FAF7F2] rounded-xl transition-all flex items-center gap-1.5 border border-[#D4AF37]/60 hover:border-[#D4AF37] font-bold text-xs cursor-pointer shadow-xs active:scale-95"
+                              title="تولید و ارسال پیام آماده"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-[#D4AF37]" />
+                              <span>ارسال پیام آماده</span>
+                            </button>
+                            <button
+                              onClick={() => setSelectedCustomer(cust)}
+                              className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-[#E6DEC8] text-stone-800 text-xs rounded-xl font-bold border border-[#DDD5C0] transition-colors cursor-pointer"
+                            >
+                              پرونده
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Bottom Summary Strip */}
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-stone-800">
+                  تعداد کل موارد صف پیگیری: {inactiveQueue.length.toLocaleString('fa-IR')} مخاطب
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  هدف: <strong className="text-stone-900">حفظ زنجیره خرید ماهانه بنکداران</strong>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-stone-500 font-medium">پایش هوشمند CRM:</span>
+                <span className="font-bold text-stone-900 bg-white px-2.5 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                  تشخیص تاخیر بیش از ۲۵ روز
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}

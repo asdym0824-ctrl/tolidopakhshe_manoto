@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   Receipt, 
@@ -19,9 +19,27 @@ import {
   Award,
   Sparkles,
   ShieldAlert,
-  X
+  X,
+  MapPin,
+  Calendar,
+  Store,
+  Building2,
+  Phone,
+  ArrowUpDown,
+  Filter,
+  Check,
+  Eye,
+  TrendingUp,
+  Tag,
+  Clock,
+  Layers,
+  Copy,
+  CheckCircle2,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Invoice, Customer, Product, InvoiceItem, PackSize, CheckItem } from '../types';
+import { InPersonInvoiceModal } from './admin/InPersonInvoiceModal';
 
 interface SalesInvoiceModuleProps {
   invoices: Invoice[];
@@ -29,6 +47,7 @@ interface SalesInvoiceModuleProps {
   products: Product[];
   checks?: CheckItem[];
   onAddInvoice: (invoice: Invoice) => void;
+  onAddCustomer?: (customer: Customer) => void;
   onUpdateInvoiceStatus: (invoiceId: string, status: any) => void;
   isNewInvoiceModalOpen: boolean;
   setIsNewInvoiceModalOpen: (open: boolean) => void;
@@ -40,12 +59,38 @@ export const SalesInvoiceModule: React.FC<SalesInvoiceModuleProps> = ({
   products = [],
   checks = [],
   onAddInvoice,
+  onAddCustomer,
   onUpdateInvoiceStatus,
   isNewInvoiceModalOpen,
   setIsNewInvoiceModalOpen,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvoiceForPrint, setSelectedInvoiceForPrint] = useState<Invoice | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_person' | 'cargo' | 'paid' | 'check'>('all');
+  const [sortBy, setSortBy] = useState<'date_desc' | 'amount_desc' | 'amount_asc' | 'packs_desc'>('date_desc');
+  const [copiedInvoiceNumber, setCopiedInvoiceNumber] = useState<string | null>(null);
+
+  // Fullscreen Table Mode
+  const [isTableFullscreen, setIsTableFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsTableFullscreen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isTableFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isTableFullscreen]);
 
   // New Invoice Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(customers[0]?.id || '');
@@ -153,12 +198,57 @@ export const SalesInvoiceModule: React.FC<SalesInvoiceModuleProps> = ({
     setSelectedInvoiceForPrint(newInvoice);
   };
 
-  const filteredInvoices = invoices.filter(inv => 
-    inv.customerName.includes(searchQuery) ||
-    inv.storeName.includes(searchQuery) ||
-    inv.invoiceNumber.includes(searchQuery) ||
-    inv.city.includes(searchQuery)
-  );
+  // Filter and sort invoices
+  const filteredInvoices = useMemo(() => {
+    return invoices
+      .filter((inv) => {
+        const query = searchQuery.trim().toLowerCase();
+        const matchesSearch =
+          !query ||
+          inv.customerName.toLowerCase().includes(query) ||
+          inv.storeName.toLowerCase().includes(query) ||
+          inv.invoiceNumber.toLowerCase().includes(query) ||
+          inv.city.toLowerCase().includes(query) ||
+          (inv.phone && inv.phone.includes(query)) ||
+          (inv.shippingMethod && inv.shippingMethod.toLowerCase().includes(query));
+
+        if (!matchesSearch) return false;
+
+        if (statusFilter === 'in_person') return !!inv.isOfficialInPerson;
+        if (statusFilter === 'cargo') return !inv.isOfficialInPerson;
+        if (statusFilter === 'paid') return inv.paymentType === 'cash' || inv.status === 'paid' || inv.status === 'delivered';
+        if (statusFilter === 'check') return inv.paymentType === 'check';
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'amount_desc') return b.finalAmountToman - a.finalAmountToman;
+        if (sortBy === 'amount_asc') return a.finalAmountToman - b.finalAmountToman;
+        if (sortBy === 'packs_desc') {
+          const packsA = a.items.reduce((s, i) => s + i.packCount, 0);
+          const packsB = b.items.reduce((s, i) => s + i.packCount, 0);
+          return packsB - packsA;
+        }
+        return 0; // default order
+      });
+  }, [invoices, searchQuery, statusFilter, sortBy]);
+
+  // Overall metric totals
+  const totalAmountAll = useMemo(() => filteredInvoices.reduce((s, inv) => s + inv.finalAmountToman, 0), [filteredInvoices]);
+  const totalGrossAll = useMemo(() => filteredInvoices.reduce((s, inv) => s + inv.subtotalToman, 0), [filteredInvoices]);
+  const totalDiscountAll = useMemo(() => filteredInvoices.reduce((s, inv) => s + (inv.discountToman || 0), 0), [filteredInvoices]);
+  const totalPacksAll = useMemo(() => filteredInvoices.reduce((s, inv) => s + inv.items.reduce((sum, item) => sum + item.packCount, 0), 0), [filteredInvoices]);
+  const totalUnitsAll = useMemo(() => filteredInvoices.reduce((s, inv) => s + inv.items.reduce((sum, item) => sum + (item.totalUnits || (item.packCount * (item.packSize || 6))), 0), 0), [filteredInvoices]);
+
+  const inPersonCount = invoices.filter(i => !!i.isOfficialInPerson).length;
+  const cargoCount = invoices.filter(i => !i.isOfficialInPerson).length;
+  const paidCount = invoices.filter(i => i.paymentType === 'cash' || i.status === 'paid' || i.status === 'delivered').length;
+  const checkCount = invoices.filter(i => i.paymentType === 'check').length;
+
+  const handleCopyInvoiceNumber = (invNum: string) => {
+    navigator.clipboard?.writeText(invNum);
+    setCopiedInvoiceNumber(invNum);
+    setTimeout(() => setCopiedInvoiceNumber(null), 2000);
+  };
 
   return (
     <div id="sales-invoice-module" className="space-y-5 animate-in fade-in duration-200">
@@ -182,558 +272,573 @@ export const SalesInvoiceModule: React.FC<SalesInvoiceModuleProps> = ({
         <button
           id="btn-open-new-invoice-modal"
           onClick={() => setIsNewInvoiceModalOpen(true)}
-          className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-[#3F3F46]"
+          className="bg-gradient-to-r from-[#18181B] via-stone-900 to-[#18181B] hover:from-stone-900 hover:to-black text-[#FAF7F2] font-black text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-md hover:shadow-lg border border-[#D4AF37]/50 hover:border-[#D4AF37] cursor-pointer group active:scale-98"
+          title="صدور فاکتور رسمی جدید برای خرید حضوری با ثبت مشخصات، اجناس و قیمت توافقی"
         >
-          <Plus className="w-4 h-4 text-[#D4AF37]" />
-          <span>+ صدور فاکتور جدید</span>
+          <div className="w-6 h-6 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] group-hover:scale-110 transition-transform">
+            <Plus className="w-4 h-4 text-[#D4AF37]" />
+          </div>
+          <span>+ صدور فاکتور جدید (خرید حضوری)</span>
         </button>
       </div>
 
-      {/* Invoice List & Search */}
-      <div className="bg-white p-4 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="relative w-full max-w-sm">
-            <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-stone-400" />
+      {/* Invoice List, Filters & Luxury Master Table */}
+      <div className={`transition-all duration-200 ${
+        isTableFullscreen
+          ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+          : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+      }`}>
+        
+        {/* Fullscreen Notice Banner */}
+        {isTableFullscreen && (
+          <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه دفتر فاکتورهای فروش فعال است</span>
+              <span className="text-stone-400 hidden sm:inline">| برای خروج می‌توانید کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
+            </div>
+            <button
+              onClick={() => setIsTableFullscreen(false)}
+              className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+            >
+              <Minimize2 className="w-3.5 h-3.5" />
+              <span>خروج از تمام‌صفحه</span>
+            </button>
+          </div>
+        )}
+        
+        {/* Module Header Inside Card */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+              <FileText className="w-5 h-5 text-[#D4AF37]" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                <span>دفتر ثبت و کاردکس فاکتورهای فروش عمده و حضوری</span>
+                <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full">
+                  {invoices.length.toLocaleString('fa-IR')} فاکتور کل
+                </span>
+              </h3>
+              <p className="text-xs text-stone-500 mt-0.5">
+                تفکیک فاکتورهای رسمی خرید حضوری در بازار بزرگ (سرای ملی) و سفارش‌های حواله باربری سراسری
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            <span className="text-xs text-stone-500 font-medium">مرتب‌سازی:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-[#FAF7F2] text-xs font-bold text-stone-800 border border-[#DDD5C0] rounded-xl px-2.5 py-1.5 outline-none focus:border-[#D4AF37] cursor-pointer"
+            >
+              <option value="date_desc">جدیدترین تاریخ صدور</option>
+              <option value="amount_desc">بیشترین مبلغ فاکتور</option>
+              <option value="amount_asc">کمترین مبلغ فاکتور</option>
+              <option value="packs_desc">بیشترین تیراژ پک‌ها</option>
+            </select>
+
+            {/* Fullscreen Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                isTableFullscreen
+                  ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
+                  : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'
+              }`}
+              title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (Esc)' : 'بزرگنمایی جدول به تمام‌صفحه'}
+            >
+              {isTableFullscreen ? (
+                <>
+                  <Minimize2 className="w-3.5 h-3.5 text-rose-600" />
+                  <span>کوچک‌نمایی</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                  <span>تمام‌صفحه</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Live Metrics Ribbon */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shrink-0 shadow-2xs">
+              <Receipt className="w-5 h-5 text-[#D4AF37]" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[11px] text-stone-500 block truncate">فاکتورهای منطبق</span>
+              <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                {filteredInvoices.length.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">فقره</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[11px] text-stone-500 block truncate">مجموع خالص فاکتورها</span>
+              <span className="text-sm sm:text-base font-black text-emerald-950 block truncate">
+                {totalAmountAll.toLocaleString('fa-IR')} <span className="text-xs font-bold text-emerald-700">تومان</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#8C6D37]/15 text-[#8C6D37] flex items-center justify-center shrink-0 shadow-2xs">
+              <Boxes className="w-5 h-5 text-[#8C6D37]" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[11px] text-stone-500 block truncate">تیراژ کل البسه</span>
+              <span className="text-sm sm:text-base font-black text-stone-900 block truncate">
+                {totalPacksAll.toLocaleString('fa-IR')} <span className="text-xs font-normal text-stone-600">پک</span>
+                <span className="text-[11px] text-stone-400 mr-1">({totalUnitsAll.toLocaleString('fa-IR')} عدد)</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+              <CreditCard className="w-5 h-5 text-amber-700" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[11px] text-stone-500 block truncate">وضعیت وصولی‌ها</span>
+              <span className="text-xs sm:text-sm font-bold text-stone-800 block truncate">
+                {paidCount.toLocaleString('fa-IR')} تسویه / {checkCount.toLocaleString('fa-IR')} چک
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Pills & Search Input */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 flex-wrap">
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto pb-1 sm:pb-0">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                statusFilter === 'all'
+                  ? 'bg-stone-900 text-[#FAF7F2] shadow-xs'
+                  : 'bg-[#FAF7F2] text-stone-600 hover:bg-[#EFE8D8] border border-[#DDD5C0]'
+              }`}
+            >
+              <span>همه فاکتورها</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                statusFilter === 'all' ? 'bg-[#D4AF37] text-stone-950 font-black' : 'bg-stone-200 text-stone-700'
+              }`}>
+                {invoices.length.toLocaleString('fa-IR')}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setStatusFilter('in_person')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                statusFilter === 'in_person'
+                  ? 'bg-amber-800 text-white shadow-xs'
+                  : 'bg-[#FAF7F2] text-amber-900 hover:bg-amber-100/70 border border-amber-200'
+              }`}
+            >
+              <Store className="w-3.5 h-3.5 text-amber-600" />
+              <span>خرید حضوری سرای ملی</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                statusFilter === 'in_person' ? 'bg-amber-200 text-amber-950 font-black' : 'bg-amber-100 text-amber-800'
+              }`}>
+                {inPersonCount.toLocaleString('fa-IR')}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setStatusFilter('cargo')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                statusFilter === 'cargo'
+                  ? 'bg-sky-800 text-white shadow-xs'
+                  : 'bg-[#FAF7F2] text-stone-700 hover:bg-sky-50 border border-stone-200'
+              }`}
+            >
+              <Truck className="w-3.5 h-3.5 text-sky-600" />
+              <span>ارسال باربری سراسری</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                statusFilter === 'cargo' ? 'bg-sky-200 text-sky-950 font-black' : 'bg-stone-200 text-stone-700'
+              }`}>
+                {cargoCount.toLocaleString('fa-IR')}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setStatusFilter('paid')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                statusFilter === 'paid'
+                  ? 'bg-emerald-800 text-white shadow-xs'
+                  : 'bg-[#FAF7F2] text-emerald-800 hover:bg-emerald-50 border border-emerald-200'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>تسویه‌شده / نقد</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                statusFilter === 'paid' ? 'bg-emerald-200 text-emerald-950 font-black' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {paidCount.toLocaleString('fa-IR')}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setStatusFilter('check')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                statusFilter === 'check'
+                  ? 'bg-amber-900 text-white shadow-xs'
+                  : 'bg-[#FAF7F2] text-stone-700 hover:bg-amber-50 border border-[#DDD5C0]'
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5 text-amber-700" />
+              <span>چک صیادی</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                statusFilter === 'check' ? 'bg-amber-300 text-stone-950 font-black' : 'bg-stone-200 text-stone-700'
+              }`}>
+                {checkCount.toLocaleString('fa-IR')}
+              </span>
+            </button>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative w-full md:w-80">
+            <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجوی شماره فاکتور، نام خریدار، فروشگاه یا شهر..."
-              className="w-full bg-[#FAF7F2] text-xs pr-9 pl-3 py-2 rounded-xl border border-[#DDD5C0] text-stone-900 outline-none focus:bg-white focus:border-[#D4AF37]"
+              placeholder="جستجوی فاکتور، خریدار، فروشگاه، شهر..."
+              className="w-full bg-[#FAF7F2] text-xs pr-10 pl-8 py-2.5 rounded-xl border border-[#DDD5C0] text-stone-900 outline-none focus:bg-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5"
+                title="پاک کردن جستجو"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-
-          <span className="text-xs text-[#8C6D37] font-bold">
-            نمایش {filteredInvoices.length} فاکتور صادر شده
-          </span>
         </div>
 
-        {/* Invoices Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs">
-            <thead className="bg-[#FAF7F2] text-stone-700 border-b border-[#E6DEC8] font-bold">
+        {/* Master Table */}
+        <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+          <table className="w-full text-right text-xs border-collapse">
+            <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
               <tr>
-                <th className="p-3">شماره و تاریخ</th>
-                <th className="p-3">نام خریدار و فروشگاه</th>
-                <th className="p-3">شهر و باربری</th>
-                <th className="p-3">تعداد پک (عدد کل)</th>
-                <th className="p-3">مبلغ کل فاکتور</th>
-                <th className="p-3">شیوه پرداخت</th>
-                <th className="p-3">وضعیت</th>
-                <th className="p-3 text-center">چاپ / فاکتور</th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <Receipt className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>شماره و تاریخ صدور</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>خریدار و نام فروشگاه</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>مقصد و شیوه تحویل</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <Boxes className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>حجم سفارش (پک / تیراژ)</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>مبلغ کل فاکتور</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>شیوه تسویه</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>وضعیت سفارش</span>
+                  </div>
+                </th>
+                <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Printer className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>چاپ و تحویل</span>
+                  </div>
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#FAF7F2]">
-              {filteredInvoices.map((inv) => (
-                <tr key={inv.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                  <td className="p-3">
-                    <span className="font-mono font-bold text-[#18181B] block">{inv.invoiceNumber}</span>
-                    <span className="text-[10px] text-stone-400">{inv.date}</span>
-                  </td>
-                  <td className="p-3">
-                    <span className="font-bold text-[#18181B] block">{inv.customerName}</span>
-                    <span className="text-[11px] text-stone-500">{inv.storeName}</span>
-                  </td>
-                  <td className="p-3">
-                    <span className="text-stone-800 block">{inv.city}</span>
-                    <span className="text-[10px] text-stone-500">{inv.shippingMethod}</span>
-                  </td>
-                  <td className="p-3">
-                    <span className="font-bold text-[#18181B]">
-                      {inv.items.reduce((s, i) => s + i.packCount, 0)} پک
-                    </span>
-                    <span className="text-[10px] text-stone-400 mr-1">
-                      ({inv.items.reduce((s, i) => s + i.totalUnits, 0)} عدد)
-                    </span>
-                  </td>
-                  <td className="p-3 font-black text-[#18181B]">
-                    {inv.finalAmountToman.toLocaleString('fa-IR')} ت
-                  </td>
-                  <td className="p-3">
-                    {inv.paymentType === 'cash' ? (
-                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded text-[11px]">
-                        نقدی / واریزی
-                      </span>
-                    ) : (
-                      <span className="bg-amber-50 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded text-[11px]">
-                        چک صیادی
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      inv.status === 'shipped' ? 'bg-emerald-100 text-emerald-800' :
-                      inv.status === 'processing' ? 'bg-amber-100 text-amber-800' : 'bg-stone-100 text-stone-800'
-                    }`}>
-                      {inv.status === 'shipped' ? 'تحویل باربری شد' :
-                       inv.status === 'processing' ? 'در حال بسته‌بندی' : 'در انتظار تایید چک'}
-                    </span>
-                  </td>
-                  <td className="p-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
+            <tbody className="divide-y divide-[#EFE9DC]">
+              {filteredInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 px-4 text-center">
+                    <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                      <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
+                        <Search className="w-6 h-6 text-stone-400" />
+                      </div>
+                      <h4 className="text-sm font-extrabold text-stone-900">هیچ فاکتوری یافت نشد</h4>
+                      <p className="text-xs text-stone-500 mt-1">
+                        با فیلتر انتخابی یا عبارت جستجوی «{searchQuery}» موردی در سیستم ثبت نشده است.
+                      </p>
                       <button
-                        onClick={() => setSelectedInvoiceForPrint(inv)}
-                        className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-[#FAF7F2] rounded-lg transition-colors flex items-center gap-1 border border-transparent hover:border-[#DDD5C0]"
-                        title="مشاهده فاکتور سنتی بازاری"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setStatusFilter('all');
+                        }}
+                        className="mt-3.5 px-4 py-1.5 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-900 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                       >
-                        <Printer className="w-4 h-4 text-[#8C6D37]" />
-                        <span className="text-[11px] font-bold">فاکتور</span>
+                        پاک کردن فیلترها و مشاهده همه
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredInvoices.map((inv, idx) => {
+                  const totalPacks = inv.items.reduce((s, i) => s + i.packCount, 0);
+                  const totalUnits = inv.items.reduce((s, i) => s + (i.totalUnits || (i.packCount * (i.packSize || 6))), 0);
+                  const hasNegotiated = inv.items.some(i => i.isNegotiatedPrice);
+
+                  return (
+                    <tr
+                      key={inv.id}
+                      className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                    >
+                      {/* Column 1: Number & Date */}
+                      <td className="p-3.5 align-middle">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleCopyInvoiceNumber(inv.invoiceNumber)}
+                            className="bg-[#18181B] text-[#D4AF37] px-2.5 py-1 rounded-lg font-mono font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs hover:bg-stone-900 transition-colors cursor-pointer group/btn"
+                            title="کلیک برای کپی شماره فاکتور"
+                          >
+                            <span>#{inv.invoiceNumber}</span>
+                            {copiedInvoiceNumber === inv.invoiceNumber ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3 opacity-60 group-hover/btn:opacity-100 transition-opacity" />
+                            )}
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1 text-[11px] text-stone-500 font-mono">
+                          <Calendar className="w-3 h-3 text-stone-400" />
+                          <span>{inv.date}</span>
+                        </div>
+                        {inv.isOfficialInPerson ? (
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold bg-amber-100/90 text-amber-950 px-2 py-0.5 rounded-md border border-amber-300/80 shadow-2xs">
+                            <Store className="w-3 h-3 text-amber-700" />
+                            <span>خرید حضوری سرای ملی</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md border border-stone-200">
+                            <Truck className="w-3 h-3 text-stone-500" />
+                            <span>ارسال باربری سراسری</span>
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 2: Customer & Store */}
+                      <td className="p-3.5 align-middle">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8C6D37] to-[#D4AF37] text-white font-extrabold flex items-center justify-center text-xs shadow-2xs shrink-0">
+                            {inv.customerName ? inv.customerName.charAt(0) : 'م'}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-extrabold text-stone-900 block text-xs sm:text-sm truncate">
+                              {inv.customerName}
+                            </span>
+                            <div className="flex items-center gap-1 text-[11px] text-stone-600 mt-0.5 truncate">
+                              <Building2 className="w-3 h-3 text-stone-400 shrink-0" />
+                              <span className="truncate">{inv.storeName || 'مشتری آزاد / همکار'}</span>
+                            </div>
+                            {inv.phone && (
+                              <div className="flex items-center gap-1 text-[10px] text-stone-400 font-mono mt-0.5">
+                                <Phone className="w-2.5 h-2.5 text-stone-400" />
+                                <span>{inv.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Column 3: Destination & Shipping */}
+                      <td className="p-3.5 align-middle">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-stone-900 bg-stone-100/90 px-2 py-0.5 rounded-lg border border-stone-200">
+                          <MapPin className="w-3 h-3 text-stone-600" />
+                          <span>{inv.city}</span>
+                        </span>
+                        <div className="text-[11px] text-stone-600 mt-1 max-w-[180px] line-clamp-1" title={inv.shippingMethod}>
+                          {inv.shippingMethod}
+                        </div>
+                        {inv.trackingCode && (
+                          <span className="text-[10px] text-stone-400 font-mono block mt-0.5">
+                            کد رهگیری: {inv.trackingCode}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 4: Volume & Units */}
+                      <td className="p-3.5 align-middle">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-black text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-300 text-xs">
+                            {totalPacks.toLocaleString('fa-IR')} پک
+                          </span>
+                          <span className="text-[11px] text-stone-600 font-medium">
+                            ({totalUnits.toLocaleString('fa-IR')} عدد)
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-stone-500 mt-1 flex items-center gap-1">
+                          <span>{inv.items.length.toLocaleString('fa-IR')} مدل پوشاک</span>
+                          {hasNegotiated && (
+                            <span className="text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-300 px-1 py-0.2 rounded">
+                              قیمت توافقی ✓
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Column 5: Total Amount */}
+                      <td className="p-3.5 align-middle whitespace-nowrap">
+                        <div className="text-sm font-black text-stone-950 font-sans tracking-tight">
+                          {inv.finalAmountToman.toLocaleString('fa-IR')}{' '}
+                          <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
+                        </div>
+                        {inv.discountToman > 0 && (
+                          <div className="text-[10px] text-emerald-700 font-medium mt-0.5">
+                            تخفیف: {inv.discountToman.toLocaleString('fa-IR')} تومان
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Column 6: Payment Method */}
+                      <td className="p-3.5 align-middle">
+                        {inv.paymentType === 'cash' ? (
+                          <span className="bg-emerald-50 text-emerald-900 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] inline-flex items-center gap-1.5 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                            <span>نقدی / کارتخوان دفتر</span>
+                          </span>
+                        ) : inv.paymentType === 'split' ? (
+                          <span className="bg-teal-50 text-teal-900 border border-teal-300 font-bold px-2 py-1 rounded-lg text-[11px] inline-flex items-center gap-1.5 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-600"></span>
+                            <span>کارت به کارت شتابی</span>
+                          </span>
+                        ) : (
+                          <div className="space-y-0.5">
+                            <span className="bg-amber-50 text-amber-900 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] inline-flex items-center gap-1.5 shadow-2xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                              <span>چک صیادی بنفش</span>
+                            </span>
+                            {inv.checkDetails && (
+                              <span className="text-[10px] text-stone-500 block truncate max-w-[130px]">
+                                {inv.checkDetails}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Column 7: Status */}
+                      <td className="p-3.5 align-middle">
+                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5 border shadow-2xs ${
+                          inv.status === 'shipped' || inv.status === 'delivered'
+                            ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                            : inv.status === 'processing' || inv.status === 'paid'
+                            ? 'bg-amber-50 text-amber-900 border-amber-200'
+                            : 'bg-stone-100 text-stone-800 border-stone-200'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            inv.status === 'shipped' || inv.status === 'delivered' ? 'bg-emerald-600 animate-pulse' :
+                            inv.status === 'processing' || inv.status === 'paid' ? 'bg-amber-600' : 'bg-stone-500'
+                          }`}></span>
+                          <span>
+                            {inv.status === 'shipped' || inv.status === 'delivered'
+                              ? 'تحویل شد'
+                              : inv.status === 'processing'
+                              ? 'در حال بسته‌بندی'
+                              : inv.status === 'paid'
+                              ? 'تسویه و تحویل شد'
+                              : 'در انتظار تایید چک'}
+                          </span>
+                        </span>
+                      </td>
+
+                      {/* Column 8: Actions */}
+                      <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => setSelectedInvoiceForPrint(inv)}
+                            className="px-3 py-1.5 bg-gradient-to-r from-stone-900 to-[#18181B] hover:from-black hover:to-stone-900 text-[#FAF7F2] rounded-xl transition-all flex items-center gap-1.5 border border-[#D4AF37]/60 hover:border-[#D4AF37] font-bold text-xs cursor-pointer shadow-xs hover:shadow-md group/btn active:scale-95"
+                            title="مشاهده، چاپ رسمی و دریافت فایل چاپی فاکتور"
+                          >
+                            <Printer className="w-3.5 h-3.5 text-[#D4AF37] group-hover/btn:scale-110 transition-transform" />
+                            <span>چاپ فاکتور رسمی</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Table Bottom Summary Strip */}
+        <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-bold text-stone-800">
+              نمایش {filteredInvoices.length.toLocaleString('fa-IR')} از {invoices.length.toLocaleString('fa-IR')} فاکتور صادر شده
+            </span>
+            <span className="text-stone-300 hidden sm:inline">|</span>
+            <span>
+              مجموع ناخالص: <strong className="text-stone-900 font-mono">{totalGrossAll.toLocaleString('fa-IR')}</strong> تومان
+            </span>
+            <span className="text-stone-300 hidden sm:inline">|</span>
+            <span>
+              تخفیف همکاری: <strong className="text-emerald-800 font-mono">{totalDiscountAll.toLocaleString('fa-IR')}</strong> تومان
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-stone-500 font-medium">مجموع کل قابل دریافت:</span>
+            <span className="text-sm font-black text-stone-950 font-sans bg-white px-3 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+              {totalAmountAll.toLocaleString('fa-IR')} <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
+            </span>
+          </div>
+        </div>
+
       </div>
 
       {/* ------------------------------------------------------------------- */}
-      {/* MODAL 1: Create New Invoice (with Check Risk & Loyalty Incentives)  */}
+      {/* IN-PERSON FORMAL COMMERCIAL INVOICE MODAL & PRINT SHEET             */}
       {/* ------------------------------------------------------------------- */}
-      {isNewInvoiceModalOpen && typeof document !== 'undefined' && createPortal(
-        <div 
-          id="modal-new-invoice-overlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsNewInvoiceModalOpen(false);
-          }}
-          className="fixed inset-0 z-[9999] bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
-          dir="rtl"
-        >
-          <div 
-            id="modal-new-invoice-card"
-            className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-[#E6DEC8] my-auto max-h-[90vh] flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-200"
-          >
-            {/* Top decorative accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37]" />
-
-            {/* Modal Fixed Header */}
-            <div className="flex items-center justify-between p-5 sm:p-6 pb-4 border-b border-[#E6DEC8] shrink-0 bg-white pt-5">
-              <div className="flex items-center gap-3">
-                <span className="p-2.5 bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] rounded-2xl shadow-2xs">
-                  <Receipt className="w-5 h-5" />
-                </span>
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-[#18181B]">صدور فاکتور عمده جدید</h3>
-                  <p className="text-xs text-stone-500 mt-0.5">انتخاب مشتری، محاسبه خودکار تخفیف پارت و استعلام اعتبار صیادی</p>
-                </div>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsNewInvoiceModalOpen(false)} 
-                className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-2 rounded-xl transition-colors cursor-pointer"
-                title="بستن پنجره"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Form */}
-            <form onSubmit={handleCreateInvoice} className="flex-1 flex flex-col min-h-0 text-xs">
-              
-              {/* Scrollable Content Body */}
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
-                
-                {/* Customer Selector & Tier Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#DDD5C0]">
-                  <div>
-                    <label className="block font-bold text-stone-800 mb-1">انتخاب مشتری و خریدار:</label>
-                    <select
-                      value={selectedCustomerId}
-                      onChange={(e) => setSelectedCustomerId(e.target.value)}
-                      className="w-full bg-white p-2.5 rounded-xl border border-[#DDD5C0] font-bold text-stone-900 outline-none focus:border-[#D4AF37]"
-                    >
-                      {customers.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.storeName} - {c.city}) {c.wholesaleLoyaltyTier === 'partner_gold_vip' ? '👑 طلایی VIP' : c.type === 'partner_wholesale' ? '★ قیمت همکاری' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col justify-center text-[11px] space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">سطح قیمت‌گذاری:</span>
-                      <strong className="text-[#8C6D37] font-bold">
-                        {selectedCustomer?.type === 'partner_wholesale' || selectedCustomer?.wholesaleLoyaltyTier === 'partner_gold_vip' 
-                          ? 'نرخ هم‌صنف و همکاری (تخفیف‌دار)' 
-                          : 'نرخ عمده‌فروشی عادی'}
-                      </strong>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">امتیاز اعتبار صیاد:</span>
-                      <span className={`font-black ${selectedCustomer && selectedCustomer.trustScore >= 80 ? 'text-emerald-700' : 'text-amber-700'}`}>
-                        {selectedCustomer?.trustScore} از ۱۰۰
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">سابقه وصول چک:</span>
-                      <span className="font-bold">
-                        {hasBouncedHistory ? (
-                          <span className="text-rose-700">⚠️ سابقه برگشتی دارد</span>
-                        ) : customerClearedChecks.length > 0 ? (
-                          <span className="text-emerald-700">✅ {customerClearedChecks.length} چک وصول شده</span>
-                        ) : (
-                          <span className="text-stone-500">فاقد سابقه چک</span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Loyalty Discount Auto-Suggestion */}
-                {suggestedLoyaltyDiscountPct > 0 && (
-                  <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Crown className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                      <div>
-                        <strong className="text-[#8C6D37] block font-bold">
-                          تخفیف وفاداری {loyaltyTier === 'partner_gold_vip' ? 'همکار طلایی VIP (۴٪)' : 'همکار نقره‌ای (۲٪)'}
-                        </strong>
-                        <span className="text-[10px] text-stone-600">
-                          مبلغ تخفیف قابل اعمال: {calculatedLoyaltyDiscountToman.toLocaleString('fa-IR')} تومان
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setDiscountAmount(calculatedLoyaltyDiscountToman)}
-                      className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-[10px] px-3 py-1.5 rounded-lg transition-colors shadow-2xs cursor-pointer"
-                    >
-                      اعمال تخفیف وفاداری
-                    </button>
-                  </div>
-                )}
-
-                {/* Items Section */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-stone-800">اقلام و ردیف‌های کالا (بر اساس پک):</span>
-                    <button
-                      type="button"
-                      onClick={handleAddItemRow}
-                      className="text-[#8C6D37] hover:text-[#18181B] font-bold flex items-center gap-1 text-[11px] cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+ افزودن ردیف کالا</span>
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 max-h-56 overflow-y-auto p-1">
-                    {invoiceItems.map((item, idx) => {
-                      const prod = products.find(p => p.id === item.productId);
-                      const calc = calculatedItems[idx];
-
-                      return (
-                        <div key={idx} className="flex flex-wrap items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-[#DDD5C0]">
-                          
-                          <div className="flex-1 min-w-[200px]">
-                            <select
-                              value={item.productId}
-                              onChange={(e) => {
-                                const updated = [...invoiceItems];
-                                updated[idx].productId = e.target.value;
-                                setInvoiceItems(updated);
-                              }}
-                              className="w-full bg-white p-2 rounded-lg border border-[#DDD5C0] text-xs font-bold text-stone-900"
-                            >
-                              {products.map(p => (
-                                <option key={p.id} value={p.id}>
-                                  {p.name} (پک {p.packSize} تایی - موجودی: {p.packStock} پک)
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center gap-1">
-                            <span className="text-[11px] text-stone-500">تعداد پک:</span>
-                            <input
-                              type="number"
-                              min={1}
-                              value={item.packCount}
-                              onChange={(e) => {
-                                const updated = [...invoiceItems];
-                                updated[idx].packCount = Number(e.target.value) || 1;
-                                setInvoiceItems(updated);
-                              }}
-                              className="w-16 bg-white p-2 rounded-lg border border-[#DDD5C0] text-center font-black text-stone-900"
-                            />
-                          </div>
-
-                          <div className="text-left min-w-[130px]">
-                            <span className="font-bold text-stone-900 block">
-                              {calc ? calc.totalPrice.toLocaleString('fa-IR') : 0} ت
-                            </span>
-                            <span className="text-[10px] text-stone-500">
-                              ({calc ? calc.totalUnits : 0} عدد)
-                            </span>
-                          </div>
-
-                          {invoiceItems.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItemRow(idx)}
-                              className="p-1.5 text-stone-400 hover:text-rose-600 rounded cursor-pointer"
-                              title="حذف ردیف"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Payment Type & Check Warning */}
-                <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#DDD5C0] space-y-3">
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold text-stone-800">شیوه تسویه حساب:</span>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="paymentType"
-                        checked={paymentType === 'cash'}
-                        onChange={() => setPaymentType('cash')}
-                      />
-                      <span>نقدی / کارت به کارت فوری</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="paymentType"
-                        checked={paymentType === 'check'}
-                        onChange={() => setPaymentType('check')}
-                      />
-                      <span className="font-bold text-amber-800">چک صیادی مدت‌دار</span>
-                    </label>
-                  </div>
-
-                  {paymentType === 'check' && (
-                    <div className="space-y-2 pt-2 border-t border-[#DDD5C0]">
-                      <input
-                        type="text"
-                        placeholder="مشخصات چک (شماره صیاد، بانک و سررسید)"
-                        value={checkNotes}
-                        onChange={(e) => setCheckNotes(e.target.value)}
-                        className="w-full bg-white p-2.5 rounded-xl border border-[#DDD5C0] font-mono text-stone-900"
-                      />
-
-                      {/* Prominent Bounced Check Warning Banner */}
-                      {hasBouncedHistory && (
-                        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-rose-900 text-xs">
-                          <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                          <div>
-                            <strong className="block font-black">هشدار فوری صیادی (سابقه چک برگشتی):</strong>
-                            <p className="mt-0.5 leading-relaxed text-rose-800">
-                              این مشتری دارای سابقه {customerBouncedChecks.length} فقره چک برگشتی است! صدور فاکتور چکی برای ایشان با ریسک بسیار بالا همراه است. توصیه می‌شود تسویه به صورت نقدی انجام گردد.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {!hasBouncedHistory && isLowTrustScore && (
-                        <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-amber-900 text-xs">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                          <span>
-                            <strong>هشدار ریسک بازاری:</strong> امتیاز اعتبار این مشتری ({selectedCustomer?.trustScore}) پایین‌تر از حد استاندارد فروش چکی است.
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Discounts & Shipping Costs */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-stone-700 mb-1">تخفیف دستی فاکتور (تومان):</label>
-                    <input
-                      type="number"
-                      value={discountAmount}
-                      onChange={(e) => setDiscountAmount(Number(e.target.value) || 0)}
-                      className="w-full bg-white p-2.5 rounded-xl border border-[#DDD5C0] font-bold text-stone-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-stone-700 mb-1">شیوه ارسال باربری:</label>
-                    <select
-                      value={shippingMethod}
-                      onChange={(e) => setShippingMethod(e.target.value)}
-                      className="w-full bg-white p-2.5 rounded-xl border border-[#DDD5C0] font-bold text-stone-900"
-                    >
-                      <option value="باربری وطن (شوش)">باربری وطن (میدان شوش - پس کرایه)</option>
-                      <option value="تیپاکس بازار">تیپاکس بازار</option>
-                      <option value="چاپار">چاپار</option>
-                      <option value="باربری پیام‌گیر (خیام)">باربری پیام‌گیر (خیام)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Totals Summary Card */}
-                <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#DDD5C0] space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">جمع اقلام فاکتور:</span>
-                    <strong className="font-bold text-stone-900">{subtotal.toLocaleString('fa-IR')} ت</strong>
-                  </div>
-                  {discountAmount > 0 && (
-                    <div className="flex justify-between text-rose-700">
-                      <span>کسر تخفیف:</span>
-                      <span>- {discountAmount.toLocaleString('fa-IR')} ت</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-base font-black text-[#18181B] pt-2 border-t border-[#DDD5C0]">
-                    <span>مبلغ نهایی قابل پرداخت فاکتور:</span>
-                    <span className="text-[#8C6D37]">{finalAmount.toLocaleString('fa-IR')} تومان</span>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Modal Fixed Footer */}
-              <div className="p-4 sm:p-5 border-t border-[#E6DEC8] bg-[#FAF7F2] flex items-center justify-between gap-3 shrink-0">
-                <div className="text-xs text-stone-600">
-                  <span>مبلغ کل فاکتور: </span>
-                  <strong className="text-sm font-black text-[#8C6D37]">{finalAmount.toLocaleString('fa-IR')} تومان</strong>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsNewInvoiceModalOpen(false)}
-                    className="px-4 py-2.5 text-stone-600 hover:bg-stone-200/70 rounded-xl font-bold transition-colors cursor-pointer"
-                  >
-                    انصراف
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-[#18181B] hover:bg-stone-800 text-[#D4AF37] hover:text-white font-black px-6 py-2.5 rounded-xl transition-all shadow-md border border-[#3F3F46] cursor-pointer active:scale-[0.99]"
-                  >
-                    صدور فاکتور و ثبت
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* ------------------------------------------------------------------- */}
-      {/* TRADITIONAL BAZAAR PRINT VIEW MODAL                                 */}
-      {/* ------------------------------------------------------------------- */}
-      {selectedInvoiceForPrint && typeof document !== 'undefined' && createPortal(
-        <div 
-          id="modal-print-invoice-overlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setSelectedInvoiceForPrint(null);
-          }}
-          className="fixed inset-0 z-[9999] bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
-          dir="rtl"
-        >
-          <div 
-            id="modal-print-invoice-card"
-            className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-[#E6DEC8] my-auto text-stone-900 max-h-[90vh] flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-200"
-          >
-            {/* Top decorative accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37]" />
-
-            <div className="flex items-center justify-between pb-3 border-b border-[#E6DEC8] print:hidden shrink-0">
-              <span className="text-xs font-bold text-stone-500">پیش‌نمایش چاپ فاکتور بازاری</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="bg-[#18181B] text-[#FAF7F2] font-black text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-xs hover:bg-stone-800 transition-colors cursor-pointer"
-                >
-                  <Printer className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>پرینت / ذخیره PDF</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedInvoiceForPrint(null)}
-                  className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-xl transition-colors cursor-pointer"
-                  title="بستن"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Traditional Invoice Layout - Scrollable */}
-            <div className="overflow-y-auto flex-1 my-3 pr-1 pl-1">
-              <div className="p-4 border-2 border-stone-800 rounded-2xl space-y-4 bg-white">
-                <div className="text-center pb-3 border-b-2 border-stone-800">
-                  <h2 className="text-lg font-black text-stone-900">تولید و پخش پوشاک من و تو (manoto dress)</h2>
-                  <p className="text-[11px] text-stone-600 mt-0.5">بازار بزرگ تهران، بازار عباس‌آباد (سرای ملی)، پاساژ المهدی ۴، طبقه منفی یک، پلاک ۲۴۲ (مدیریت: اسدی)</p>
-                  <div className="flex justify-between items-center text-xs font-mono font-bold mt-2 pt-1 border-t border-dashed border-stone-400">
-                    <span>شماره فاکتور: {selectedInvoiceForPrint.invoiceNumber}</span>
-                    <span>تاریخ: {selectedInvoiceForPrint.date}</span>
-                  </div>
-                </div>
-
-                {/* Customer Box */}
-                <div className="grid grid-cols-2 gap-2 text-xs bg-stone-50 p-2.5 rounded-xl border border-stone-300">
-                  <div><span>خریدار:</span> <strong>{selectedInvoiceForPrint.customerName}</strong></div>
-                  <div><span>فروشگاه:</span> <strong>{selectedInvoiceForPrint.storeName}</strong></div>
-                  <div><span>شهر و باربری:</span> <strong>{selectedInvoiceForPrint.city} ({selectedInvoiceForPrint.shippingMethod})</strong></div>
-                  <div><span>تلفن تماس:</span> <strong className="font-mono">{selectedInvoiceForPrint.phone}</strong></div>
-                </div>
-
-                {/* Items Table */}
-                <table className="w-full text-right text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b-2 border-stone-800 bg-stone-100">
-                      <th className="p-2 border-r border-stone-300">ردیف</th>
-                      <th className="p-2 border-r border-stone-300">شرح کالا / مدل</th>
-                      <th className="p-2 border-r border-stone-300 text-center">پک</th>
-                      <th className="p-2 border-r border-stone-300 text-center">تعداد کل</th>
-                      <th className="p-2 border-r border-stone-300 text-center">نرخ پک</th>
-                      <th className="p-2 text-left">مبلغ کل (تومان)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-300">
-                    {selectedInvoiceForPrint.items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="p-2 border-r border-stone-300 text-center">{idx + 1}</td>
-                        <td className="p-2 border-r border-stone-300 font-bold">{item.productName} ({item.sku})</td>
-                        <td className="p-2 border-r border-stone-300 text-center">{item.packCount}</td>
-                        <td className="p-2 border-r border-stone-300 text-center">{item.totalUnits}</td>
-                        <td className="p-2 border-r border-stone-300 text-center">{item.pricePerPack.toLocaleString('fa-IR')}</td>
-                        <td className="p-2 text-left font-bold">{item.totalPrice.toLocaleString('fa-IR')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Invoice Footer */}
-                <div className="pt-2 border-t-2 border-stone-800 space-y-1.5 text-xs">
-                  <div className="flex justify-between font-black text-sm">
-                    <span>مبلغ قابل پرداخت فاکتور:</span>
-                    <span>{selectedInvoiceForPrint.finalAmountToman.toLocaleString('fa-IR')} تومان</span>
-                  </div>
-                  <div className="text-[11px] text-stone-600 flex justify-between pt-1 border-t border-dashed border-stone-400">
-                    <span>شیوه تسویه: {selectedInvoiceForPrint.paymentType === 'cash' ? 'نقدی / واریزی' : `چک صیادی (${selectedInvoiceForPrint.checkDetails})`}</span>
-                    <span>مهر و امضای تولید و پخش من و تو (اسدی)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2 print:hidden shrink-0">
-              <button
-                type="button"
-                onClick={() => setSelectedInvoiceForPrint(null)}
-                className="bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer transition-colors"
-              >
-                بستن
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <InPersonInvoiceModal
+        isOpen={isNewInvoiceModalOpen || selectedInvoiceForPrint !== null}
+        onClose={() => {
+          setIsNewInvoiceModalOpen(false);
+          setSelectedInvoiceForPrint(null);
+        }}
+        products={products}
+        customers={customers}
+        invoices={invoices}
+        onAddInvoice={onAddInvoice}
+        onAddCustomer={onAddCustomer}
+        initialInvoiceToView={selectedInvoiceForPrint}
+      />
 
     </div>
   );

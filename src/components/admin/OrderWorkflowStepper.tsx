@@ -98,7 +98,11 @@ export const OrderWorkflowStepper: React.FC<OrderWorkflowStepperProps> = ({
   };
 
   return (
-    <div className="bg-[#FAF7F2] rounded-2xl border border-[#E6DEC8] p-3.5 sm:p-4 space-y-3.5" dir="rtl">
+    <div className={`rounded-2xl border p-3.5 sm:p-4 space-y-3.5 transition-colors duration-300 ${
+      currentStage === 4 
+        ? 'bg-white/95 border-emerald-200 shadow-xs' 
+        : 'bg-[#FAF7F2] border-[#E6DEC8]'
+    }`} dir="rtl">
       
       {/* Stepper Header: Current Stage indicator */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E6DEC8]/80 pb-2.5">

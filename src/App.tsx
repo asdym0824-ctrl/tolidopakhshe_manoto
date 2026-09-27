@@ -291,7 +291,69 @@ export default function App() {
       console.warn('Could not save products to local storage:', e);
     }
   }, [products]);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+
+  // Persistent customers with auto-registration from invoices
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const stored = localStorage.getItem('manoto_customers_crm');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Could not load customers from local storage:', e);
+    }
+
+    // Merge INITIAL_CUSTOMERS with any customer records from INITIAL_INVOICES
+    const customerMap = new Map<string, Customer>();
+    INITIAL_CUSTOMERS.forEach(c => {
+      const key = (c.phone?.trim() || c.name.trim().toLowerCase());
+      customerMap.set(key, c);
+    });
+
+    INITIAL_INVOICES.forEach(inv => {
+      if (!inv.customerName) return;
+      const key = (inv.phone?.trim() || inv.customerName.trim().toLowerCase());
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          id: inv.customerId || `cust-inv-${inv.id}`,
+          name: inv.customerName.trim(),
+          storeName: inv.storeName?.trim() || 'فروشگاه / خرید حضوری',
+          phone: inv.phone?.trim() || '',
+          city: inv.city?.replace('(خرید حضوری بازار)', '').replace('(دفتر پخش بازار)', '').trim() || 'تهران',
+          province: 'تهران',
+          type: 'shop_keeper',
+          tier: 'tier_colleague',
+          wholesaleLoyaltyTier: 'partner_regular',
+          trustScore: 85,
+          paymentTerms: inv.paymentType === 'check' ? 'check_eligible' : 'cash_only',
+          checkLimitToman: 40000000,
+          currentActiveCheckToman: 0,
+          totalPurchasesToman: inv.finalAmountToman,
+          orderCount: 1,
+          totalPacksPurchased: inv.items.reduce((s, it) => s + (it.packCount || 0), 0),
+          lastOrderDate: inv.date || '۱۴۰۳/۰۳/۰۴',
+          lastContactDate: inv.date || '۱۴۰۳/۰۳/۰۴',
+          channelSource: 'in_person',
+          preferredShipping: 'باربری وطن',
+          tags: ['فاکتور قبلی', 'مشتری حضوری'],
+          notes: `ثبت خودکار از فاکتور شماره ${inv.invoiceNumber}`
+        });
+      }
+    });
+
+    return Array.from(customerMap.values());
+  });
+
+  // Keep customers synced to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('manoto_customers_crm', JSON.stringify(customers));
+    } catch (e) {
+      console.warn('Could not save customers to local storage:', e);
+    }
+  }, [customers]);
+
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
   const [checks, setChecks] = useState<CheckItem[]>(INITIAL_CHECKS);
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>(INITIAL_SOCIAL_POSTS);
@@ -553,7 +615,66 @@ export default function App() {
 
   // Handlers for Invoices
   const handleAddInvoice = (newInv: Invoice) => {
-    setInvoices([newInv, ...invoices]);
+    setInvoices(prev => [newInv, ...prev]);
+
+    // Automatically check and register customer in database if not already present, or update stats
+    if (newInv.customerName && newInv.customerName.trim()) {
+      setCustomers(prev => {
+        const trimmedPhone = newInv.phone?.trim();
+        const trimmedName = newInv.customerName.trim().toLowerCase();
+
+        const existingIdx = prev.findIndex(c => 
+          (trimmedPhone && c.phone && c.phone.trim() === trimmedPhone) ||
+          (c.name.trim().toLowerCase() === trimmedName)
+        );
+
+        const totalPacks = newInv.items.reduce((s, it) => s + (it.packCount || 0), 0);
+
+        if (existingIdx === -1) {
+          // Register as brand new customer in database automatically!
+          const newCust: Customer = {
+            id: newInv.customerId || `cust-auto-${Date.now()}`,
+            name: newInv.customerName.trim(),
+            storeName: newInv.storeName?.trim() || 'فروشگاه / خرید حضوری',
+            phone: newInv.phone?.trim() || '',
+            city: newInv.city?.replace('(خرید حضوری بازار)', '').replace('(دفتر پخش بازار)', '').trim() || 'تهران',
+            province: 'تهران',
+            type: 'shop_keeper',
+            tier: 'tier_colleague',
+            wholesaleLoyaltyTier: 'partner_regular',
+            trustScore: 85,
+            paymentTerms: newInv.paymentType === 'check' ? 'check_eligible' : 'cash_only',
+            checkLimitToman: 40000000,
+            currentActiveCheckToman: 0,
+            totalPurchasesToman: newInv.finalAmountToman,
+            orderCount: 1,
+            totalPacksPurchased: totalPacks,
+            lastOrderDate: newInv.date || '۱۴۰۳/۰۷/۰۴',
+            lastContactDate: newInv.date || '۱۴۰۳/۰۷/۰۴',
+            channelSource: 'in_person',
+            preferredShipping: 'باربری وطن',
+            tags: ['ثبت خودکار از فاکتور', 'مشتری حضوری'],
+            notes: `ثبت خودکار سیستمی از صدور فاکتور شماره ${newInv.invoiceNumber}`
+          };
+          return [newCust, ...prev];
+        } else {
+          // Update existing customer stats
+          const updated = [...prev];
+          const curr = updated[existingIdx];
+          updated[existingIdx] = {
+            ...curr,
+            totalPurchasesToman: (curr.totalPurchasesToman || 0) + newInv.finalAmountToman,
+            orderCount: (curr.orderCount || 0) + 1,
+            totalPacksPurchased: (curr.totalPacksPurchased || 0) + totalPacks,
+            lastOrderDate: newInv.date || curr.lastOrderDate,
+            storeName: curr.storeName || newInv.storeName,
+            city: curr.city || newInv.city
+          };
+          return updated;
+        }
+      });
+    }
+
     // Deduct stock using standardized calculateTotalUnitStock
     newInv.items.forEach(item => {
       setProducts(prev => prev.map(p => {
@@ -864,6 +985,7 @@ export default function App() {
                     products={products}
                     checks={checks}
                     onAddInvoice={handleAddInvoice}
+                    onAddCustomer={handleAddCustomer}
                     onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
                     isNewInvoiceModalOpen={isNewInvoiceModalOpen}
                     setIsNewInvoiceModalOpen={setIsNewInvoiceModalOpen}

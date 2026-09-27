@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Scissors, 
   Building2, 
@@ -21,7 +21,12 @@ import {
   Truck,
   Package,
   Crown,
-  ChevronDown
+  ChevronDown,
+  Copy,
+  Tag,
+  FileText,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { FabricSupplier, TailorWorkshop, ProductionBatch } from '../types';
 
@@ -46,6 +51,30 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'suppliers' | 'workshops' | 'batches' | 'calculator'>('batches');
   const [searchQuery, setSearchQuery] = useState('');
+  const [batchStatusFilter, setBatchStatusFilter] = useState<string>('all');
+  const [copiedBatchNumber, setCopiedBatchNumber] = useState<string | null>(null);
+
+  // Fullscreen Table Mode
+  const [isTableFullscreen, setIsTableFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsTableFullscreen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isTableFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isTableFullscreen]);
   
   // Modals
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
@@ -388,266 +417,1109 @@ export const ProductionModule: React.FC<ProductionModuleProps> = ({
       </div>
 
       {/* Tab 1: Production Batches & Delivery Tracker */}
-      {activeTab === 'batches' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-[#E6DEC8] shadow-xs overflow-hidden">
-            <div className="p-4 bg-[#FAF7F2] border-b border-[#E6DEC8] flex items-center justify-between">
-              <div>
-                <h3 className="font-black text-sm text-[#18181B]">پارت‌های فعال برش، دوخت و بسته‌بندی</h3>
-                <p className="text-xs text-stone-500 mt-0.5">رهگیری مرحله به مرحله از طاقه تا انبار کالا با تاریخ تحویل قطعی</p>
+      {activeTab === 'batches' && (() => {
+        const filteredBatches = productionBatches.filter(b => {
+          const matchesSearch = 
+            b.productName.includes(searchQuery) || 
+            b.batchNumber.includes(searchQuery) || 
+            b.tailorWorkshopName.includes(searchQuery) ||
+            b.fabricSupplierName.includes(searchQuery);
+          const matchesStatus = batchStatusFilter === 'all' || b.status === batchStatusFilter;
+          return matchesSearch && matchesStatus;
+        });
+
+        const totalPlannedUnits = filteredBatches.reduce((s, b) => s + b.plannedUnitCount, 0);
+        const totalBatchCostToman = filteredBatches.reduce((s, b) => s + b.totalCostToman, 0);
+        const totalFabricMeters = filteredBatches.reduce((s, b) => s + b.fabricMetersUsed, 0);
+        const deliveredCount = filteredBatches.filter(b => b.status === 'delivered_to_warehouse').length;
+
+        const handleCopyBatch = (batchNo: string) => {
+          navigator.clipboard?.writeText(batchNo);
+          setCopiedBatchNumber(batchNo);
+          setTimeout(() => setCopiedBatchNumber(null), 2000);
+        };
+
+        return (
+          <div className={`transition-all duration-200 ${
+            isTableFullscreen
+              ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+              : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+          }`}>
+            {/* Fullscreen Notice Banner */}
+            {isTableFullscreen && (
+              <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه جدول پارت‌های تولید فعال است</span>
+                  <span className="text-stone-400 hidden sm:inline">| برای خروج کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
+                </div>
+                <button
+                  onClick={() => setIsTableFullscreen(false)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>خروج از تمام‌صفحه</span>
+                </button>
               </div>
+            )}
+
+            {/* Header Strip */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                  <Scissors className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                    <span>کاردکس پارت‌های تولید، برش و دوخت کارگاه «من و تو»</span>
+                    <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full font-mono">
+                      {productionBatches.length.toLocaleString('fa-IR')} پارت کل
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    رهگیری مرحله به مرحله از طاقه تا انبار کالا با پایش بهای تمام‌شده و تاریخ تحویل قطعی
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                {/* Fullscreen Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                    isTableFullscreen
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
+                      : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'
+                  }`}
+                  title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (Esc)' : 'بزرگنمایی جدول به تمام‌صفحه'}
+                >
+                  {isTableFullscreen ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>کوچک‌نمایی</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                      <span>تمام‌صفحه</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setIsAddBatchModalOpen(true)}
+                  className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 hover:from-black hover:to-stone-900 text-[#FAF7F2] text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-[#D4AF37]/50 hover:border-[#D4AF37] cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>+ ثبت سفارش پارت جدید</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Ribbon */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Layers className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">پارت‌های نمایشی</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {filteredBatches.length.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">پارت</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#8C6D37]/15 text-[#8C6D37] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Package className="w-5 h-5 text-[#8C6D37]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">تیراژ در دست اقدام</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {totalPlannedUnits.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">عدد</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
+                  <DollarSign className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">ارزش سرمایه تولید</span>
+                  <span className="text-sm sm:text-base font-black text-emerald-950 block truncate">
+                    {totalBatchCostToman.toLocaleString('fa-IR')} <span className="text-xs font-bold text-emerald-700">تومان</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Clock className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">متراژ طاقه مصرفی</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {totalFabricMeters.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">متر</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto pb-1 sm:pb-0">
               <button
-                onClick={() => setIsAddBatchModalOpen(true)}
-                className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] text-xs font-bold px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+                onClick={() => setBatchStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  batchStatusFilter === 'all'
+                    ? 'bg-stone-900 text-[#FAF7F2] shadow-xs'
+                    : 'bg-[#FAF7F2] text-stone-600 hover:bg-[#EFE8D8] border border-[#DDD5C0]'
+                }`}
               >
-                <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>ثبت سفارش پارت دوخت</span>
+                <span>همه پارت‌ها</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  batchStatusFilter === 'all' ? 'bg-[#D4AF37] text-stone-950 font-black' : 'bg-stone-200 text-stone-700'
+                }`}>
+                  {productionBatches.length.toLocaleString('fa-IR')}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setBatchStatusFilter('cutting')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  batchStatusFilter === 'cutting'
+                    ? 'bg-blue-800 text-white shadow-xs'
+                    : 'bg-[#FAF7F2] text-blue-900 hover:bg-blue-50 border border-blue-200'
+                }`}
+              >
+                <span>برش‌کاری تیغ</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  batchStatusFilter === 'cutting' ? 'bg-blue-200 text-blue-950 font-black' : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {productionBatches.filter(b => b.status === 'cutting').length.toLocaleString('fa-IR')}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setBatchStatusFilter('sewing')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  batchStatusFilter === 'sewing'
+                    ? 'bg-purple-800 text-white shadow-xs'
+                    : 'bg-[#FAF7F2] text-purple-900 hover:bg-purple-50 border border-purple-200'
+                }`}
+              >
+                <span>دوخت در کارگاه</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  batchStatusFilter === 'sewing' ? 'bg-purple-200 text-purple-950 font-black' : 'bg-purple-100 text-purple-800'
+                }`}>
+                  {productionBatches.filter(b => b.status === 'sewing').length.toLocaleString('fa-IR')}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setBatchStatusFilter('finishing_ironing')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  batchStatusFilter === 'finishing_ironing'
+                    ? 'bg-indigo-800 text-white shadow-xs'
+                    : 'bg-[#FAF7F2] text-indigo-900 hover:bg-indigo-50 border border-indigo-200'
+                }`}
+              >
+                <span>اتو و بسته‌بندی</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  batchStatusFilter === 'finishing_ironing' ? 'bg-indigo-200 text-indigo-950 font-black' : 'bg-indigo-100 text-indigo-800'
+                }`}>
+                  {productionBatches.filter(b => b.status === 'finishing_ironing').length.toLocaleString('fa-IR')}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setBatchStatusFilter('delivered_to_warehouse')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  batchStatusFilter === 'delivered_to_warehouse'
+                    ? 'bg-emerald-800 text-white shadow-xs'
+                    : 'bg-[#FAF7F2] text-emerald-900 hover:bg-emerald-50 border border-emerald-200'
+                }`}
+              >
+                <span>تحویل کامل انبار</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  batchStatusFilter === 'delivered_to_warehouse' ? 'bg-emerald-200 text-emerald-950 font-black' : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  {deliveredCount.toLocaleString('fa-IR')}
+                </span>
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
-                <thead className="bg-[#FAF7F2]/60 text-stone-700 font-bold border-b border-[#E6DEC8]">
+            {/* Master Table */}
+            <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
                   <tr>
-                    <th className="p-3.5">کد و عنوان پارت تولید</th>
-                    <th className="p-3.5">تامین‌کننده و متراژ طاقه</th>
-                    <th className="p-3.5">کارگاه دوزنده و دستمزد</th>
-                    <th className="p-3.5">تیراژ خروجی</th>
-                    <th className="p-3.5">بهای تمام‌شده هر عدد</th>
-                    <th className="p-3.5">موعد تحویل به انبار</th>
-                    <th className="p-3.5">مرحله و وضعیت دوخت</th>
-                    <th className="p-3.5 text-center">تغییر مرحله</th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>کد و پارت تولید</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Scissors className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>مدل و گروه لباس</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>تامین‌کننده و متراژ طاقه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>کارگاه دوزنده و دستمزد</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>تیراژ خروجی</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>بهای تمام‌شده هر عدد</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>موعد تحویل به انبار</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>مرحله و وضعیت</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                      <span>تغییر مرحله</span>
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#FAF7F2]">
-                  {productionBatches
-                    .filter(b => b.productName.includes(searchQuery) || b.batchNumber.includes(searchQuery) || b.tailorWorkshopName.includes(searchQuery))
-                    .map((batch) => (
-                      <tr key={batch.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                        <td className="p-3.5">
-                          <span className="font-mono font-bold text-stone-500 text-[10px] block">{batch.batchNumber}</span>
-                          <strong className="font-black text-stone-900 block text-xs">{batch.productName}</strong>
-                          <span className="text-[11px] text-stone-500">{batch.category}</span>
+                <tbody className="divide-y divide-[#EFE9DC]">
+                  {filteredBatches.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                          <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
+                            <Search className="w-6 h-6 text-stone-400" />
+                          </div>
+                          <h4 className="text-sm font-extrabold text-stone-900">هیچ پارت تولیدی یافت نشد</h4>
+                          <p className="text-xs text-stone-500 mt-1">
+                            با فیلتر انتخابی یا عبارت جستجو موردی ثبت نشده است.
+                          </p>
+                          <button
+                            onClick={() => {
+                              setSearchQuery('');
+                              setBatchStatusFilter('all');
+                            }}
+                            className="mt-3.5 px-4 py-1.5 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-900 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                          >
+                            مشاهده همه پارت‌ها
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredBatches.map((batch) => (
+                      <tr
+                        key={batch.id}
+                        className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                      >
+                        {/* Column 1: Batch Number */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <button
+                            onClick={() => handleCopyBatch(batch.batchNumber)}
+                            className="bg-[#18181B] text-[#D4AF37] px-2.5 py-1 rounded-lg font-mono font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs hover:bg-stone-900 transition-colors cursor-pointer group/btn"
+                            title="کلیک برای کپی شماره پارت"
+                          >
+                            <span>#{batch.batchNumber}</span>
+                            {copiedBatchNumber === batch.batchNumber ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3 opacity-60 group-hover/btn:opacity-100 transition-opacity" />
+                            )}
+                          </button>
+                          <span className="text-[10px] text-stone-400 font-mono block mt-1">
+                            آغاز: {batch.startDate}
+                          </span>
                         </td>
-                        <td className="p-3.5">
-                          <span className="font-bold text-stone-800 block">{batch.fabricSupplierName}</span>
-                          <span className="text-[11px] text-stone-600 font-mono">
+
+                        {/* Column 2: Model & Category */}
+                        <td className="p-3.5 align-middle">
+                          <strong className="font-extrabold text-stone-900 block text-xs sm:text-sm">
+                            {batch.productName}
+                          </strong>
+                          <span className="inline-block mt-0.5 text-[10px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-md">
+                            {batch.category}
+                          </span>
+                        </td>
+
+                        {/* Column 3: Fabric Supplier */}
+                        <td className="p-3.5 align-middle">
+                          <span className="font-bold text-stone-900 block text-xs">
+                            {batch.fabricSupplierName}
+                          </span>
+                          <span className="text-[11px] text-stone-600 font-mono block mt-0.5">
                             {batch.fabricMetersUsed.toLocaleString('fa-IR')} متر ({batch.fabricCostPerMeter.toLocaleString('fa-IR')} ت/متر)
                           </span>
                         </td>
-                        <td className="p-3.5">
-                          <span className="font-bold text-stone-800 block">{batch.tailorWorkshopName}</span>
-                          <span className="text-[11px] text-stone-600 font-mono">دستمزد: {batch.wagePerUnit.toLocaleString('fa-IR')} ت</span>
+
+                        {/* Column 4: Tailor Workshop */}
+                        <td className="p-3.5 align-middle">
+                          <span className="font-bold text-stone-900 block text-xs">
+                            {batch.tailorWorkshopName}
+                          </span>
+                          <span className="text-[11px] text-stone-600 font-mono block mt-0.5">
+                            دستمزد دوخت: {batch.wagePerUnit.toLocaleString('fa-IR')} تومان
+                          </span>
                         </td>
-                        <td className="p-3.5">
-                          <span className="font-black text-[#18181B] bg-[#FAF7F2] px-2.5 py-1 rounded-lg border border-[#DDD5C0] font-mono">
+
+                        {/* Column 5: Units */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="font-black text-stone-900 bg-stone-100 px-2.5 py-1 rounded-lg border border-stone-300 font-mono text-xs">
                             {batch.plannedUnitCount.toLocaleString('fa-IR')} عدد
                           </span>
                         </td>
-                        <td className="p-3.5">
-                          <span className="font-black text-emerald-800 text-xs font-mono block">
-                            {batch.costPerUnitToman.toLocaleString('fa-IR')} ت
-                          </span>
-                          <span className="text-[10px] text-stone-400 font-mono">
-                            کل: {(batch.totalCostToman / 1000000).toFixed(1)} م.ت
+
+                        {/* Column 6: Cost per unit */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-sm font-black text-emerald-950 font-sans">
+                            {batch.costPerUnitToman.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-emerald-700">تومان</span>
+                          </div>
+                          <span className="text-[10px] text-stone-500 font-mono block mt-0.5">
+                            کل پارت: {batch.totalCostToman.toLocaleString('fa-IR')} تومان
                           </span>
                         </td>
-                        <td className="p-3.5">
-                          <div className="flex items-center gap-1 text-[#8C6D37] font-bold">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>{batch.estimatedDeliveryDate}</span>
+
+                        {/* Column 7: Delivery Date */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-stone-900 font-bold bg-[#FAF8F5] px-2.5 py-1 rounded-lg border border-[#E6DEC8] inline-flex">
+                            <Calendar className="w-3.5 h-3.5 text-[#8C6D37]" />
+                            <span className="font-mono text-xs">{batch.estimatedDeliveryDate}</span>
                           </div>
                         </td>
-                        <td className="p-3.5">
+
+                        {/* Column 8: Status Badge */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
                           {getStatusBadge(batch.status)}
                         </td>
-                        <td className="p-3.5 text-center">
+
+                        {/* Column 9: Update Status */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
                           <select
                             value={batch.status}
                             onChange={(e) => onUpdateBatchStatus(batch.id, e.target.value as ProductionBatch['status'])}
-                            className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-xl text-[11px] font-bold p-1.5 text-stone-800 focus:bg-white outline-none cursor-pointer"
+                            className="bg-white border border-[#DDD5C0] rounded-xl text-xs font-bold px-2.5 py-1.5 text-stone-800 focus:border-[#D4AF37] outline-none cursor-pointer shadow-2xs hover:border-[#D4AF37] transition-colors"
                           >
                             <option value="fabric_ordered">طاقه خریداری شد</option>
-                            <option value="cutting">در حال برش‌کاری</option>
-                            <option value="sewing">در حال دوخت</option>
+                            <option value="cutting">در حال برش‌کاری تیغ</option>
+                            <option value="sewing">در حال دوخت کارگاه</option>
                             <option value="finishing_ironing">اتو و بسته‌بندی</option>
-                            <option value="delivered_to_warehouse">تحویل به انبار</option>
+                            <option value="delivered_to_warehouse">تحویل به انبار کالا</option>
                           </select>
                         </td>
                       </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
+
+            {/* Bottom Summary Strip */}
+            <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-stone-800">
+                  نمایش {filteredBatches.length.toLocaleString('fa-IR')} از {productionBatches.length.toLocaleString('fa-IR')} پارت تولید
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  تیراژ کل سفارشات: <strong className="text-stone-900 font-mono">{totalPlannedUnits.toLocaleString('fa-IR')}</strong> عدد
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  طاقه مصرفی: <strong className="text-stone-900 font-mono">{totalFabricMeters.toLocaleString('fa-IR')}</strong> متر
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-stone-500 font-medium">مجموع بهای سرمایه‌گذاری تولید:</span>
+                <span className="text-sm font-black text-stone-950 font-sans bg-white px-3 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                  {totalBatchCostToman.toLocaleString('fa-IR')} <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
+                </span>
+              </div>
+            </div>
+
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Tab 2: Fabric Suppliers (بنکداران پارچه بازار مولوی) */}
-      {activeTab === 'suppliers' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {fabricSuppliers
-              .filter(s => s.name.includes(searchQuery) || s.fabricTypes.some(f => f.includes(searchQuery)))
-              .map((sup) => (
-                <div key={sup.id} className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-3.5 flex flex-col justify-between hover:border-[#18181B]/40 transition-all">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-black text-sm text-[#18181B]">{sup.name}</h4>
-                        <span className="text-xs text-stone-500 flex items-center gap-1 mt-0.5">
-                          <Building2 className="w-3 h-3 text-[#8C6D37]" />
-                          {sup.managerName}
-                        </span>
-                      </div>
-                      <span className="bg-[#FAF7F2] border border-[#DDD5C0] text-[#D4AF37] font-bold text-xs px-2 py-0.5 rounded-lg">
-                        ★ {sup.rating}
-                      </span>
-                    </div>
+      {activeTab === 'suppliers' && (() => {
+        const filteredSuppliers = fabricSuppliers.filter(
+          s => s.name.includes(searchQuery) || s.fabricTypes.some(f => f.includes(searchQuery)) || s.managerName.includes(searchQuery) || s.marketLocation.includes(searchQuery)
+        );
+        const avgPriceAll = Math.round(
+          filteredSuppliers.reduce((s, sup) => s + sup.avgPricePerMeter, 0) / (filteredSuppliers.length || 1)
+        );
+        const avgRollLength = Math.round(
+          filteredSuppliers.reduce((s, sup) => s + sup.rollLengthMeters, 0) / (filteredSuppliers.length || 1)
+        );
 
-                    <div className="flex items-center gap-1 text-[11px] text-stone-600 bg-stone-50 p-2 rounded-xl border border-stone-200">
-                      <MapPin className="w-3.5 h-3.5 text-stone-500 shrink-0" />
-                      <span className="truncate">{sup.marketLocation}</span>
-                    </div>
-
-                    <div className="space-y-1.5 pt-1 text-xs">
-                      <div className="flex justify-between text-stone-600">
-                        <span>انواع پارچه تخصصی:</span>
-                        <strong className="text-stone-900 font-bold">{sup.fabricTypes.join('، ')}</strong>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>میانگین قیمت هر متر:</span>
-                        <strong className="text-emerald-800 font-black font-mono">{sup.avgPricePerMeter.toLocaleString('fa-IR')} تومان</strong>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>متراژ استاندارد هر طاقه:</span>
-                        <span className="font-bold text-stone-800 font-mono">{sup.rollLengthMeters} متر</span>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>نرخ عیب و پرتی پارچه:</span>
-                        <span className="font-bold text-stone-800">{sup.defectRate}</span>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>سرعت تحویل به کارگاه:</span>
-                        <span className="font-bold text-[#8C6D37]">{sup.deliverySpeed}</span>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>شرایط تسویه حساب:</span>
-                        <span className="font-bold text-stone-800">{sup.paymentTerms}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#E6DEC8] flex items-center justify-between text-xs">
-                    <a
-                      href={`tel:${sup.phone}`}
-                      className="bg-[#FAF7F2] hover:bg-[#E6DEC8] text-[#18181B] font-bold px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 border border-[#DDD5C0]"
-                    >
-                      <PhoneCall className="w-3.5 h-3.5 text-[#8C6D37]" />
-                      <span className="font-mono text-xs">{sup.phone}</span>
-                    </a>
-
-                    <button
-                      onClick={() => {
-                        setNewBatch(prev => ({
-                          ...prev,
-                          fabricSupplierId: sup.id,
-                          fabricCostPerMeter: sup.avgPricePerMeter,
-                        }));
-                        setIsAddBatchModalOpen(true);
-                      }}
-                      className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-bold px-3 py-2 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
-                      <span>سفارش طاقه</span>
-                    </button>
-                  </div>
+        return (
+          <div className={`transition-all duration-200 ${
+            isTableFullscreen
+              ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+              : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+          }`}>
+            {/* Fullscreen Notice Banner */}
+            {isTableFullscreen && (
+              <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه دفتر بنکداران پارچه فعال است</span>
+                  <span className="text-stone-400 hidden sm:inline">| برای خروج کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
                 </div>
-            ))}
+                <button
+                  onClick={() => setIsTableFullscreen(false)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>خروج از تمام‌صفحه</span>
+                </button>
+              </div>
+            )}
+
+            {/* Header Strip */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                  <Building2 className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                    <span>دفتر جامع بنکداران و تامین‌کنندگان پارچه طاقه (بازار مولوی و شوش)</span>
+                    <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full font-mono">
+                      {fabricSuppliers.length.toLocaleString('fa-IR')} بنکدار کل
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    استعلام قیمت متری طاقه پارچه‌های کتان لایت، داکرون، کرپ مازراتی و شرایط تسویه نقدی/چکی
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                {/* Fullscreen Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                    isTableFullscreen
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
+                      : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'
+                  }`}
+                  title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (Esc)' : 'بزرگنمایی جدول به تمام‌صفحه'}
+                >
+                  {isTableFullscreen ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>کوچک‌نمایی</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                      <span>تمام‌صفحه</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setIsAddSupplierModalOpen(true)}
+                  className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 hover:from-black hover:to-stone-900 text-[#FAF7F2] text-xs font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-[#D4AF37]/50 cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>+ ثبت پارچه‌فروش جدید</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Metrics Ribbon */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Building2 className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">بنکداران طرف قرارداد</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {filteredSuppliers.length.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">بنکدار</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
+                  <DollarSign className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">میانگین قیمت متری طاقه</span>
+                  <span className="text-sm sm:text-base font-black text-emerald-950 block truncate font-mono">
+                    {avgPriceAll.toLocaleString('fa-IR')} <span className="text-xs font-bold text-emerald-700">تومان</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#8C6D37]/15 text-[#8C6D37] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Layers className="w-5 h-5 text-[#8C6D37]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">متراژ استاندارد طاقه</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {avgRollLength.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">متر</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Clock className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">سرعت تحویل طاقه</span>
+                  <span className="text-xs sm:text-sm font-bold text-stone-800 block truncate">
+                    ارسال همان روز با وانت بار بازار
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Master Table */}
+            <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
+                  <tr>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>نام بنکدار و مدیریت</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>راسته و موقعیت بازار</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>پارچه‌های تخصصی</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>نرخ متری طاقه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>طاقه و نرخ پرتی</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>شرایط تسویه و تحویل</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <PhoneCall className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>تماس مستقیم</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                      <span>سفارش طاقه</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EFE9DC]">
+                  {filteredSuppliers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                          <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
+                            <Search className="w-6 h-6 text-stone-400" />
+                          </div>
+                          <h4 className="text-sm font-extrabold text-stone-900">هیچ بنکدار پارچه‌ای یافت نشد</h4>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredSuppliers.map((sup) => (
+                      <tr
+                        key={sup.id}
+                        className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                      >
+                        {/* Column 1: Supplier & Manager */}
+                        <td className="p-3.5 align-middle">
+                          <strong className="font-extrabold text-stone-900 block text-xs sm:text-sm">
+                            {sup.name}
+                          </strong>
+                          <span className="text-[11px] text-stone-500 block mt-0.5">
+                            مدیریت: {sup.managerName}
+                          </span>
+                        </td>
+
+                        {/* Column 2: Location */}
+                        <td className="p-3.5 align-middle">
+                          <div className="flex items-center gap-1 text-stone-900 font-bold text-xs">
+                            <MapPin className="w-3.5 h-3.5 text-[#8C6D37] shrink-0" />
+                            <span>{sup.marketLocation}</span>
+                          </div>
+                        </td>
+
+                        {/* Column 3: Fabric Types */}
+                        <td className="p-3.5 align-middle">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {sup.fabricTypes.map((ft, idx) => (
+                              <span
+                                key={idx}
+                                className="bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] text-[10px] font-bold px-2 py-0.5 rounded-md"
+                              >
+                                {ft}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* Column 4: Price per meter */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-sm font-black text-emerald-950 font-sans">
+                            {sup.avgPricePerMeter.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-emerald-700">تومان/متر</span>
+                          </div>
+                        </td>
+
+                        {/* Column 5: Roll length & Defect */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="font-bold text-stone-900 block text-xs">
+                            {sup.rollLengthMeters.toLocaleString('fa-IR')} متر در طاقه
+                          </span>
+                          <span className="text-[10px] text-stone-500 block mt-0.5">
+                            پرتی: {sup.defectRate}
+                          </span>
+                        </td>
+
+                        {/* Column 6: Payment Terms & Delivery */}
+                        <td className="p-3.5 align-middle">
+                          <span className="text-xs font-bold text-stone-800 block">
+                            {sup.paymentTerms}
+                          </span>
+                          <span className="text-[10px] text-[#8C6D37] block mt-0.5">
+                            تحویل: {sup.deliverySpeed}
+                          </span>
+                        </td>
+
+                        {/* Column 7: Phone */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <a
+                            href={`tel:${sup.phone}`}
+                            className="bg-[#FAF7F2] hover:bg-[#E6DEC8] text-stone-900 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-[#DDD5C0] inline-flex items-center gap-1.5 transition-colors"
+                          >
+                            <PhoneCall className="w-3 h-3 text-[#8C6D37]" />
+                            <span className="dir-ltr text-right">{sup.phone}</span>
+                          </a>
+                        </td>
+
+                        {/* Column 8: Action */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              setNewBatch(prev => ({
+                                ...prev,
+                                fabricSupplierId: sup.id,
+                                fabricCostPerMeter: sup.avgPricePerMeter,
+                              }));
+                              setIsAddBatchModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-gradient-to-r from-stone-900 to-[#18181B] hover:from-black hover:to-stone-900 text-[#FAF7F2] rounded-xl transition-all flex items-center gap-1.5 border border-[#D4AF37]/60 hover:border-[#D4AF37] font-bold text-xs cursor-pointer shadow-xs mx-auto active:scale-95"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            <span>سفارش طاقه</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Bottom Summary Strip */}
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-stone-800">
+                  نمایش {filteredSuppliers.length.toLocaleString('fa-IR')} از {fabricSuppliers.length.toLocaleString('fa-IR')} بنکدار پارچه
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  موقعیت‌های اصلی: <strong className="text-stone-900">بازار مولوی، سرای آزادی و گذر شوش</strong>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-stone-500 font-medium">پایش نرخ مواد اولیه:</span>
+                <span className="font-bold text-stone-900 bg-white px-2.5 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                  به‌روزرسانی با نرخ رسمی بازار پارچه
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Tab 3: Tailor Workshops (کارگاه‌های خیاطی و دوزندگان) */}
-      {activeTab === 'workshops' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tailorWorkshops
-              .filter(w => w.name.includes(searchQuery) || w.specialtyModels.some(m => m.includes(searchQuery)))
-              .map((ws) => (
-                <div key={ws.id} className="bg-white p-5 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-3.5 flex flex-col justify-between hover:border-[#18181B]/40 transition-all">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-black text-sm text-[#18181B]">{ws.name}</h4>
-                        <span className="text-xs text-stone-500 flex items-center gap-1 mt-0.5">
-                          <Scissors className="w-3 h-3 text-[#8C6D37]" />
-                          استاد کار: {ws.masterName}
-                        </span>
-                      </div>
-                      <span className="bg-[#FAF7F2] border border-[#DDD5C0] text-[#D4AF37] font-bold text-xs px-2 py-0.5 rounded-lg">
-                        ★ {ws.rating}
-                      </span>
-                    </div>
+      {activeTab === 'workshops' && (() => {
+        const filteredWorkshops = tailorWorkshops.filter(
+          w => w.name.includes(searchQuery) || w.specialtyModels.some(m => m.includes(searchQuery)) || w.masterName.includes(searchQuery) || w.address.includes(searchQuery)
+        );
+        const totalDailyCapFiltered = filteredWorkshops.reduce((s, w) => s + w.dailyCapacity, 0);
+        const avgWageFiltered = Math.round(
+          filteredWorkshops.reduce((s, w) => s + w.wagePerUnit, 0) / (filteredWorkshops.length || 1)
+        );
 
-                    <div className="flex items-center gap-1 text-[11px] text-stone-600 bg-stone-50 p-2 rounded-xl border border-stone-200">
-                      <MapPin className="w-3.5 h-3.5 text-stone-500 shrink-0" />
-                      <span className="truncate">{ws.address}</span>
-                    </div>
-
-                    <div className="space-y-1.5 pt-1 text-xs">
-                      <div className="flex justify-between text-stone-600">
-                        <span>مدل‌های تخصصی دوخت:</span>
-                        <strong className="text-stone-900 font-bold">{ws.specialtyModels.join('، ')}</strong>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>دستمزد دوخت هر عدد:</span>
-                        <strong className="text-emerald-800 font-black font-mono">{ws.wagePerUnit.toLocaleString('fa-IR')} تومان</strong>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>ظرفیت دوخت روزانه:</span>
-                        <span className="font-bold text-stone-800 font-mono">{ws.dailyCapacity.toLocaleString('fa-IR')} عدد در روز</span>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>کیفیت و استاندارد دوخت:</span>
-                        <span className="font-bold text-stone-900">{ws.qualityScore}</span>
-                      </div>
-                      <div className="flex justify-between text-stone-600">
-                        <span>میانگین زمان آماده‌سازی:</span>
-                        <span className="font-bold text-[#8C6D37]">{ws.typicalLeadTimeDays} روز کاری</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#E6DEC8] flex items-center justify-between text-xs">
-                    <a
-                      href={`tel:${ws.phone}`}
-                      className="bg-[#FAF7F2] hover:bg-[#E6DEC8] text-[#18181B] font-bold px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 border border-[#DDD5C0]"
-                    >
-                      <PhoneCall className="w-3.5 h-3.5 text-[#8C6D37]" />
-                      <span className="font-mono text-xs">{ws.phone}</span>
-                    </a>
-
-                    <button
-                      onClick={() => {
-                        setNewBatch(prev => ({
-                          ...prev,
-                          tailorWorkshopId: ws.id,
-                          wagePerUnit: ws.wagePerUnit,
-                        }));
-                        setIsAddBatchModalOpen(true);
-                      }}
-                      className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-bold px-3 py-2 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
-                      <span>ارسال کار به کارگاه</span>
-                    </button>
-                  </div>
+        return (
+          <div className={`transition-all duration-200 ${
+            isTableFullscreen
+              ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+              : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+          }`}>
+            {/* Fullscreen Notice Banner */}
+            {isTableFullscreen && (
+              <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه دفتر کارگاه‌های خیاطی فعال است</span>
+                  <span className="text-stone-400 hidden sm:inline">| برای خروج کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
                 </div>
-            ))}
+                <button
+                  onClick={() => setIsTableFullscreen(false)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+                >
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>خروج از تمام‌صفحه</span>
+                </button>
+              </div>
+            )}
+
+            {/* Header Strip */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                  <Scissors className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                    <span>دفتر کارگاه‌های خیاطی، دوزندگان و برشکاران طرف قرارداد</span>
+                    <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full font-mono">
+                      {tailorWorkshops.length.toLocaleString('fa-IR')} کارگاه کل
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    ظرفیت دوخت روزانه، استانداردهای اتو و پنج‌لا دوز، دستمزد هر عدد شلوار و زمان تحویل پارت
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                {/* Fullscreen Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                    isTableFullscreen
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
+                      : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'
+                  }`}
+                  title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (Esc)' : 'بزرگنمایی جدول به تمام‌صفحه'}
+                >
+                  {isTableFullscreen ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>کوچک‌نمایی</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                      <span>تمام‌صفحه</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setIsAddWorkshopModalOpen(true)}
+                  className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 hover:from-black hover:to-stone-900 text-[#FAF7F2] text-xs font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-[#D4AF37]/50 cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>+ ثبت کارگاه خیاطی جدید</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Metrics Ribbon */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Scissors className="w-5 h-5 text-[#D4AF37]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">کارگاه‌های فعال</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {filteredWorkshops.length.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">کارگاه</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Package className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">ظرفیت دوخت روزانه</span>
+                  <span className="text-sm sm:text-base font-black text-emerald-950 block truncate font-mono">
+                    {totalDailyCapFiltered.toLocaleString('fa-IR')} <span className="text-xs font-bold text-emerald-700">عدد/روز</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#8C6D37]/15 text-[#8C6D37] flex items-center justify-center shrink-0 shadow-2xs">
+                  <DollarSign className="w-5 h-5 text-[#8C6D37]" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">میانگین دستمزد دوخت</span>
+                  <span className="text-sm sm:text-base font-black text-stone-900 block font-mono">
+                    {avgWageFiltered.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-stone-600">تومان</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#FAF8F5] p-3 rounded-2xl border border-[#EBE4D5] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Clock className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-stone-500 block truncate">میانگین زمان تحویل پارت</span>
+                  <span className="text-xs sm:text-sm font-bold text-stone-800 block truncate">
+                    ۴ الی ۶ روز کاری
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Master Table */}
+            <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
+                  <tr>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Scissors className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>نام کارگاه و استادکار</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>آدرس و راسته کارگاه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>مدل‌های تخصصی دوخت</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>دستمزد دوخت هر عدد</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>ظرفیت روزانه</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>کیفیت و زمان تحویل</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <PhoneCall className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>تماس مستقیم</span>
+                      </div>
+                    </th>
+                    <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                      <span>ارسال کار به کارگاه</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EFE9DC]">
+                  {filteredWorkshops.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                          <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
+                            <Search className="w-6 h-6 text-stone-400" />
+                          </div>
+                          <h4 className="text-sm font-extrabold text-stone-900">هیچ کارگاه خیاطی‌ای یافت نشد</h4>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredWorkshops.map((ws) => (
+                      <tr
+                        key={ws.id}
+                        className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                      >
+                        {/* Column 1: Workshop & Master */}
+                        <td className="p-3.5 align-middle">
+                          <strong className="font-extrabold text-stone-900 block text-xs sm:text-sm">
+                            {ws.name}
+                          </strong>
+                          <span className="text-[11px] text-stone-500 block mt-0.5">
+                            استادکار: {ws.masterName}
+                          </span>
+                        </td>
+
+                        {/* Column 2: Address */}
+                        <td className="p-3.5 align-middle">
+                          <div className="flex items-center gap-1 text-stone-900 font-bold text-xs">
+                            <MapPin className="w-3.5 h-3.5 text-[#8C6D37] shrink-0" />
+                            <span>{ws.address}</span>
+                          </div>
+                        </td>
+
+                        {/* Column 3: Specialty Models */}
+                        <td className="p-3.5 align-middle">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {ws.specialtyModels.map((m, idx) => (
+                              <span
+                                key={idx}
+                                className="bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] text-[10px] font-bold px-2 py-0.5 rounded-md"
+                              >
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* Column 4: Wage per unit */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-sm font-black text-emerald-950 font-sans">
+                            {ws.wagePerUnit.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-emerald-700">تومان</span>
+                          </div>
+                        </td>
+
+                        {/* Column 5: Daily Capacity */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="bg-stone-100 text-stone-900 border border-stone-300 font-bold px-2.5 py-1 rounded-lg font-mono text-xs">
+                            {ws.dailyCapacity.toLocaleString('fa-IR')} عدد در روز
+                          </span>
+                        </td>
+
+                        {/* Column 6: Quality & Lead Time */}
+                        <td className="p-3.5 align-middle">
+                          <span className="text-xs font-bold text-stone-900 block">
+                            {ws.qualityScore}
+                          </span>
+                          <span className="text-[10px] text-[#8C6D37] block mt-0.5 font-mono">
+                            تحویل: {ws.typicalLeadTimeDays} روز کاری
+                          </span>
+                        </td>
+
+                        {/* Column 7: Phone */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <a
+                            href={`tel:${ws.phone}`}
+                            className="bg-[#FAF7F2] hover:bg-[#E6DEC8] text-stone-900 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-[#DDD5C0] inline-flex items-center gap-1.5 transition-colors"
+                          >
+                            <PhoneCall className="w-3 h-3 text-[#8C6D37]" />
+                            <span className="dir-ltr text-right">{ws.phone}</span>
+                          </a>
+                        </td>
+
+                        {/* Column 8: Action */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              setNewBatch(prev => ({
+                                ...prev,
+                                tailorWorkshopId: ws.id,
+                                wagePerUnit: ws.wagePerUnit,
+                              }));
+                              setIsAddBatchModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-gradient-to-r from-stone-900 to-[#18181B] hover:from-black hover:to-stone-900 text-[#FAF7F2] rounded-xl transition-all flex items-center gap-1.5 border border-[#D4AF37]/60 hover:border-[#D4AF37] font-bold text-xs cursor-pointer shadow-xs mx-auto active:scale-95"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            <span>ارسال کار</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Bottom Summary Strip */}
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold text-stone-800">
+                  نمایش {filteredWorkshops.length.toLocaleString('fa-IR')} از {tailorWorkshops.length.toLocaleString('fa-IR')} کارگاه خیاطی
+                </span>
+                <span className="text-stone-300 hidden sm:inline">|</span>
+                <span>
+                  مجموع پتانسیل تولید روزانه: <strong className="text-stone-900 font-mono">{totalDailyCapFiltered.toLocaleString('fa-IR')}</strong> عدد شلوار
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-stone-500 font-medium">پایش خطوط دوخت:</span>
+                <span className="font-bold text-stone-900 bg-white px-2.5 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                  کنترل کیفیت صادراتی «من و تو»
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Tab 4: Interactive Cost & Delivery Estimator Calculator */}
       {activeTab === 'calculator' && (

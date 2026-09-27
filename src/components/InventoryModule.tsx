@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   Package, 
@@ -32,7 +32,10 @@ import {
   EyeOff,
   Palette,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  Image as ImageIcon,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Product, PackSize, ProductSource, Invoice } from '../types';
 import { ImageUploader } from './common/ImageUploader';
@@ -196,6 +199,25 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
     setEditingProduct(null);
     setEditForm(null);
   };
+
+  // Fullscreen Table Mode
+  const [isTableFullscreen, setIsTableFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsTableFullscreen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    if (isTableFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isTableFullscreen]);
 
   // Toast notification for actions
   const [creationSuccessToast, setCreationSuccessToast] = useState<string | null>(null);
@@ -436,6 +458,12 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
 
   const categoriesList = Array.from(new Set(products.map(p => p.category)));
 
+  // Inventory valuation summary metrics
+  const totalFilteredPacks = useMemo(() => filteredProducts.reduce((s, p) => s + p.packStock, 0), [filteredProducts]);
+  const totalFilteredUnits = useMemo(() => filteredProducts.reduce((s, p) => s + (p.packStock * p.packSize) + p.singleStock, 0), [filteredProducts]);
+  const totalFilteredWholesaleValue = useMemo(() => filteredProducts.reduce((s, p) => s + (p.packStock * p.baseWholesalePricePerPack), 0), [filteredProducts]);
+  const totalFilteredCostValue = useMemo(() => filteredProducts.reduce((s, p) => s + (p.packStock * p.packSize * p.totalCostPrice), 0), [filteredProducts]);
+
   return (
     <div id="inventory-module" className="space-y-5 animate-in fade-in duration-200">
       
@@ -607,191 +635,433 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
 
       {/* Main Content: Table View */}
       {viewMode === 'table' ? (
-        <div className="bg-white rounded-xl border border-stone-200 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className="bg-stone-100/80 text-stone-600 border-b border-stone-200 font-bold">
+        <div className={`transition-all duration-200 ${
+          isTableFullscreen
+            ? 'fixed inset-0 z-50 bg-[#FAF8F5] p-3 sm:p-6 overflow-y-auto space-y-4 shadow-2xl'
+            : 'bg-white rounded-3xl border border-[#DFD7C2] shadow-sm overflow-hidden space-y-4 p-4 sm:p-5'
+        }`}>
+          {/* Fullscreen Notice Banner */}
+          {isTableFullscreen && (
+            <div className="bg-[#18181B] text-[#FAF8F5] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs font-medium border border-[#D4AF37]/30 shadow-md">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-bold text-[#D4AF37]">حالت تمام‌صفحه جدول کاردکس انبار و کالاها فعال است</span>
+                <span className="text-stone-400 hidden sm:inline">| برای خروج می‌توانید کلید Esc کیبورد یا دکمه کوچک‌نمایی را بزنید</span>
+              </div>
+              <button
+                onClick={() => setIsTableFullscreen(false)}
+                className="px-3 py-1 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white flex items-center gap-1.5 transition-colors font-bold text-xs"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>خروج از تمام‌صفحه</span>
+              </button>
+            </div>
+          )}
+
+          {/* Inner Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+                <Boxes className="w-5 h-5 text-[#D4AF37]" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+                  <span>جدول جامع کاردکس انبار، بهای تمام‌شده و نرخ‌های فروش</span>
+                  <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full">
+                    {filteredProducts.length.toLocaleString('fa-IR')} مدل در این نما
+                  </span>
+                  {isTableFullscreen && (
+                    <span className="text-[10px] font-bold bg-amber-500 text-stone-950 px-2 py-0.5 rounded-md animate-pulse">
+                      نمای تمام‌صفحه
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  تفکیک تولید کارگاه اختصاصی «من و تو» و خرید همکاری، پایش بلادرنگ موجودی پک‌ها و حاشیه سود
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                onClick={() => setIsTableFullscreen(!isTableFullscreen)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border cursor-pointer active:scale-95 ${
+                  isTableFullscreen
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600 shadow-md ring-2 ring-amber-300'
+                    : 'bg-[#FAF7F2] hover:bg-[#EFE8D8] text-stone-800 border-[#DDD5C0] shadow-2xs'
+                }`}
+                title={isTableFullscreen ? 'خروج از حالت تمام‌صفحه (کلید Esc)' : 'بزرگ‌نمایی و نمایش تمام‌صفحه جدول'}
+              >
+                {isTableFullscreen ? (
+                  <>
+                    <Minimize2 className="w-3.5 h-3.5 text-white" />
+                    <span>خروج از تمام‌صفحه (Esc)</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                    <span>نمای تمام‌صفحه</span>
+                  </>
+                )}
+              </button>
+
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-stone-500 font-medium">
+                <span>کل کاتالوگ:</span>
+                <strong className="text-stone-900 font-black">{products.length.toLocaleString('fa-IR')} مدل</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Master Table */}
+          <div className="overflow-x-auto rounded-2xl border border-[#E6DEC8] shadow-2xs">
+            <table className="w-full text-right text-xs border-collapse">
+              <thead className="bg-gradient-to-r from-stone-900 via-[#18181B] to-stone-900 text-stone-100 border-b-2 border-[#D4AF37]">
                 <tr>
-                  <th className="p-3">تصویر و مدل کالا</th>
-                  <th className="p-3">کد کاتالوگ (SKU)</th>
-                  <th className="p-3">بهای تمام‌شده (عدد)</th>
-                  <th className="p-3">واحد فروش (پک)</th>
-                  <th className="p-3">قیمت عمده پک</th>
-                  <th className="p-3">قیمت همکاری (تخفیف‌دار)</th>
-                  <th className="p-3">موجودی پک در انبار</th>
-                  <th className="p-3">منبع تامین</th>
-                  <th className="p-3 text-center">عملیات</th>
+                  {/* Column 1: Main Product Photo */}
+                  <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>عکس اصلی کالا</span>
+                    </div>
+                  </th>
+
+                  {/* Column 2: Colors */}
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>رنگ‌ها و تنوع</span>
+                    </div>
+                  </th>
+
+                  {/* Column 3: Model & Fabric */}
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>مدل کالا و پارچه</span>
+                    </div>
+                  </th>
+
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>کد کاتالوگ (SKU)</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Scissors className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>بهای تمام‌شده (واحد)</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Boxes className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>واحد فروش (پک)</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>قیمت عمده پک</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>قیمت همکاری هم‌صنف</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>موجودی پک در انبار</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>منبع تامین کالا</span>
+                    </div>
+                  </th>
+                  <th className="py-3.5 px-3 text-center text-stone-300 font-bold whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>عملیات و مدیریت</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-200/70">
-                {filteredProducts.map((product) => {
-                  const isLow = product.packStock <= product.minPackStockAlert;
-                  return (
-                    <tr key={product.id} className="hover:bg-stone-50/80 transition-colors">
-                      
-                      {/* Product Image and Name */}
-                      <td className="p-3">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            referrerPolicy="no-referrer"
-                            className="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
-                          />
-                          <div>
-                            <p className="font-bold text-stone-900 hover:text-amber-700 cursor-pointer" onClick={() => setSelectedProductForDetails(product)}>
+              <tbody className="divide-y divide-[#EFE9DC]">
+                {filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="py-12 px-4 text-center">
+                      <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                        <div className="w-14 h-14 rounded-2xl bg-[#FAF7F2] border border-[#DDD5C0] flex items-center justify-center text-stone-400 mb-3 shadow-2xs">
+                          <Search className="w-6 h-6 text-stone-400" />
+                        </div>
+                        <h4 className="text-sm font-extrabold text-stone-900">هیچ مدلی با این مشخصات یافت نشد</h4>
+                        <p className="text-xs text-stone-500 mt-1">
+                          با فیلتر انتخابی یا عبارت جستجوی «{searchQuery}» کالایی در انبار ثبت نشده است.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setSearchQuery('');
+                            setSelectedCategory('all');
+                            setSelectedSource('all');
+                            setStockFilter('all');
+                          }}
+                          className="mt-3.5 px-4 py-1.5 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-900 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                        >
+                          پاک کردن فیلترها و مشاهده همه
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProducts.map((product) => {
+                    const isLow = product.packStock <= product.minPackStockAlert;
+                    return (
+                      <tr
+                        key={product.id}
+                        className="hover:bg-[#F5EFE4]/90 transition-colors group odd:bg-white even:bg-[#FAF8F5]/80"
+                      >
+                        {/* Column 1: عکس اصلی کالا (Main Photo) */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                          <div
+                            onClick={() => setSelectedProductForDetails(product)}
+                            className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden border border-[#DDD5C0] shrink-0 shadow-2xs bg-stone-100 group-hover:border-[#D4AF37] group-hover:shadow-md transition-all cursor-pointer mx-auto group/img"
+                            title="کلیک برای مشاهده جزئیات و تصاویر ژورنالی"
+                          >
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/35 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-bold">
+                              <Eye className="w-4 h-4 text-[#FAF7F2]" />
+                            </div>
+                            {product.galleryImages && product.galleryImages.length > 1 && (
+                              <span className="absolute bottom-1 left-1 bg-stone-900/80 backdrop-blur-xs text-[#FAF7F2] text-[8px] font-mono font-bold px-1 py-0.2 rounded">
+                                {product.galleryImages.length}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Column 2: رنگ‌ها (Colors) */}
+                        <td className="p-3.5 align-middle">
+                          <div className="flex flex-wrap gap-1 max-w-[190px]">
+                            {product.colors.map((col, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center gap-1 text-[10px] font-medium bg-[#FAF7F2] text-stone-800 px-2 py-0.5 rounded-lg border border-[#E0D7C3] shadow-2xs whitespace-nowrap hover:border-[#D4AF37] transition-colors"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8C6D37]/80 shrink-0"></span>
+                                <span>{col}</span>
+                              </span>
+                            ))}
+                          </div>
+                          <span className="text-[10px] text-stone-400 font-mono block mt-1">
+                            {product.colors.length.toLocaleString('fa-IR')} رنگ در پک
+                          </span>
+                        </td>
+
+                        {/* Column 3: مدل کالا (Model, Category, Fabric & Sizes) */}
+                        <td className="p-3.5 align-middle">
+                          <div className="min-w-[180px] max-w-[260px]">
+                            <p
+                              className="font-extrabold text-stone-900 text-xs sm:text-sm hover:text-[#8C6D37] cursor-pointer line-clamp-1 transition-colors block"
+                              onClick={() => setSelectedProductForDetails(product)}
+                              title={product.name}
+                            >
                               {product.name}
                             </p>
-                            <p className="text-[11px] text-stone-500 mt-0.5">
-                              {product.fabricType} • {product.sizes}
-                            </p>
-                            <div className="flex items-center gap-1 mt-1">
-                              {product.colors.slice(0, 3).map((col, idx) => (
-                                <span key={idx} className="text-[9px] bg-stone-100 text-stone-600 px-1.5 py-0.2 rounded border border-stone-200">
-                                  {col}
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              <span className="text-[9.5px] font-bold bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded-md border border-stone-200">
+                                {product.category}
+                              </span>
+                              {product.isBestSeller && (
+                                <span className="text-[9px] font-bold bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded border border-amber-300">
+                                  پرفروش
                                 </span>
-                              ))}
-                              {product.colors.length > 3 && (
-                                <span className="text-[9px] text-stone-400">+{product.colors.length - 3} رنگ</span>
+                              )}
+                              {product.isNewArrival && (
+                                <span className="text-[9px] font-bold bg-emerald-100 text-emerald-900 px-1.5 py-0.2 rounded border border-emerald-300">
+                                  جدید
+                                </span>
                               )}
                             </div>
+                            <p className="text-[11px] text-stone-600 mt-1 line-clamp-1" title={product.fabricType}>
+                              <span className="text-stone-400 font-normal">پارچه:</span> {product.fabricType}
+                            </p>
+                            <p className="text-[10px] text-stone-500 font-mono mt-0.5 line-clamp-1" title={product.sizes}>
+                              <span className="text-stone-400 font-normal">سایز:</span> {product.sizes}
+                            </p>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* SKU */}
-                      <td className="p-3">
-                        <span className="font-mono text-stone-800 bg-stone-100 px-2 py-1 rounded font-bold border border-stone-200 text-[11px]">
-                          {product.sku}
-                        </span>
-                      </td>
+                        {/* Column 2: SKU */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="bg-[#18181B] text-[#D4AF37] px-2.5 py-1 rounded-lg font-mono font-bold text-xs inline-flex items-center gap-1 shadow-2xs">
+                            {product.sku}
+                          </span>
+                        </td>
 
-                      {/* Real Cost Price Breakdown */}
-                      <td className="p-3">
-                        <div className="font-bold text-stone-900">
-                          {product.totalCostPrice.toLocaleString('fa-IR')} ت
-                        </div>
-                        {product.source === 'self_produced' ? (
-                          <div className="text-[10px] text-stone-400 mt-0.5">
-                            پارچه: {(product.fabricCost / 1000).toFixed(0)}k | خیاط: {(product.tailoringCost / 1000).toFixed(0)}k
+                        {/* Column 3: Cost Price */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-xs sm:text-sm font-black text-stone-900 font-sans">
+                            {product.totalCostPrice.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-stone-600">تومان</span>
                           </div>
-                        ) : (
-                          <div className="text-[10px] text-purple-600 font-medium mt-0.5">
-                            خرید از همکار بازار
+                          {product.source === 'self_produced' ? (
+                            <div className="text-[10px] text-stone-500 mt-0.5 font-mono">
+                              پارچه: {(product.fabricCost / 1000).toLocaleString('fa-IR')}k | خیاط: {(product.tailoringCost / 1000).toLocaleString('fa-IR')}k
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-purple-700 font-semibold mt-0.5">
+                              خرید از همکار بازار
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Column 4: Pack Unit */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <span className="bg-amber-100/90 text-amber-950 font-bold px-2.5 py-1 rounded-lg text-xs inline-flex items-center gap-1.5 border border-amber-300 shadow-2xs">
+                            <Boxes className="w-3.5 h-3.5 text-amber-700" />
+                            <span>پک {product.packSize.toLocaleString('fa-IR')} تایی</span>
+                          </span>
+                        </td>
+
+                        {/* Column 5: Base Wholesale Price */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-sm font-black text-stone-950 font-sans tracking-tight">
+                            {product.baseWholesalePricePerPack.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
                           </div>
-                        )}
-                      </td>
+                          <div className="text-[10px] text-stone-500 mt-0.5">
+                            دانه‌ای {product.baseWholesalePricePerUnit.toLocaleString('fa-IR')} تومان
+                          </div>
+                        </td>
 
-                      {/* Pack Size Unit */}
-                      <td className="p-3">
-                        <span className="bg-amber-100 text-amber-900 font-bold px-2 py-0.8 rounded-md text-[11px] inline-flex items-center gap-1 border border-amber-200">
-                          <Boxes className="w-3 h-3" />
-                          پک {product.packSize} تایی
-                        </span>
-                      </td>
+                        {/* Column 6: Colleague Price */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="text-sm font-black text-emerald-950 font-sans tracking-tight">
+                            {product.colleaguePricePerPack.toLocaleString('fa-IR')}{' '}
+                            <span className="text-xs font-bold text-emerald-700">تومان</span>
+                          </div>
+                          <div className="text-[10px] text-emerald-800 font-bold mt-0.5">
+                            سود همکار: {(product.baseWholesalePricePerUnit - product.colleaguePricePerUnit).toLocaleString('fa-IR')} ت/عدد
+                          </div>
+                        </td>
 
-                      {/* Base Wholesale Price Per Pack */}
-                      <td className="p-3">
-                        <div className="font-bold text-stone-900">
-                          {product.baseWholesalePricePerPack.toLocaleString('fa-IR')} ت
-                        </div>
-                        <div className="text-[10px] text-stone-500">
-                          دونه‌ای {product.baseWholesalePricePerUnit.toLocaleString('fa-IR')} ت
-                        </div>
-                      </td>
+                        {/* Column 7: Stock Stepper */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleAdjustPackStock(product, -1)}
+                              className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center transition-colors border border-stone-200 cursor-pointer shadow-2xs active:scale-95"
+                              title="کاهش ۱ پک از انبار"
+                            >
+                              -
+                            </button>
 
-                      {/* Colleague Price */}
-                      <td className="p-3">
-                        <div className="font-bold text-emerald-800">
-                          {product.colleaguePricePerPack.toLocaleString('fa-IR')} ت
-                        </div>
-                        <div className="text-[10px] text-emerald-600 font-medium">
-                          اختلاف: {(product.baseWholesalePricePerUnit - product.colleaguePricePerUnit).toLocaleString('fa-IR')} ت/عدد
-                        </div>
-                      </td>
+                            <div className="text-center min-w-[65px] bg-[#FAF8F5] px-2 py-1 rounded-lg border border-[#E6DEC8]">
+                              <span className={`font-black text-xs sm:text-sm block ${isLow ? 'text-rose-600' : 'text-stone-900'}`}>
+                                {product.packStock.toLocaleString('fa-IR')} پک
+                              </span>
+                              <span className="text-[10px] text-stone-500 font-mono block">
+                                ({(product.packStock * product.packSize).toLocaleString('fa-IR')} عدد)
+                              </span>
+                            </div>
 
-                      {/* Stock Adjustment Controls */}
-                      <td className="p-3">
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => handleAdjustPackStock(product, -1)}
-                            className="w-6 h-6 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center transition-colors"
-                            title="کاهش ۱ پک"
-                          >
-                            -
-                          </button>
-                          
-                          <div className="text-center min-w-[50px]">
-                            <span className={`font-black text-sm block ${isLow ? 'text-rose-600' : 'text-stone-900'}`}>
-                              {product.packStock} پک
+                            <button
+                              onClick={() => handleAdjustPackStock(product, 1)}
+                              className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center transition-colors border border-stone-200 cursor-pointer shadow-2xs active:scale-95"
+                              title="افزایش ۱ پک به انبار"
+                            >
+                              +
+                            </button>
+                          </div>
+                          {isLow && (
+                            <span className="inline-flex items-center gap-1 text-[9.5px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md mt-1.5 animate-pulse">
+                              <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
+                              <span>هشدار کسری انبار</span>
                             </span>
-                            <span className="text-[10px] text-stone-400">
-                              ({product.packStock * product.packSize} عدد)
+                          )}
+                        </td>
+
+                        {/* Column 8: Source */}
+                        <td className="p-3.5 align-middle whitespace-nowrap">
+                          {product.source === 'self_produced' ? (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-50 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                              <Scissors className="w-3 h-3 text-emerald-600" />
+                              <span>تولید کارگاه «من و تو»</span>
                             </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-purple-50 text-purple-900 border border-purple-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                              <Building2 className="w-3 h-3 text-purple-600" />
+                              <span>تامین از همکار بازار</span>
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Column 9: Actions */}
+                        <td className="p-3.5 align-middle text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => setSelectedProductForDetails(product)}
+                              className="p-1.5 bg-[#FAF7F2] text-stone-700 hover:text-stone-900 hover:bg-[#EDE5D3] rounded-xl transition-all border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                              title="مشاهده شناسنامه کامل کالا و تصاویر ژورنالی"
+                            >
+                              <Eye className="w-4 h-4 text-[#8C6D37]" />
+                            </button>
+                            <button
+                              onClick={() => handleStartEdit(product)}
+                              className="p-1.5 bg-[#FAF7F2] text-stone-700 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                              title="ویرایش قیمت‌ها، بسته‌بندی و مشخصات"
+                            >
+                              <Edit3 className="w-4 h-4 text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => onDeleteProduct(product.id)}
+                              className="p-1.5 bg-[#FAF7F2] text-stone-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all border border-[#DDD5C0] shadow-2xs cursor-pointer"
+                              title="حذف مدل از انبار"
+                            >
+                              <Trash2 className="w-4 h-4 text-rose-500" />
+                            </button>
                           </div>
-
-                          <button
-                            onClick={() => handleAdjustPackStock(product, 1)}
-                            className="w-6 h-6 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center transition-colors"
-                            title="افزایش ۱ پک"
-                          >
-                            +
-                          </button>
-                        </div>
-                        {isLow && (
-                          <span className="text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded inline-block mt-1">
-                            هشدار کسری
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Source */}
-                      <td className="p-3">
-                        {product.source === 'self_produced' ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
-                            <Scissors className="w-2.5 h-2.5" />
-                            تولید کارگاه
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-full">
-                            <Building2 className="w-2.5 h-2.5" />
-                            خرید همکاری
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleStartEdit(product)}
-                            className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
-                            title="ویرایش کامل کالا و قیمت و موجودی"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setSelectedProductForDetails(product)}
-                            className="p-1.5 text-zinc-400 hover:text-[#D4AF37] hover:bg-zinc-800 rounded-lg transition-colors"
-                            title="مشاهده جزییات و فرمول قیمت"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => onDeleteProduct(product.id)}
-                            className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                            title="حذف از انبار"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-
-                    </tr>
-                  );
-                })}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
+          </div>
+
+          {/* Table Bottom Summary Strip */}
+          <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E6DEC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-bold text-stone-800">
+                نمایش {filteredProducts.length.toLocaleString('fa-IR')} از {products.length.toLocaleString('fa-IR')} مدل کاتالوگ
+              </span>
+              <span className="text-stone-300 hidden sm:inline">|</span>
+              <span>
+                مجموع موجودی: <strong className="text-stone-900 font-mono">{totalFilteredPacks.toLocaleString('fa-IR')}</strong> پک ({totalFilteredUnits.toLocaleString('fa-IR')} عدد)
+              </span>
+              <span className="text-stone-300 hidden sm:inline">|</span>
+              <span>
+                ارزش بهای تمام‌شده: <strong className="text-stone-700 font-mono">{totalFilteredCostValue.toLocaleString('fa-IR')}</strong> تومان
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-stone-500 font-medium">ارزش سرمایه انبار (نرخ عمده):</span>
+              <span className="text-sm font-black text-stone-950 font-sans bg-white px-3 py-1 rounded-xl border border-[#DDD5C0] shadow-2xs">
+                {totalFilteredWholesaleValue.toLocaleString('fa-IR')} <span className="text-xs font-bold text-[#8C6D37]">تومان</span>
+              </span>
+            </div>
           </div>
         </div>
       ) : (

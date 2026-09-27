@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CartItem, StorefrontCustomerInfo, StorefrontShippingMethod, StorefrontOrder, CustomerUser, InstantCourierInfo } from '../../types';
+import { CartItem, StorefrontCustomerInfo, StorefrontShippingMethod, StorefrontOrder, CustomerUser, InstantCourierInfo, CardReceiptInfo } from '../../types';
 import { FormalInvoicePrintSheet } from './FormalInvoicePrintSheet';
+import { CardToCardGatewayModal, CardReceiptSubmission } from './CardToCardGatewayModal';
 import { 
   ArrowRight, 
   ArrowLeft,
@@ -135,6 +136,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   // Simulated Gateway State
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isGatewayOpen, setIsGatewayOpen] = useState(false);
+  const [isCardToCardGatewayOpen, setIsCardToCardGatewayOpen] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<StorefrontOrder | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -299,12 +301,21 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
     if (paymentMethod === 'online_gateway') {
       setIsGatewayOpen(true);
+    } else if (paymentMethod === 'card_to_card') {
+      setIsCardToCardGatewayOpen(true);
     } else {
-      finalizeOrder(paymentMethod === 'card_to_card' ? 'pending_verification' : 'pending_check');
+      finalizeOrder('pending_check');
     }
   };
 
-  const finalizeOrder = (status: 'paid' | 'pending_verification' | 'pending_check') => {
+  const handleConfirmCardToCardPayment = (receiptData: CardReceiptSubmission) => {
+    finalizeOrder('pending_verification', receiptData);
+  };
+
+  const finalizeOrder = (
+    status: 'paid' | 'pending_verification' | 'pending_check',
+    cardReceipt?: CardReceiptInfo
+  ) => {
     // Keep registered customer profile up to date
     if (activeUser && onUpdateCustomerUser) {
       onUpdateCustomerUser({
@@ -355,6 +366,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       instantCourierInfo,
       paymentMethod,
       paymentStatus: status,
+      cardReceiptInfo: cardReceipt,
       orderStatus: 'registered',
       carrierName: shippingMethod === 'peyk_instant' 
         ? `پیک لحظه‌ای (${courierProvider === 'snapp_box' ? 'اسنپ‌باکس' : courierProvider === 'alopeyk' ? 'الوپیک' : courierProvider === 'tapsi_pack' ? 'تپسی‌پک' : 'پیک بازار'})`
@@ -373,6 +385,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
     onOrderPlaced(newOrder);
     onClearCart();
     setIsGatewayOpen(false);
+    setIsCardToCardGatewayOpen(false);
   };
 
   const handleCopyTrackingCode = () => {
@@ -435,6 +448,49 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
               )}
             </button>
           </div>
+
+          {/* Card to Card Receipt Confirmation Banner */}
+          {placedOrder.paymentMethod === 'card_to_card' && placedOrder.cardReceiptInfo && (
+            <div className="bg-[#FAF7F2] border border-[#DDD5C0] rounded-2xl p-4 sm:p-5 space-y-3 text-xs">
+              <div className="flex items-center justify-between border-b border-[#E6DEC8] pb-2">
+                <span className="font-bold text-stone-900 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-[#8C6D37]" />
+                  رسید ثبت‌شده در درگاه پرداخت کارت به کارت:
+                </span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  دریافت شد • در انتظار تطبیق حسابداری و انبار
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-[11px]">
+                <div>
+                  <span className="text-stone-500 block">بانک مقصد:</span>
+                  <span className="font-bold text-stone-800">بانک ملت (آقای اسدی)</span>
+                </div>
+                <div>
+                  <span className="text-stone-500 block">۴ رقم آخر کارت شما:</span>
+                  <span className="font-mono font-bold text-stone-900">{placedOrder.cardReceiptInfo.senderCardLast4}</span>
+                </div>
+                <div>
+                  <span className="text-stone-500 block">شماره پیگیری شتاب:</span>
+                  <span className="font-mono font-bold text-stone-900">{placedOrder.cardReceiptInfo.trackingRefNumber}</span>
+                </div>
+                <div>
+                  <span className="text-stone-500 block">بانک مبدا:</span>
+                  <span className="font-bold text-stone-800">{placedOrder.cardReceiptInfo.bankName || 'شتاب'}</span>
+                </div>
+              </div>
+              {placedOrder.cardReceiptInfo.receiptImageUrl && (
+                <div className="pt-2 border-t border-[#E6DEC8] flex items-center gap-2">
+                  <img 
+                    src={placedOrder.cardReceiptInfo.receiptImageUrl} 
+                    alt="فیش واریزی" 
+                    className="w-10 h-10 object-cover rounded-lg border border-stone-300"
+                  />
+                  <span className="text-[11px] text-stone-600">تصویر فیش واریزی پیوست سفارش گردید.</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Formal Official Commercial Invoice (For Screen & High-Res A4 Print) */}
           <div className="w-full">
@@ -1114,14 +1170,20 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
               </label>
 
               <label
-                className={`p-3.5 rounded-2xl border-2 transition-all flex flex-col justify-between gap-2 cursor-pointer ${
+                className={`p-3.5 rounded-2xl border-2 transition-all flex flex-col justify-between gap-2.5 cursor-pointer relative ${
                   paymentMethod === 'card_to_card'
-                    ? 'border-[#18181B] bg-[#FAF7F2] shadow-xs'
+                    ? 'border-[#18181B] bg-gradient-to-br from-[#FAF7F2] to-amber-50/60 shadow-sm ring-2 ring-[#D4AF37]/30'
                     : 'border-[#DDD5C0] bg-white hover:border-[#18181B]/40'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-stone-900 text-xs">کارت به کارت</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-stone-900 text-xs sm:text-sm">کارت به کارت</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#18181B] text-[#D4AF37] flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" />
+                      درگاه هوشمند
+                    </span>
+                  </div>
                   <input
                     type="radio"
                     name="payment_method"
@@ -1131,9 +1193,16 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     className="text-[#18181B] focus:ring-[#18181B]"
                   />
                 </div>
-                <p className="text-[10px] text-stone-500">
-                  واریز به حساب بانک ملت موسسه من و تو و ارسال فیش
+                <p className="text-[11px] text-stone-600 leading-relaxed">
+                  انتقال مستقیم به درگاه، کپی شماره کارت بانک ملت و ثبت آنی شماره پیگیری یا تصویر فیش
                 </p>
+                <div className="pt-2 border-t border-[#E6DEC8] flex items-center justify-between text-[10px] text-stone-500">
+                  <span className="flex items-center gap-1 font-mono text-stone-700">
+                    <CreditCard className="w-3 h-3 text-[#8C6D37]" />
+                    بانک ملت • ۶۱۰۴
+                  </span>
+                  <span className="text-emerald-700 font-bold">تایید سریع شتاب</span>
+                </div>
               </label>
 
               <label

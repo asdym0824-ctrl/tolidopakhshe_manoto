@@ -112,6 +112,15 @@ export interface InstantCourierInfo {
   driverPhone?: string;
 }
 
+export interface CardReceiptInfo {
+  senderCardLast4?: string;
+  trackingRefNumber?: string;
+  receiptImageUrl?: string;
+  bankName?: string;
+  depositTime?: string;
+  notes?: string;
+}
+
 export interface StorefrontOrder {
   id: string;
   orderNumber: string; // e.g. MNT-1403-8821
@@ -127,6 +136,7 @@ export interface StorefrontOrder {
   instantCourierInfo?: InstantCourierInfo;
   paymentMethod: 'online_gateway' | 'card_to_card' | 'wholesale_check';
   paymentStatus: 'paid' | 'pending_verification' | 'pending_check';
+  cardReceiptInfo?: CardReceiptInfo;
   orderStatus: 'registered' | 'confirmed' | 'processing' | 'packed' | 'sent_to_carrier' | 'delivered';
   adminConfirmedAt?: string;
   adminConfirmedBy?: string;
@@ -213,6 +223,8 @@ export interface InvoiceItem {
   totalUnits: number;
   pricePerPack: number;
   totalPrice: number;
+  isNegotiatedPrice?: boolean;
+  originalPricePerPack?: number;
 }
 
 export interface Invoice {
@@ -235,6 +247,7 @@ export interface Invoice {
   shippingMethod: string;
   trackingCode?: string;
   notes?: string;
+  isOfficialInPerson?: boolean;
 }
 
 export interface Shipment {

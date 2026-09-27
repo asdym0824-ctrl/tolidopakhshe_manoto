@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { StorefrontOrder, Invoice } from '../types';
 import { OrderWorkflowStepper } from './admin/OrderWorkflowStepper';
+import { isWorkflowStepCompleted } from '../data/orderWorkflow';
 
 interface OrderTrackingAdminModuleProps {
   orders: StorefrontOrder[];
@@ -476,11 +477,16 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
             const statusInfo = ORDER_STATUS_CONFIG[order.orderStatus] || ORDER_STATUS_CONFIG.registered;
             const isEditing = editingOrderId === order.id;
             const totalItemCount = order.items.reduce((sum, it) => sum + it.quantity, 0);
+            const isAllCompleted = isWorkflowStepCompleted(order.orderStatus, 4);
 
             return (
               <div 
                 key={order.id}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-[#E6DEC8] shadow-xs hover:shadow-md transition-all overflow-hidden"
+                className={`rounded-2xl sm:rounded-3xl border shadow-xs hover:shadow-md transition-all overflow-hidden ${
+                  isAllCompleted 
+                    ? 'bg-white border-emerald-300 ring-1 ring-emerald-200/60' 
+                    : 'bg-white border-[#E6DEC8]'
+                }`}
               >
                 {/* Order Summary Header - Highly Optimized for Mobile Touch */}
                 <div className="p-3.5 sm:p-5 bg-gradient-to-l from-stone-50 via-white to-stone-50/60 border-b border-stone-200">
@@ -542,7 +548,11 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
                 </div>
 
                 {/* 4-Step Interactive Workflow Stepper Component */}
-                <div className="p-3 sm:p-4 bg-[#FAF7F2]/90 border-b border-[#E6DEC8]">
+                <div className={`p-3 sm:p-4 border-b transition-colors duration-300 ${
+                  isAllCompleted 
+                    ? 'bg-emerald-50/70 border-emerald-200' 
+                    : 'bg-[#FAF7F2]/90 border-[#E6DEC8]'
+                }`}>
                   <OrderWorkflowStepper 
                     order={order} 
                     onUpdateStatus={(newStatus, carrierName, waybillNumber, notes) => 
@@ -653,13 +663,21 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
                 )}
 
                 {/* Core Details Grid: WHO ORDERED WHAT? */}
-                <div className="p-3.5 sm:p-5 space-y-3.5">
+                <div className={`p-3.5 sm:p-5 space-y-3.5 transition-colors duration-300 ${
+                  isAllCompleted 
+                    ? 'bg-emerald-50/70' 
+                    : 'bg-transparent'
+                }`}>
                   
                   {/* Two Column Layout: Customer Details & Ordered Items */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5">
                     
                     {/* Column 1: Customer Contact & Shipping Address (4 cols) */}
-                    <div className="lg:col-span-4 bg-stone-50 p-3 sm:p-4 rounded-2xl border border-stone-200 space-y-2.5">
+                    <div className={`lg:col-span-4 p-3 sm:p-4 rounded-2xl border space-y-2.5 transition-colors ${
+                      isAllCompleted 
+                        ? 'bg-white/95 border-emerald-200 shadow-2xs' 
+                        : 'bg-stone-50 border-stone-200'
+                    }`}>
                       <div className="flex items-center justify-between border-b border-stone-200 pb-2">
                         <span className="text-xs font-black text-stone-900 flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-[#8C6D37]" />
@@ -885,7 +903,11 @@ export const OrderTrackingAdminModule: React.FC<OrderTrackingAdminModuleProps> =
                       </div>
 
                       {/* Payment & Invoice Summary Footer */}
-                      <div className="p-2.5 sm:p-3 bg-stone-100/80 rounded-2xl border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div className={`p-2.5 sm:p-3 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs transition-colors ${
+                        isAllCompleted 
+                          ? 'bg-white/95 border-emerald-200' 
+                          : 'bg-stone-100/80 border-stone-200'
+                      }`}>
                         <div className="flex items-center gap-2 flex-wrap text-[11px]">
                           <span className="text-stone-500">وضعیت پرداخت:</span>
                           <span className={`font-black px-2 py-0.5 rounded-lg text-[10px] ${
