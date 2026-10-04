@@ -58,27 +58,33 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
     <nav 
       id="mobile-sticky-bottom-nav"
       aria-label="منوی دسترسی سریع موبایل"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-lg border-t border-[#E6DEC8] px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom,0px)+6px)] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-[#FAF7F2]/95 backdrop-blur-lg border-t border-[#E6DEC8] px-2 pt-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+8px)] shadow-[0_-4px_25px_rgba(0,0,0,0.08)] overflow-visible"
       dir="rtl"
     >
-      <div className="flex items-center justify-around max-w-lg mx-auto relative">
+      <div className="flex items-end justify-around max-w-lg mx-auto relative overflow-visible h-14">
         
         {/* 1. Home / Catalog (ویترین) */}
         <button
           type="button"
           onClick={() => handleSelect('home', onScrollToCatalog)}
-          className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl transition-all duration-200 cursor-pointer active:scale-95 ${
+          className={`relative flex flex-col items-center justify-center rounded-2xl transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
             currentActive === 'home'
-              ? 'bg-[#18181B] text-[#FAF7F2] shadow-sm ring-1 ring-stone-900/10'
-              : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+              ? '-translate-y-3.5 bg-[#18181B] text-[#FAF7F2] border-2 border-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-2xl shadow-stone-950/40 py-2 px-3 z-10 scale-105'
+              : 'translate-y-0 text-stone-600 hover:text-stone-900 hover:bg-stone-200/50 border border-transparent py-1.5 px-2.5'
           }`}
           aria-current={currentActive === 'home' ? 'page' : undefined}
         >
           {currentActive === 'home' && (
-            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-[#D4AF37] shadow-xs" />
+            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-[#D4AF37] via-amber-300 to-[#D4AF37] shadow-xs" />
           )}
-          <Home className={`w-5 h-5 transition-transform ${currentActive === 'home' ? 'text-[#D4AF37] scale-110' : 'text-stone-700'}`} />
-          <span className={`text-[10px] mt-0.5 transition-colors ${currentActive === 'home' ? 'font-black text-[#FAF7F2]' : 'font-bold'}`}>
+          <Home className={`transition-all duration-200 ${
+            currentActive === 'home' 
+              ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs' 
+              : 'w-5 h-5 text-stone-700'
+          }`} />
+          <span className={`text-[10px] mt-0.5 transition-colors ${
+            currentActive === 'home' ? 'font-black text-[#FAF7F2]' : 'font-bold'
+          }`}>
             ویترین
           </span>
         </button>
@@ -87,61 +93,93 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
         <button
           type="button"
           onClick={() => handleSelect('tracking', onOpenTracking)}
-          className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl transition-all duration-200 cursor-pointer active:scale-95 ${
+          className={`relative flex flex-col items-center justify-center rounded-2xl transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
             currentActive === 'tracking'
-              ? 'bg-[#18181B] text-[#FAF7F2] shadow-sm ring-1 ring-stone-900/10'
-              : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+              ? '-translate-y-3.5 bg-[#18181B] text-[#FAF7F2] border-2 border-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-2xl shadow-stone-950/40 py-2 px-3 z-10 scale-105'
+              : 'translate-y-0 text-stone-600 hover:text-stone-900 hover:bg-stone-200/50 border border-transparent py-1.5 px-2.5'
           }`}
           aria-current={currentActive === 'tracking' ? 'page' : undefined}
         >
           {currentActive === 'tracking' && (
-            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-[#D4AF37] shadow-xs" />
+            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-[#D4AF37] via-amber-300 to-[#D4AF37] shadow-xs" />
           )}
-          <Truck className={`w-5 h-5 transition-transform ${currentActive === 'tracking' ? 'text-[#D4AF37] scale-110' : 'text-[#8C6D37]'}`} />
-          <span className={`text-[10px] mt-0.5 transition-colors ${currentActive === 'tracking' ? 'font-black text-[#FAF7F2]' : 'font-bold'}`}>
+          <Truck className={`transition-all duration-200 ${
+            currentActive === 'tracking' 
+              ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs' 
+              : 'w-5 h-5 text-[#8C6D37]'
+          }`} />
+          <span className={`text-[10px] mt-0.5 transition-colors ${
+            currentActive === 'tracking' ? 'font-black text-[#FAF7F2]' : 'font-bold'
+          }`}>
             پیگیری بارنامه
           </span>
         </button>
 
-        {/* 3. Central Cart Button (High Visibility) */}
+        {/* 3. Central Cart Button (سبد خرید) */}
         <button
           type="button"
           id="btn-mobile-nav-cart"
           onClick={() => handleSelect('cart', onOpenCart)}
-          className={`relative -top-3 flex flex-col items-center justify-center bg-[#18181B] text-[#FAF7F2] w-13 h-13 rounded-2xl shadow-xl border-2 border-[#FAF7F2] active:scale-90 transition-all ${
+          className={`relative flex flex-col items-center justify-center rounded-2xl transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
             currentActive === 'cart'
-              ? 'ring-4 ring-[#D4AF37]/50 scale-105'
-              : ''
+              ? '-translate-y-3.5 bg-[#18181B] text-[#FAF7F2] border-2 border-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-2xl shadow-stone-950/40 py-2 px-3 z-10 scale-105'
+              : 'translate-y-0 text-stone-600 hover:text-stone-900 hover:bg-stone-200/50 border border-transparent py-1.5 px-2.5'
           }`}
           aria-current={currentActive === 'cart' ? 'page' : undefined}
         >
-          <ShoppingBag className={`w-6 h-6 ${currentActive === 'cart' ? 'text-amber-300' : 'text-[#D4AF37]'}`} />
-          {cartItemsCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-[#B89B58] text-[#18181B] font-black rounded-full flex items-center justify-center text-[10px] ring-2 ring-white">
-              {cartItemsCount}
-            </span>
+          {currentActive === 'cart' && (
+            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-[#D4AF37] via-amber-300 to-[#D4AF37] shadow-xs" />
           )}
+          <div className="relative">
+            <ShoppingBag className={`transition-all duration-200 ${
+              currentActive === 'cart' 
+                ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs' 
+                : 'w-5 h-5 text-[#8C6D37]'
+            }`} />
+            {cartItemsCount > 0 && (
+              <span className={`absolute -top-2 -right-2.5 min-w-4.5 h-4.5 px-1 font-black rounded-full flex items-center justify-center text-[9px] ${
+                currentActive === 'cart'
+                  ? 'bg-gradient-to-r from-[#D4AF37] to-amber-300 text-[#18181B] ring-2 ring-[#18181B]'
+                  : 'bg-[#18181B] text-[#D4AF37] border border-[#D4AF37]/60 ring-1 ring-white'
+              }`}>
+                {cartItemsCount}
+              </span>
+            )}
+          </div>
+          <span className={`text-[10px] mt-0.5 transition-colors ${
+            currentActive === 'cart' ? 'font-black text-[#FAF7F2]' : 'font-bold'
+          }`}>
+            سبد خرید
+          </span>
         </button>
 
         {/* 4. AI Assistant (مشاور هوشمند) */}
         <button
           type="button"
           onClick={() => handleSelect('ai', onOpenAiAssistant)}
-          className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl transition-all duration-200 cursor-pointer active:scale-95 ${
+          className={`relative flex flex-col items-center justify-center rounded-2xl transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
             currentActive === 'ai'
-              ? 'bg-[#18181B] text-[#FAF7F2] shadow-sm ring-1 ring-stone-900/10'
-              : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+              ? '-translate-y-3.5 bg-[#18181B] text-[#FAF7F2] border-2 border-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-2xl shadow-stone-950/40 py-2 px-3 z-10 scale-105'
+              : 'translate-y-0 text-stone-600 hover:text-stone-900 hover:bg-stone-200/50 border border-transparent py-1.5 px-2.5'
           }`}
           aria-current={currentActive === 'ai' ? 'page' : undefined}
         >
           {currentActive === 'ai' && (
-            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-[#D4AF37] shadow-xs" />
+            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-[#D4AF37] via-amber-300 to-[#D4AF37] shadow-xs" />
           )}
           <div className="relative">
-            <Bot className={`w-5 h-5 transition-transform ${currentActive === 'ai' ? 'text-[#D4AF37] scale-110' : 'text-[#8C6D37]'}`} />
-            <span className="absolute -top-1 -right-1.5 w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse" />
+            <Bot className={`transition-all duration-200 ${
+              currentActive === 'ai' 
+                ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs' 
+                : 'w-5 h-5 text-[#8C6D37]'
+            }`} />
+            <span className={`absolute -top-1 -right-1.5 w-2 h-2 rounded-full animate-pulse ${
+              currentActive === 'ai' ? 'bg-amber-300' : 'bg-[#D4AF37]'
+            }`} />
           </div>
-          <span className={`text-[10px] mt-0.5 transition-colors ${currentActive === 'ai' ? 'font-black text-[#FAF7F2]' : 'font-bold'}`}>
+          <span className={`text-[10px] mt-0.5 transition-colors ${
+            currentActive === 'ai' ? 'font-black text-[#FAF7F2]' : 'font-bold'
+          }`}>
             مشاور هوشمند
           </span>
         </button>
@@ -150,22 +188,22 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
         <button
           type="button"
           onClick={() => handleSelect('profile', onOpenCustomerAuthOrPortal)}
-          className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl transition-all duration-200 cursor-pointer active:scale-95 ${
+          className={`relative flex flex-col items-center justify-center rounded-2xl transition-all duration-300 ease-out cursor-pointer active:scale-95 ${
             currentActive === 'profile'
-              ? 'bg-[#18181B] text-[#FAF7F2] shadow-sm ring-1 ring-stone-900/10'
-              : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+              ? '-translate-y-3.5 bg-[#18181B] text-[#FAF7F2] border-2 border-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-2xl shadow-stone-950/40 py-2 px-3 z-10 scale-105'
+              : 'translate-y-0 text-stone-600 hover:text-stone-900 hover:bg-stone-200/50 border border-transparent py-1.5 px-2.5'
           }`}
           aria-current={currentActive === 'profile' ? 'page' : undefined}
         >
           {currentActive === 'profile' && (
-            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-[#D4AF37] shadow-xs" />
+            <span className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-[#D4AF37] via-amber-300 to-[#D4AF37] shadow-xs" />
           )}
-          <User className={`w-5 h-5 transition-transform ${
+          <User className={`transition-all duration-200 ${
             currentActive === 'profile'
-              ? 'text-[#D4AF37] scale-110'
+              ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs'
               : loggedInCustomer 
-              ? 'text-emerald-700' 
-              : 'text-stone-800'
+              ? 'w-5 h-5 text-emerald-700' 
+              : 'w-5 h-5 text-stone-800'
           }`} />
           <span className={`text-[10px] mt-0.5 truncate max-w-[55px] transition-colors ${
             currentActive === 'profile' ? 'font-black text-[#FAF7F2]' : 'font-bold'

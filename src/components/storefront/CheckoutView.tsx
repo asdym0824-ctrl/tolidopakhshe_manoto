@@ -45,6 +45,8 @@ interface CheckoutViewProps {
   onRegisterCustomerUser?: (user: CustomerUser) => void;
   onLoginCustomerUser?: (user: CustomerUser) => void;
   onUpdateCustomerUser?: (user: CustomerUser) => void;
+  isCardToCardGatewayOpen?: boolean;
+  onCardToCardGatewayChange?: (isOpen: boolean) => void;
 }
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({
@@ -58,6 +60,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   onRegisterCustomerUser,
   onLoginCustomerUser,
   onUpdateCustomerUser,
+  isCardToCardGatewayOpen: isCardToCardGatewayOpenProp,
+  onCardToCardGatewayChange,
 }) => {
   // Authentication & Registration Gate State
   const [activeUser, setActiveUser] = useState<CustomerUser | null>(loggedInCustomer || null);
@@ -136,7 +140,14 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   // Simulated Gateway State
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isGatewayOpen, setIsGatewayOpen] = useState(false);
-  const [isCardToCardGatewayOpen, setIsCardToCardGatewayOpen] = useState(false);
+  const [internalCardToCardOpen, setInternalCardToCardOpen] = useState(false);
+  const isCardToCardGatewayOpen = isCardToCardGatewayOpenProp !== undefined ? isCardToCardGatewayOpenProp : internalCardToCardOpen;
+  const setIsCardToCardGatewayOpen = (open: boolean) => {
+    setInternalCardToCardOpen(open);
+    if (onCardToCardGatewayChange) {
+      onCardToCardGatewayChange(open);
+    }
+  };
   const [placedOrder, setPlacedOrder] = useState<StorefrontOrder | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -285,6 +296,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
     e.preventDefault();
     setFormError(null);
 
+    // If card to card payment is selected, open the gateway modal directly!
+    // Customer can review destination card and enter/confirm recipient and slip info there.
+    if (paymentMethod === 'card_to_card') {
+      setIsCardToCardGatewayOpen(true);
+      return;
+    }
+
     if (!isAuthCompleted) {
       setFormError('لطفاً ابتدا در بخش بالای فرم، شماره موبایل خود را وارد کرده و رمز عبور را تعیین فرمایید.');
       const elem = document.getElementById('checkout-customer-section');
@@ -309,6 +327,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   };
 
   const handleConfirmCardToCardPayment = (receiptData: CardReceiptSubmission) => {
+    if (receiptData.customerName || receiptData.customerPhone) {
+      setCustomer(prev => ({
+        ...prev,
+        fullName: receiptData.customerName || prev.fullName,
+        phone: receiptData.customerPhone || prev.phone,
+      }));
+    }
     finalizeOrder('pending_verification', receiptData);
   };
 
@@ -1203,6 +1228,18 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   </span>
                   <span className="text-emerald-700 font-bold">تایید سریع شتاب</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPaymentMethod('card_to_card');
+                    setIsCardToCardGatewayOpen(true);
+                  }}
+                  className="mt-1 w-full py-2 px-3 rounded-xl bg-[#18181B] hover:bg-stone-900 active:scale-98 text-[#D4AF37] text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                >
+                  <CreditCard className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>ورود به درگاه هوشمند کارت به کارت</span>
+                </button>
               </label>
 
               <label
@@ -1234,7 +1271,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
         {/* Right 5 Cols: Order Summary & Action */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white rounded-3xl border border-[#DDD5C0] p-5 sm:p-6 shadow-lg sticky top-6 space-y-4">
+          <div className="bg-white rounded-3xl border border-[#DDD5C0] p-5 sm:p-6 shadow-lg static lg:sticky lg:top-28 space-y-4 max-h-[calc(100vh-125px)] overflow-y-auto overscroll-contain">
             <h3 className="font-black text-stone-900 text-base pb-3 border-b border-[#E6DEC8] flex items-center justify-between">
               <span>خلاصه سفارش شما</span>
               <span className="text-xs text-[#8C6D37] font-bold">
@@ -1287,7 +1324,16 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
             </div>
 
             {/* Submit Button */}
-            {!isAuthCompleted ? (
+            {paymentMethod === 'card_to_card' ? (
+              <button
+                type="submit"
+                id="btn-submit-order-checkout"
+                className="w-full py-4 px-5 sm:px-6 active:scale-[0.98] rounded-2xl font-black text-xs sm:text-base transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-stone-950 via-[#18181B] to-stone-950 hover:bg-stone-900 text-[#FAF7F2] border-2 border-[#D4AF37]/80 shadow-[#D4AF37]/20 ring-2 ring-[#D4AF37]/20"
+              >
+                <CreditCard className="w-5 h-5 text-[#D4AF37] shrink-0" />
+                <span className="truncate">ورود به درگاه هوشمند کارت به کارت و ثبت فاکتور</span>
+              </button>
+            ) : !isAuthCompleted ? (
               <button
                 type="button"
                 id="btn-submit-order-checkout"
@@ -1298,7 +1344,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                 }}
                 className="w-full py-4 px-6 bg-stone-900 hover:bg-black active:scale-[0.99] text-white rounded-2xl font-black text-xs sm:text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-[#D4AF37]/50"
               >
-                <Lock className="w-4 h-4 text-[#D4AF37]" />
+                <Lock className="w-4 h-4 text-[#D4AF37] shrink-0" />
                 <span>گام اول: ابتدا شماره موبایل و رمز عبور را وارد فرمایید</span>
               </button>
             ) : (
@@ -1307,7 +1353,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                 id="btn-submit-order-checkout"
                 className="w-full py-4 px-6 bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2] rounded-2xl font-black text-sm sm:text-base transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
               >
-                <CreditCard className="w-5 h-5 text-[#D4AF37]" />
+                <CreditCard className="w-5 h-5 text-[#D4AF37] shrink-0" />
                 <span>پرداخت و ثبت نهایی فاکتور</span>
               </button>
             )}
@@ -1408,6 +1454,17 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Smart Card to Card Payment Gateway Modal */}
+      <CardToCardGatewayModal
+        isOpen={isCardToCardGatewayOpen}
+        onClose={() => setIsCardToCardGatewayOpen(false)}
+        amountToman={finalAmountToman}
+        orderNumber={`MNT-1403-${Math.floor(1000 + Math.random() * 9000)}`}
+        customerName={customer.fullName}
+        customerPhone={customer.phone}
+        onConfirmPayment={handleConfirmCardToCardPayment}
+      />
 
     </div>
   );

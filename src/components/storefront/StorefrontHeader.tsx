@@ -58,6 +58,7 @@ interface StorefrontHeaderProps {
   onScrollToCatalog?: () => void;
   onOpenMobileMenu?: () => void;
   siteSettings?: SiteSettings;
+  isCardToCardOpen?: boolean;
 }
 
 export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
@@ -79,6 +80,7 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   onScrollToCatalog,
   onOpenMobileMenu,
   siteSettings,
+  isCardToCardOpen = false,
 }) => {
   const [isDesktopFocused, setIsDesktopFocused] = useState(false);
   const [isMobileFocused, setIsMobileFocused] = useState(false);
@@ -140,6 +142,10 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
   };
 
   const quickSearchSuggestions = ['شلوار بگ', 'کتان', 'مازراتی', 'کارگو', 'اسلش', 'پنبه سوپر', 'لگ'];
+
+  if (isCardToCardOpen) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE4D9] shadow-[0_2px_10px_rgba(24,24,27,0.03)] w-full max-w-full" dir="rtl">

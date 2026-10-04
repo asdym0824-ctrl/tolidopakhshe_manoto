@@ -16,7 +16,8 @@ import {
   Check,
   ShieldCheck,
   Truck,
-  Play
+  Play,
+  Zap
 } from 'lucide-react';
 import { toPersianDigits, formatPersianPrice } from '../../utils/persianWriting';
 
@@ -30,6 +31,7 @@ interface HorizontalProductShelfProps {
   products: Product[];
   onOpenDetail: (product: Product) => void;
   onQuickAddToCart: (product: Product, mode: PurchaseMode, quantity: number) => void;
+  onInstantBuy?: (product: Product, mode: PurchaseMode, quantity: number) => void;
   isPartnerLoggedIn?: boolean;
   onViewAll?: () => void;
   showRankNumber?: boolean;
@@ -45,6 +47,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
   products,
   onOpenDetail,
   onQuickAddToCart,
+  onInstantBuy,
   isPartnerLoggedIn = false,
   onViewAll,
   showRankNumber = false,
@@ -97,14 +100,23 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
     });
   };
 
-  const handleAddToCartWithFeedback = (product: Product, mode: PurchaseMode, e: React.MouseEvent) => {
+  const handleAddToCartOnly = (product: Product, mode: PurchaseMode, e: React.MouseEvent) => {
     e.stopPropagation();
     onQuickAddToCart(product, mode, 1);
     
     setAddedFeedback(prev => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
       setAddedFeedback(prev => ({ ...prev, [product.id]: false }));
-    }, 1800);
+    }, 2000);
+  };
+
+  const handleInstantBuy = (product: Product, mode: PurchaseMode, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onInstantBuy) {
+      onInstantBuy(product, mode, 1);
+    } else {
+      onQuickAddToCart(product, mode, 1);
+    }
   };
 
   const getBadgeStyles = () => {
@@ -395,43 +407,43 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
                     )}
                   </div>
 
-                  {/* Actions: Compact touch targets */}
-                  <div className="flex items-center gap-1 pt-0.5">
+                  {/* Actions: Dual action buttons (افزودن به سبد + خرید فوری) */}
+                  <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                    {/* 1. افزودن به سبد خرید (نمایش پیام ثبت و ادامه گردش در ویترین) */}
                     <button
                       type="button"
                       id={`btn-shelf-add-${product.id}`}
-                      onClick={(e) => handleAddToCartWithFeedback(product, currentMode, e)}
-                      className={`flex-1 min-h-[36px] py-1.5 px-1.5 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 shadow-2xs active:scale-95 ${
+                      onClick={(e) => handleAddToCartOnly(product, currentMode, e)}
+                      className={`min-h-[36px] py-1.5 px-1 rounded-xl text-[10px] sm:text-[11px] font-black transition-all flex items-center justify-center gap-1 shadow-2xs active:scale-95 cursor-pointer ${
                         isAdded
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF7F2]'
+                          : 'bg-[#18181B] hover:bg-[#27272A] text-[#FAF7F2] border border-stone-800'
                       }`}
+                      title="افزودن به سبد خرید و ادامه گردش در ویترین"
                     >
                       {isAdded ? (
                         <>
-                          <Check className="w-3 h-3 text-white stroke-[3]" />
-                          <span>ثبت شد ✓</span>
-                        </>
-                      ) : currentMode === 'wholesale_pack' ? (
-                        <>
-                          <Package className="w-3 h-3 text-[#D4AF37] shrink-0" />
-                          <span className="truncate">خرید پک</span>
+                          <Check className="w-3 h-3 text-white stroke-[3] shrink-0" />
+                          <span className="truncate">ثبت شد ✓</span>
                         </>
                       ) : (
                         <>
                           <ShoppingBag className="w-3 h-3 text-[#D4AF37] shrink-0" />
-                          <span className="truncate">خرید ۱ عدد</span>
+                          <span className="truncate">افزودن به سبد</span>
                         </>
                       )}
                     </button>
 
+                    {/* 2. خرید فوری (ورود مستقیم و سریع به سبد خرید) */}
                     <button
                       type="button"
-                      onClick={() => onOpenDetail(product)}
-                      className="min-h-[36px] min-w-[36px] p-1.5 border border-[#DDD5C0] hover:border-[#18181B] text-stone-700 hover:text-stone-900 bg-white hover:bg-[#FAF7F2] active:bg-stone-100 rounded-xl transition-all flex items-center justify-center shadow-2xs active:scale-95 shrink-0"
-                      title="مشاهده مشخصات و عکس‌های بیشتر"
+                      id={`btn-shelf-instant-${product.id}`}
+                      onClick={(e) => handleInstantBuy(product, currentMode, e)}
+                      className="min-h-[36px] py-1.5 px-1 rounded-xl text-[10px] sm:text-[11px] font-black transition-all flex items-center justify-center gap-1 bg-gradient-to-r from-[#8C6D37] via-[#B89B58] to-[#D4AF37] hover:from-[#73592B] hover:to-[#A38647] text-[#18181B] shadow-xs active:scale-95 cursor-pointer border border-[#D4AF37]/50"
+                      title="خرید فوری و انتقال سریع به سبد خرید"
                     >
-                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <Zap className="w-3 h-3 text-[#18181B] fill-current shrink-0" />
+                      <span className="truncate">خرید فوری</span>
                     </button>
                   </div>
                 </div>

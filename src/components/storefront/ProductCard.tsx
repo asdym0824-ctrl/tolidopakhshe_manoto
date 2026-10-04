@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Product, PurchaseMode } from '../../types';
-import { Package, ShoppingBag, Star, CheckCircle2, ChevronLeft, Eye, Check, Film, Play, Sparkles, Ruler, Shirt } from 'lucide-react';
+import { Package, ShoppingBag, Star, CheckCircle2, ChevronLeft, Eye, Check, Film, Play, Sparkles, Ruler, Shirt, Zap } from 'lucide-react';
 import { toPersianDigits, formatPersianPrice } from '../../utils/persianWriting';
 
 interface ProductCardProps {
   product: Product;
   onOpenDetail: (product: Product) => void;
   onQuickAddToCart: (product: Product, mode: PurchaseMode, quantity: number, selectedColor?: string) => void;
+  onInstantBuy?: (product: Product, mode: PurchaseMode, quantity: number, selectedColor?: string) => void;
   isPartnerLoggedIn?: boolean;
 }
 
@@ -14,6 +15,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onOpenDetail,
   onQuickAddToCart,
+  onInstantBuy,
   isPartnerLoggedIn = false
 }) => {
   const [activeMode, setActiveMode] = useState<PurchaseMode>('wholesale_pack');
@@ -33,13 +35,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const defaultMarkup = product.retailMarkupPercent || 35;
   const retailUnitPrice = product.retailPricePerUnit || (product.baseWholesalePricePerUnit ? Math.round((product.baseWholesalePricePerUnit * (1 + defaultMarkup / 100)) / 5000) * 5000 : 0);
 
-  const handleAdd = (e: React.MouseEvent) => {
+  const handleAddOnly = (e: React.MouseEvent) => {
     e.stopPropagation();
     onQuickAddToCart(product, activeMode, 1, selectedColor);
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
-    }, 1800);
+    }, 2000);
+  };
+
+  const handleInstantBuy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onInstantBuy) {
+      onInstantBuy(product, activeMode, 1, selectedColor);
+    } else {
+      onQuickAddToCart(product, activeMode, 1, selectedColor);
+    }
   };
 
   return (
@@ -243,44 +254,43 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Action Buttons: 38px/42px touch targets on mobile */}
-        <div className="flex items-center gap-1 sm:gap-1.5 pt-0.5">
+        {/* Action Buttons: Dual action buttons (افزودن به سبد + خرید فوری) */}
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5">
+          {/* 1. افزودن به سبد خرید (نمایش پیام و ادامه گردش در ویترین) */}
           <button
             type="button"
             id={`btn-add-cart-${product.id}`}
-            onClick={handleAdd}
-            className={`flex-1 min-h-[38px] sm:min-h-[42px] py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 shadow-xs active:scale-95 ${
+            onClick={handleAddOnly}
+            className={`min-h-[38px] sm:min-h-[42px] py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 shadow-xs active:scale-95 cursor-pointer ${
               isAdded
                 ? 'bg-emerald-600 text-white'
                 : 'bg-[#18181B] hover:bg-[#27272A] active:bg-black text-[#FAF8F5]'
             }`}
+            title="افزودن به سبد خرید و ادامه گردش"
           >
             {isAdded ? (
               <>
-                <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white stroke-[3]" />
-                <span>به سبد اضافه شد ✓</span>
-              </>
-            ) : activeMode === 'wholesale_pack' ? (
-              <>
-                <Package className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-[#D4AF37] shrink-0" />
-                <span className="truncate">خرید پک {toPersianDigits(product.packSize)} تایی</span>
+                <Check className="w-3.5 h-3.5 text-white stroke-[3] shrink-0" />
+                <span className="truncate">ثبت شد ✓</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-[#D4AF37] shrink-0" />
-                <span className="truncate">خرید ۱ عدد تک</span>
+                <ShoppingBag className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                <span className="truncate">افزودن به سبد</span>
               </>
             )}
           </button>
 
+          {/* 2. خرید فوری (ورود مستقیم و سریع به سبد خرید) */}
           <button
             type="button"
-            id={`btn-view-details-${product.id}`}
-            onClick={() => onOpenDetail(product)}
-            className="min-h-[38px] min-w-[38px] sm:min-h-[42px] sm:min-w-[42px] p-1.5 sm:p-2.5 border border-[#EAE4D9] hover:border-[#18181B] text-stone-700 hover:text-stone-900 bg-white hover:bg-[#FAF8F5] active:bg-stone-100 rounded-xl transition-all flex items-center justify-center shadow-2xs active:scale-95 shrink-0"
-            title="مشاهدهٔ جزئیات و مشخصات"
+            id={`btn-instant-buy-${product.id}`}
+            onClick={handleInstantBuy}
+            className="min-h-[38px] sm:min-h-[42px] py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 bg-gradient-to-r from-[#8C6D37] via-[#B89B58] to-[#D4AF37] hover:from-[#73592B] hover:to-[#A38647] text-[#18181B] shadow-xs active:scale-95 cursor-pointer border border-[#D4AF37]/50"
+            title="خرید فوری و انتقال سریع به سبد خرید"
           >
-            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Zap className="w-3.5 h-3.5 text-[#18181B] fill-current shrink-0" />
+            <span className="truncate">خرید فوری</span>
           </button>
         </div>
       </div>

@@ -80,6 +80,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isPartnerLoggedIn, setIsPartnerLoggedIn] = useState(false);
   const [loggedInCustomer, setLoggedInCustomer] = useState<CustomerUser | null>(null);
+  const [isCardToCardGatewayOpen, setIsCardToCardGatewayOpen] = useState(false);
 
   // Modals state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -396,8 +397,19 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
   };
 
   const scrollToCatalog = () => {
+    if (currentView === 'checkout') {
+      setCurrentView('catalog');
+    }
+    setIsCartOpen(false);
+    setIsTrackingOpen(false);
+    setIsAiAssistantOpen(false);
+    setIsCustomerAuthOpen(false);
+    setIsCustomerPortalOpen(false);
+    setIsPartnerModalOpen(false);
     if (catalogRef.current) {
       catalogRef.current.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -423,31 +435,34 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
     <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col selection:bg-[#18181B] selection:text-[#FAF8F5] w-full max-w-full overflow-x-clip" dir="rtl">
       
       {/* Top Header */}
-      <StorefrontHeader
-        cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenTracking={() => setIsTrackingOpen(true)}
-        onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
-        onOpenAboutModal={() => handleOpenAboutModal('all')}
-        onOpenRoutingModal={() => handleOpenAboutModal('map')}
-        onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
-        onSwitchToAdmin={onSwitchToAdmin}
-        isPartnerLoggedIn={isPartnerLoggedIn}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        loggedInCustomer={loggedInCustomer}
-        onOpenCustomerAuthOrPortal={() => {
-          if (loggedInCustomer) {
-            setIsCustomerPortalOpen(true);
-          } else {
-            setIsCustomerAuthOpen(true);
-          }
-        }}
-        products={products}
-        onSelectProduct={setSelectedProduct}
-        onScrollToCatalog={handleViewAllProducts}
-        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-      />
+      {!isCardToCardGatewayOpen && (
+        <StorefrontHeader
+          cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenTracking={() => setIsTrackingOpen(true)}
+          onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
+          onOpenAboutModal={() => handleOpenAboutModal('all')}
+          onOpenRoutingModal={() => handleOpenAboutModal('map')}
+          onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
+          onSwitchToAdmin={onSwitchToAdmin}
+          isPartnerLoggedIn={isPartnerLoggedIn}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          loggedInCustomer={loggedInCustomer}
+          onOpenCustomerAuthOrPortal={() => {
+            if (loggedInCustomer) {
+              setIsCustomerPortalOpen(true);
+            } else {
+              setIsCustomerAuthOpen(true);
+            }
+          }}
+          products={products}
+          onSelectProduct={setSelectedProduct}
+          onScrollToCatalog={handleViewAllProducts}
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          isCardToCardOpen={isCardToCardGatewayOpen}
+        />
+      )}
 
       {/* Structured Data JSON-LD Schema for Google Rich Snippets & Local SEO */}
       <script
@@ -544,6 +559,8 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
             onRegisterCustomerUser={onRegisterCustomerUser}
             onLoginCustomerUser={(user) => setLoggedInCustomer(user)}
             onUpdateCustomerUser={onUpdateCustomerUser}
+            isCardToCardGatewayOpen={isCardToCardGatewayOpen}
+            onCardToCardGatewayChange={setIsCardToCardGatewayOpen}
           />
         ) : (
           <>
@@ -938,6 +955,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                       onOpenDetail={setSelectedProduct}
                       onQuickAddToCart={(prod, mode, qty) => {
                         handleAddToCart(prod, mode, qty);
+                      }}
+                      onInstantBuy={(prod, mode, qty) => {
+                        handleAddToCart(prod, mode, qty);
                         setIsCartOpen(true);
                       }}
                       isPartnerLoggedIn={isPartnerLoggedIn}
@@ -975,6 +995,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                       onOpenDetail={setSelectedProduct}
                       onQuickAddToCart={(prod, mode, qty) => {
                         handleAddToCart(prod, mode, qty);
+                      }}
+                      onInstantBuy={(prod, mode, qty) => {
+                        handleAddToCart(prod, mode, qty);
                         setIsCartOpen(true);
                       }}
                       isPartnerLoggedIn={isPartnerLoggedIn}
@@ -1010,6 +1033,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                       products={retailReadyProducts}
                       onOpenDetail={setSelectedProduct}
                       onQuickAddToCart={(prod, mode, qty) => {
+                        handleAddToCart(prod, mode, qty);
+                      }}
+                      onInstantBuy={(prod, mode, qty) => {
                         handleAddToCart(prod, mode, qty);
                         setIsCartOpen(true);
                       }}
@@ -1126,6 +1152,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                             onOpenDetail={setSelectedProduct}
                             onQuickAddToCart={(prod, mode, qty) => {
                               handleAddToCart(prod, mode, qty);
+                            }}
+                            onInstantBuy={(prod, mode, qty) => {
+                              handleAddToCart(prod, mode, qty);
                               setIsCartOpen(true);
                             }}
                             isPartnerLoggedIn={isPartnerLoggedIn}
@@ -1196,6 +1225,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                                       onOpenDetail={setSelectedProduct}
                                       onQuickAddToCart={(prod, mode, qty) => {
                                         handleAddToCart(prod, mode, qty);
+                                      }}
+                                      onInstantBuy={(prod, mode, qty) => {
+                                        handleAddToCart(prod, mode, qty);
                                         setIsCartOpen(true);
                                       }}
                                       isPartnerLoggedIn={isPartnerLoggedIn}
@@ -1249,6 +1281,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                               onOpenDetail={setSelectedProduct}
                               onQuickAddToCart={(prod, mode, qty) => {
                                 handleAddToCart(prod, mode, qty);
+                              }}
+                              onInstantBuy={(prod, mode, qty) => {
+                                handleAddToCart(prod, mode, qty);
                                 setIsCartOpen(true);
                               }}
                               isPartnerLoggedIn={isPartnerLoggedIn}
@@ -1292,6 +1327,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                     onOpenDetail={setSelectedProduct}
                     onQuickAddToCart={(prod, mode, qty) => {
                       handleAddToCart(prod, mode, qty);
+                    }}
+                    onInstantBuy={(prod, mode, qty) => {
+                      handleAddToCart(prod, mode, qty);
                       setIsCartOpen(true);
                     }}
                     isPartnerLoggedIn={isPartnerLoggedIn}
@@ -1319,6 +1357,9 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
                               product={product}
                               onOpenDetail={setSelectedProduct}
                               onQuickAddToCart={(prod, mode, qty) => {
+                                handleAddToCart(prod, mode, qty);
+                              }}
+                              onInstantBuy={(prod, mode, qty) => {
                                 handleAddToCart(prod, mode, qty);
                                 setIsCartOpen(true);
                               }}
@@ -1359,13 +1400,16 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       </main>
 
       {/* Footer */}
-      <StorefrontFooter
-        onOpenAboutModal={() => handleOpenAboutModal('all')}
-        onOpenRoutingModal={() => handleOpenAboutModal('map')}
-        onOpenTracking={() => setIsTrackingOpen(true)}
-        onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
-        onSwitchToAdmin={onSwitchToAdmin}
-      />
+      {!isCardToCardGatewayOpen && (
+        <StorefrontFooter
+          onOpenAboutModal={() => handleOpenAboutModal('all')}
+          onOpenRoutingModal={() => handleOpenAboutModal('map')}
+          onOpenTracking={() => setIsTrackingOpen(true)}
+          onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
+          onSwitchToAdmin={onSwitchToAdmin}
+          isCardToCardOpen={isCardToCardGatewayOpen}
+        />
+      )}
 
       {/* Modals & Slide-overs */}
       <ProductDetailModal
@@ -1455,11 +1499,13 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       )}
 
       {/* Floating Online Support, Direct Call & Smart AI Chatbot Widget (On Left) */}
-      <StorefrontFloatingAiWidget
-        onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
-        onOpenTracking={() => setIsTrackingOpen(true)}
-        onOpenAboutModal={handleOpenAboutModal}
-      />
+      {!isCardToCardGatewayOpen && (
+        <StorefrontFloatingAiWidget
+          onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
+          onOpenTracking={() => setIsTrackingOpen(true)}
+          onOpenAboutModal={handleOpenAboutModal}
+        />
+      )}
 
       {/* Interactive Storefront AI Assistant & FAQ Advisor Modal */}
       <StorefrontAiAssistantModal
@@ -1633,34 +1679,57 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       )}
 
       {/* Sticky Bottom Navigation Bar for Mobile & Smartphone View */}
-      <MobileBottomNavBar
-        cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-        activeSection={
-          isCartOpen
-            ? 'cart'
-            : isTrackingOpen
-            ? 'tracking'
-            : isAiAssistantOpen
-            ? 'ai'
-            : isCustomerAuthOpen || isCustomerPortalOpen || isPartnerModalOpen
-            ? 'profile'
-            : 'home'
-        }
-        onOpenCart={() => setIsCartOpen(true)}
-        onScrollToCatalog={scrollToCatalog}
-        onOpenTracking={() => setIsTrackingOpen(true)}
-        onOpenCustomerAuthOrPortal={() => {
-          if (loggedInCustomer) {
-            setIsCustomerPortalOpen(true);
-          } else {
-            setIsCustomerAuthOpen(true);
+      {!isCardToCardGatewayOpen && (
+        <MobileBottomNavBar
+          cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+          activeSection={
+            isCartOpen || currentView === 'checkout'
+              ? 'cart'
+              : isTrackingOpen
+              ? 'tracking'
+              : isAiAssistantOpen
+              ? 'ai'
+              : isCustomerAuthOpen || isCustomerPortalOpen || isPartnerModalOpen
+              ? 'profile'
+              : 'home'
           }
-        }}
-        onOpenPartnerModal={() => setIsPartnerModalOpen(true)}
-        onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
-        loggedInCustomer={loggedInCustomer}
-        isPartnerLoggedIn={isPartnerLoggedIn}
-      />
+          onOpenCart={() => {
+            if (isCartOpen) {
+              setIsCartOpen(false);
+            } else {
+              setIsCartOpen(true);
+              setIsTrackingOpen(false);
+              setIsAiAssistantOpen(false);
+              setIsCustomerAuthOpen(false);
+              setIsCustomerPortalOpen(false);
+              setIsPartnerModalOpen(false);
+            }
+          }}
+          onScrollToCatalog={scrollToCatalog}
+          onOpenTracking={() => {
+            setIsCartOpen(false);
+            setIsTrackingOpen(true);
+          }}
+          onOpenCustomerAuthOrPortal={() => {
+            setIsCartOpen(false);
+            if (loggedInCustomer) {
+              setIsCustomerPortalOpen(true);
+            } else {
+              setIsCustomerAuthOpen(true);
+            }
+          }}
+          onOpenPartnerModal={() => {
+            setIsCartOpen(false);
+            setIsPartnerModalOpen(true);
+          }}
+          onOpenAiAssistant={() => {
+            setIsCartOpen(false);
+            setIsAiAssistantOpen(true);
+          }}
+          loggedInCustomer={loggedInCustomer}
+          isPartnerLoggedIn={isPartnerLoggedIn}
+        />
+      )}
 
     </div>
   );

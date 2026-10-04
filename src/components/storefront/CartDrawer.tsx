@@ -46,9 +46,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const subtotalToman = cartItems.reduce((acc, item) => acc + item.totalPriceToman, 0);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-stone-950/60 backdrop-blur-xs animate-fadeIn" dir="rtl">
-      <div className="absolute inset-y-0 left-0 max-w-full flex pl-0 sm:pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between">
+    <div 
+      className="fixed inset-0 z-50 overflow-hidden bg-stone-950/60 backdrop-blur-xs animate-fadeIn" 
+      dir="rtl"
+      onClick={onClose}
+    >
+      <div 
+        className="absolute inset-y-0 left-0 max-w-full flex pl-0 sm:pl-10"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between pb-[76px] md:pb-0">
           
           {/* Header */}
           <div className="p-4 sm:p-5 border-b border-[#E6DEC8] flex items-center justify-between bg-[#FAF7F2]">

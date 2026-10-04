@@ -227,6 +227,33 @@ export interface InvoiceItem {
   originalPricePerPack?: number;
 }
 
+export interface CardPaymentSlip {
+  id: string;
+  trackingNumber: string;
+  sourceLast4?: string;
+  sourceCardLast4?: string;
+  sourceBankName?: string;
+  amountToman: number;
+  depositDate?: string;
+  receiptImage?: string;
+  notes?: string;
+}
+
+export interface CardPaymentDetails {
+  destinationBank: string;
+  destinationCardNumber: string;
+  destinationAccountHolder: string;
+  destinationShaba?: string;
+  trackingNumber: string;
+  sourceCardLast4?: string;
+  sourceBankName?: string;
+  depositAmount: number;
+  depositDate: string;
+  receiptImage?: string;
+  notes?: string;
+  multipleSlips?: CardPaymentSlip[];
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -243,6 +270,7 @@ export interface Invoice {
   finalAmountToman: number;
   paymentType: 'cash' | 'check' | 'split';
   checkDetails?: string;
+  cardPaymentDetails?: CardPaymentDetails;
   status: 'paid' | 'pending_check' | 'processing' | 'shipped' | 'delivered';
   shippingMethod: string;
   trackingCode?: string;

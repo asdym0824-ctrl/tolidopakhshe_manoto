@@ -23,6 +23,7 @@ interface StorefrontFooterProps {
   onOpenPartnerModal: () => void;
   onSwitchToAdmin: () => void;
   siteSettings?: SiteSettings;
+  isCardToCardOpen?: boolean;
 }
 
 export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
@@ -32,23 +33,34 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
   onOpenPartnerModal,
   onSwitchToAdmin,
   siteSettings,
+  isCardToCardOpen = false,
 }) => {
+  if (isCardToCardOpen) {
+    return null;
+  }
+
   return (
     <footer 
-      className="relative bg-gradient-to-b from-[#111115] via-[#0B0B0E] to-[#060608] text-white pt-14 pb-10 overflow-hidden border-t border-stone-800/80" 
+      className="relative bg-gradient-to-b from-[#111115] via-[#0B0B0E] to-[#060608] text-white pt-12 sm:pt-14 pb-28 md:pb-20 lg:pb-12 overflow-hidden border-t border-stone-800/80" 
       dir="rtl"
     >
       {/* 1. Luminous Haute-Couture Top Border Hairline */}
       <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#D4AF37]/80 to-transparent" />
       <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[#D4AF37]/[0.04] to-transparent pointer-events-none" />
 
-      {/* 2. Atmospheric Minimal Luxury Ambient Glows */}
+      {/* 2. Atmospheric Minimal Luxury Ambient Glows (Smooth radial gradients without heavy GPU repaint drops) */}
       <div 
-        className="absolute -top-24 right-1/4 w-[420px] h-[420px] bg-gradient-to-br from-[#D4AF37]/15 via-[#8C6D37]/5 to-transparent rounded-full blur-[100px] pointer-events-none" 
+        className="absolute -top-24 right-1/4 w-[420px] h-[420px] rounded-full pointer-events-none opacity-60" 
+        style={{
+          background: 'radial-gradient(circle, rgba(212,175,55,0.14) 0%, rgba(140,109,55,0.04) 50%, transparent 70%)'
+        }}
         aria-hidden="true"
       />
       <div 
-        className="absolute -bottom-20 left-10 w-[360px] h-[360px] bg-gradient-to-tr from-[#9E7A38]/10 via-stone-800/20 to-transparent rounded-full blur-[90px] pointer-events-none" 
+        className="absolute -bottom-20 left-10 w-[360px] h-[360px] rounded-full pointer-events-none opacity-60" 
+        style={{
+          background: 'radial-gradient(circle, rgba(158,122,56,0.12) 0%, rgba(40,40,45,0.06) 50%, transparent 70%)'
+        }}
         aria-hidden="true"
       />
 
@@ -70,15 +82,15 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
         aria-hidden="true"
       />
 
-      {/* Main Content Container with elevated z-index */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
+      {/* Main Content Container with elevated z-index and GPU compositing */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 transform-gpu">
         
         {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-xs text-stone-400">
           
           {/* Col 1: Brand & Bio */}
           <div className="space-y-4">
-            <div className="bg-black/40 border border-[#D4AF37]/25 p-3.5 rounded-2xl inline-block backdrop-blur-md shadow-2xl shadow-black/60 ring-1 ring-white/5">
+            <div className="bg-[#18181B]/95 border border-[#D4AF37]/35 p-3.5 rounded-2xl inline-block shadow-xl shadow-black/60 ring-1 ring-white/5">
               <ManotoLogo variant="light" size="md" showPersianSub={false} />
             </div>
 
@@ -96,7 +108,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
                   href={siteSettings?.telegramChannelUrl || BRAND_INFO.telegramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-2.5 py-1.5 rounded-xl bg-sky-950/50 hover:bg-sky-900/60 border border-sky-500/35 hover:border-sky-400 text-sky-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group backdrop-blur-sm"
+                  className="px-2.5 py-1.5 rounded-xl bg-sky-950/70 hover:bg-sky-900 border border-sky-500/40 hover:border-sky-400 text-sky-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group"
                   title="کانال رسمی تلگرام: tolidopakhsh_manoto@"
                 >
                   <TelegramIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform shadow-2xs" />
@@ -107,7 +119,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
                   href="https://rubika.ir/tolidopakhsh_manoto"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-2.5 py-1.5 rounded-xl bg-purple-950/50 hover:bg-purple-900/60 border border-purple-500/35 hover:border-purple-400 text-purple-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group backdrop-blur-sm"
+                  className="px-2.5 py-1.5 rounded-xl bg-purple-950/70 hover:bg-purple-900 border border-purple-500/40 hover:border-purple-400 text-purple-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group"
                   title="کانال و پیج روبیکا: tolidopakhsh_manoto"
                 >
                   <RubikaIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform shadow-2xs" />
@@ -118,7 +130,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
                   href="https://ble.ir/tolidopakhsh_manoto_dress"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-2.5 py-1.5 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/35 hover:border-emerald-400 text-emerald-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group backdrop-blur-sm"
+                  className="px-2.5 py-1.5 rounded-xl bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/40 hover:border-emerald-400 text-emerald-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group"
                   title="شناسه کانال پیام‌رسان بله: tolidopakhsh_manoto_dress"
                 >
                   <BaleIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform shadow-2xs" />
@@ -129,7 +141,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
                   href="https://eitaa.com/tolidopakhsh_manoto"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-2.5 py-1.5 rounded-xl bg-orange-950/50 hover:bg-orange-900/60 border border-orange-500/35 hover:border-orange-400 text-orange-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group backdrop-blur-sm"
+                  className="px-2.5 py-1.5 rounded-xl bg-orange-950/70 hover:bg-orange-900 border border-orange-500/40 hover:border-orange-400 text-orange-200 hover:text-white flex items-center gap-2 transition-all font-bold text-xs shadow-xs active:scale-95 group"
                   title="کانال پیام‌رسان ایتا: tolidopakhsh_manoto"
                 >
                   <EitaaIcon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform shadow-2xs" />
@@ -221,14 +233,14 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               <button
                 type="button"
                 onClick={onOpenRoutingModal || onOpenAboutModal}
-                className="w-full text-right bg-black/40 hover:bg-stone-900/80 p-3 rounded-2xl border border-stone-800/80 hover:border-[#D4AF37]/50 backdrop-blur-sm transition-all space-y-1.5 block group shadow-xs cursor-pointer"
+                className="w-full text-right bg-[#18181B]/95 hover:bg-stone-900 p-3 rounded-2xl border border-stone-800 hover:border-[#D4AF37]/60 transition-all space-y-1.5 block group shadow-xs cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[#D4AF37] font-bold block text-[11px] flex items-center gap-1">
                     <MapPin className="w-3 h-3 text-[#D4AF37]" />
                     <span>آدرس فروشگاه (بازار عباس‌آباد):</span>
                   </span>
-                  <span className="text-[10px] text-emerald-400 group-hover:text-emerald-300 font-bold bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                  <span className="text-[10px] text-emerald-400 group-hover:text-emerald-300 font-bold bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-500/30">
                     بلد • نشان
                   </span>
                 </div>
@@ -240,7 +252,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               <button
                 type="button"
                 onClick={onOpenRoutingModal || onOpenAboutModal}
-                className="w-full text-right bg-black/40 hover:bg-stone-900/80 p-3 rounded-2xl border border-stone-800/80 hover:border-[#D4AF37]/50 backdrop-blur-sm transition-all space-y-1.5 block group shadow-xs cursor-pointer"
+                className="w-full text-right bg-[#18181B]/95 hover:bg-stone-900 p-3 rounded-2xl border border-stone-800 hover:border-[#D4AF37]/60 transition-all space-y-1.5 block group shadow-xs cursor-pointer"
               >
                 <span className="text-[#B89B58] font-bold block text-[11px] flex items-center gap-1">
                   <Navigation className="w-3 h-3 text-[#B89B58]" />
@@ -264,7 +276,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               <li>
                 <a
                   href={`tel:${siteSettings?.primaryPhone || BRAND_INFO.primaryPhone}`}
-                  className="bg-black/40 hover:bg-stone-900/90 p-2.5 rounded-2xl border border-stone-800/80 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer backdrop-blur-sm shadow-xs"
+                  className="bg-[#18181B]/95 hover:bg-stone-900 p-2.5 rounded-2xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer shadow-xs"
                   title="تماس مستقیم با مدیریت"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -281,7 +293,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               <li>
                 <a
                   href={`tel:${siteSettings?.salesPhone || '09121966144'}`}
-                  className="bg-black/40 hover:bg-stone-900/90 p-2.5 rounded-2xl border border-stone-800/80 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer backdrop-blur-sm shadow-xs"
+                  className="bg-[#18181B]/95 hover:bg-stone-900 p-2.5 rounded-2xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer shadow-xs"
                   title="تماس با واحد فروش و سفارش عمده"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -298,7 +310,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
               <li>
                 <a
                   href={`tel:${siteSettings?.supportPhone || '02155608823'}`}
-                  className="bg-black/40 hover:bg-stone-900/90 p-2.5 rounded-2xl border border-stone-800/80 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer backdrop-blur-sm shadow-xs"
+                  className="bg-[#18181B]/95 hover:bg-stone-900 p-2.5 rounded-2xl border border-stone-800 hover:border-[#D4AF37] flex items-center justify-between transition-all text-white font-bold group cursor-pointer shadow-xs"
                   title="تماس با پشتیبانی و پیگیری بار"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
