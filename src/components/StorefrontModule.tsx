@@ -37,8 +37,18 @@ import {
   Sliders,
   Image as ImageIcon,
   RefreshCw,
-  Film
+  Film,
+  Building2,
+  UserCheck,
+  UserPlus,
+  Edit3,
+  Search,
+  Lock,
+  Unlock,
+  ShieldAlert,
+  X
 } from 'lucide-react';
+import { toPersianDigits } from '../utils/persianWriting';
 import { 
   Product, 
   SiteSettings, 
@@ -66,6 +76,9 @@ interface StorefrontModuleProps {
   customerUsers: CustomerUser[];
   orders: StorefrontOrder[];
   onOpenLiveStorefront: () => void;
+  onUpdateCustomerUser?: (user: CustomerUser) => void;
+  onAddCustomerUser?: (user: CustomerUser) => void;
+  onDeleteCustomerUser?: (userId: string) => void;
 }
 
 export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
@@ -75,8 +88,11 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
   customerUsers,
   orders,
   onOpenLiveStorefront,
+  onUpdateCustomerUser,
+  onAddCustomerUser,
+  onDeleteCustomerUser,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'storefront_stories' | 'site_theme' | 'lookbook_banners' | 'mid_grid_banners' | 'promo_popup' | 'registered_customers' | 'pricing_policy'>('site_info');
+  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'storefront_stories' | 'site_theme' | 'lookbook_banners' | 'mid_grid_banners' | 'promo_popup' | 'wholesale_partners' | 'registered_customers' | 'pricing_policy'>('site_info');
   
   // Local form for site settings
   const [formData, setFormData] = useState<SiteSettings>(() => ({
@@ -108,6 +124,146 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
 
   // Selected customer for viewing history
   const [selectedUserForHistory, setSelectedUserForHistory] = useState<CustomerUser | null>(null);
+
+  // Wholesale VIP Partners whitelist state
+  const [partnerSearchQuery, setPartnerSearchQuery] = useState('');
+  const [partnerStatusFilter, setPartnerStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [isAddPartnerModalOpen, setIsAddPartnerModalOpen] = useState(false);
+  const [editingPartner, setEditingPartner] = useState<CustomerUser | null>(null);
+  const [partnerForm, setPartnerForm] = useState({
+    fullName: '',
+    phone: '',
+    storeName: '',
+    city: 'اصفهان',
+    province: 'اصفهان',
+    vipDiscountPercent: 15,
+    wholesaleAccessNotes: '',
+    isPartnerWholesale: true,
+  });
+  const [partnerToast, setPartnerToast] = useState<string | null>(null);
+
+  const showPartnerToast = (msg: string) => {
+    setPartnerToast(msg);
+    setTimeout(() => setPartnerToast(null), 3500);
+  };
+
+  const handleTogglePartnerStatus = (partner: CustomerUser) => {
+    if (onUpdateCustomerUser) {
+      const updated = {
+        ...partner,
+        isPartnerWholesale: !partner.isPartnerWholesale,
+        wholesaleAccessGrantedAt: partner.isPartnerWholesale ? partner.wholesaleAccessGrantedAt : 'امروز (فعال‌سازی مجدد)',
+      };
+      onUpdateCustomerUser(updated);
+      showPartnerToast(
+        updated.isPartnerWholesale 
+          ? `دسترسی همکار «${partner.fullName}» فعال شد.` 
+          : `دسترسی همکار «${partner.fullName}» موقتاً غیرفعال شد.`
+      );
+    }
+  };
+
+  const handleOpenAddPartner = () => {
+    setPartnerForm({
+      fullName: '',
+      phone: '',
+      storeName: '',
+      city: 'تهران',
+      province: 'تهران',
+      vipDiscountPercent: 15,
+      wholesaleAccessNotes: '',
+      isPartnerWholesale: true,
+    });
+    setEditingPartner(null);
+    setIsAddPartnerModalOpen(true);
+  };
+
+  const handleOpenEditPartner = (partner: CustomerUser) => {
+    setEditingPartner(partner);
+    setPartnerForm({
+      fullName: partner.fullName,
+      phone: partner.phone,
+      storeName: partner.storeName || '',
+      city: partner.city || 'تهران',
+      province: partner.province || 'تهران',
+      vipDiscountPercent: partner.vipDiscountPercent || 15,
+      wholesaleAccessNotes: partner.wholesaleAccessNotes || '',
+      isPartnerWholesale: partner.isPartnerWholesale ?? true,
+    });
+    setIsAddPartnerModalOpen(true);
+  };
+
+  const handleSavePartnerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partnerForm.phone.trim() || !partnerForm.fullName.trim()) {
+      return;
+    }
+    const cleanPhone = partnerForm.phone.replace(/[^0-9]/g, '');
+
+    if (editingPartner) {
+      if (onUpdateCustomerUser) {
+        onUpdateCustomerUser({
+          ...editingPartner,
+          fullName: partnerForm.fullName.trim(),
+          phone: cleanPhone,
+          storeName: partnerForm.storeName.trim() || 'فروشگاه / بنکداری',
+          city: partnerForm.city.trim() || 'تهران',
+          province: partnerForm.province.trim() || 'تهران',
+          vipDiscountPercent: Number(partnerForm.vipDiscountPercent) || 15,
+          wholesaleAccessNotes: partnerForm.wholesaleAccessNotes.trim(),
+          isPartnerWholesale: partnerForm.isPartnerWholesale,
+        });
+        showPartnerToast(`اطلاعات همکار «${partnerForm.fullName}» با موفقیت به‌روزرسانی شد.`);
+      }
+    } else {
+      if (onAddCustomerUser) {
+        const newPartnerUser: CustomerUser = {
+          id: `partner-${Date.now()}`,
+          fullName: partnerForm.fullName.trim(),
+          phone: cleanPhone,
+          storeName: partnerForm.storeName.trim() || 'بنکداری / همکار',
+          city: partnerForm.city.trim() || 'تهران',
+          province: partnerForm.province.trim() || 'تهران',
+          address: 'ثبت شده توسط مدیریت در پنل ادمین',
+          isPartnerWholesale: partnerForm.isPartnerWholesale,
+          vipDiscountPercent: Number(partnerForm.vipDiscountPercent) || 15,
+          wholesaleAccessNotes: partnerForm.wholesaleAccessNotes.trim(),
+          wholesaleAccessGrantedAt: 'امروز (ثبت از پنل)',
+          registeredAt: 'امروز (ثبت از پنل ادمین)',
+          totalOrdersCount: 0,
+          totalSpentToman: 0,
+        };
+        onAddCustomerUser(newPartnerUser);
+        showPartnerToast(`همکار جدید «${partnerForm.fullName}» با دسترسی VIP اضافه شد.`);
+      }
+    }
+    setIsAddPartnerModalOpen(false);
+    setEditingPartner(null);
+  };
+
+  const handleDeletePartner = (partner: CustomerUser) => {
+    if (confirm(`آیا از حذف دسترسی همکار «${partner.fullName}» اطمینان دارید؟`)) {
+      if (onDeleteCustomerUser) {
+        onDeleteCustomerUser(partner.id);
+      } else if (onUpdateCustomerUser) {
+        onUpdateCustomerUser({ ...partner, isPartnerWholesale: false });
+      }
+      showPartnerToast(`همکار «${partner.fullName}» از فهرست همکاران حذف شد.`);
+    }
+  };
+
+  const handlePromoteToWholesale = (user: CustomerUser) => {
+    if (onUpdateCustomerUser) {
+      onUpdateCustomerUser({
+        ...user,
+        isPartnerWholesale: true,
+        wholesaleAccessGrantedAt: 'امروز (ارتقا از پنل)',
+        vipDiscountPercent: 15,
+        storeName: user.storeName || 'فروشگاه همکار',
+      });
+      showPartnerToast(`کاربر «${user.fullName}» به لیست همکاران VIP افزوده شد.`);
+    }
+  };
 
   const handleSaveSettings = (e?: React.FormEvent, customData?: SiteSettings) => {
     if (e) e.preventDefault();
@@ -408,6 +564,18 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             <span>
               پاپ‌آپ تخفیف مناسبتی {formData.promoPopup?.isActive ? '✨ (فعال)' : '(غیرفعال)'}
             </span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('wholesale_partners')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === 'wholesale_partners'
+                ? 'bg-[#18181B] text-[#FAF7F2] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Building2 className="w-4 h-4 text-emerald-500" />
+            <span>دسترسی همکاران VIP ({customerUsers.filter(u => u.isPartnerWholesale).length})</span>
           </button>
 
           <button
@@ -1879,6 +2047,445 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             </button>
           </div>
         </form>
+      )}
+
+      {/* TAB: Authorized Wholesale VIP Partners Whitelist */}
+      {activeSubTab === 'wholesale_partners' && (
+        <div className="space-y-6">
+          {/* Toast Notification */}
+          {partnerToast && (
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 p-4 rounded-2xl flex items-center gap-2 text-xs font-bold animate-fadeIn">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>{partnerToast}</span>
+            </div>
+          )}
+
+          {/* 1. Header & Restriction Switch Card */}
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#8C6D37] via-[#D4AF37] to-[#F5E6A3] text-[#18181B] flex items-center justify-center shadow-xs">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-[#18181B]">
+                    مدیریت دسترسی همکاران VIP و بنکداران اختصاصی
+                  </h3>
+                </div>
+                <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
+                  تنها افرادی که در جدول زیر قرار دارند، می‌توانند در سایت از منوی «ورود همکاران» با وارد کردن نام و شماره تماس خود احراز هویت شده و به قیمت‌های عمده و چکی دسترسی یابند.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddPartner}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all shadow-sm shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#D4AF37]" />
+                <span>افزودن همکار مجاز جدید</span>
+              </button>
+            </div>
+
+            {/* Master Security Toggle */}
+            <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-amber-950">
+                    محدودسازی ورود همکاران فقط به افراد تاییدشده در پنل ادمین
+                  </h4>
+                  <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                    در صورت فعال بودن این گزینه، سیستم هنگام ورود همکاران شماره و نام واردشده را با لیست تاییدشده تطبیق داده و مانع ورود افراد متفرقه می‌شود.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const nextVal = !(formData.restrictWholesaleToAdminApproved ?? true);
+                  const updated = { ...formData, restrictWholesaleToAdminApproved: nextVal };
+                  setFormData(updated);
+                  onUpdateSiteSettings(updated);
+                  showPartnerToast(nextVal ? 'محدودسازی دسترسی همکاران فعال شد (توصیه‌شده).' : 'محدودسازی غیرفعال شد (ورود آزاد).');
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                  (formData.restrictWholesaleToAdminApproved ?? true)
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                    : 'bg-stone-200 hover:bg-stone-300 text-stone-700'
+                }`}
+              >
+                {(formData.restrictWholesaleToAdminApproved ?? true) ? (
+                  <>
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>محدودیت فعال است (امن)</span>
+                  </>
+                ) : (
+                  <>
+                    <Unlock className="w-3.5 h-3.5" />
+                    <span>ورود آزاد (غیرفعال)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Filter & Search Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="relative w-full sm:w-80">
+              <input
+                type="text"
+                value={partnerSearchQuery}
+                onChange={(e) => setPartnerSearchQuery(e.target.value)}
+                placeholder="جستجو با نام، شماره تماس یا بنکداری..."
+                className="w-full pr-9 pl-3 py-2 text-xs rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-800"
+              />
+              <Search className="w-4 h-4 text-stone-400 absolute right-3 top-2.5" />
+            </div>
+
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setPartnerStatusFilter('all')}
+                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  partnerStatusFilter === 'all'
+                    ? 'bg-[#18181B] text-[#FAF7F2]'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-600'
+                }`}
+              >
+                همه ({toPersianDigits(customerUsers.filter(u => u.isPartnerWholesale || u.wholesaleAccessGrantedAt).length)})
+              </button>
+              <button
+                type="button"
+                onClick={() => setPartnerStatusFilter('active')}
+                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  partnerStatusFilter === 'active'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                دسترسی فعال ({toPersianDigits(customerUsers.filter(u => u.isPartnerWholesale).length)})
+              </button>
+              <button
+                type="button"
+                onClick={() => setPartnerStatusFilter('inactive')}
+                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  partnerStatusFilter === 'inactive'
+                    ? 'bg-stone-700 text-white'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-600'
+                }`}
+              >
+                معلق / لغوشده ({toPersianDigits(customerUsers.filter(u => !u.isPartnerWholesale && Boolean(u.wholesaleAccessGrantedAt)).length)})
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Authorized Partners Table */}
+          <div className="bg-white rounded-2xl border border-[#E6DEC8] shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-right text-xs">
+                <thead className="bg-[#FAF7F2] text-[#8C6D37] border-b border-[#E6DEC8] font-black">
+                  <tr>
+                    <th className="p-3.5">نام همکار</th>
+                    <th className="p-3.5">شماره همراه (ورود به پرتال)</th>
+                    <th className="p-3.5">فروشگاه / بنکداری</th>
+                    <th className="p-3.5">شهر و استان</th>
+                    <th className="p-3.5 text-center">تخفیف همکاری</th>
+                    <th className="p-3.5 text-center">وضعیت دسترسی</th>
+                    <th className="p-3.5 text-center">عملیات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {customerUsers
+                    .filter(u => u.isPartnerWholesale || Boolean(u.wholesaleAccessGrantedAt))
+                    .filter(p => {
+                      const q = partnerSearchQuery.trim().toLowerCase();
+                      const matches = !q || 
+                        (p.fullName && p.fullName.toLowerCase().includes(q)) ||
+                        (p.phone && p.phone.includes(q)) ||
+                        (p.storeName && p.storeName.toLowerCase().includes(q)) ||
+                        (p.city && p.city.toLowerCase().includes(q));
+                      if (partnerStatusFilter === 'active') return matches && p.isPartnerWholesale;
+                      if (partnerStatusFilter === 'inactive') return matches && !p.isPartnerWholesale;
+                      return matches;
+                    })
+                    .map((partner) => (
+                      <tr key={partner.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                        <td className="p-3.5 font-black text-stone-900">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center font-bold">
+                              <Building2 className="w-3.5 h-3.5 text-[#8C6D37]" />
+                            </div>
+                            <div>
+                              <span>{partner.fullName}</span>
+                              {partner.wholesaleAccessNotes && (
+                                <p className="text-[10px] text-stone-400 font-normal">
+                                  {partner.wholesaleAccessNotes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3.5 font-mono text-stone-800 font-bold" dir="ltr">
+                          {toPersianDigits(partner.phone)}
+                        </td>
+                        <td className="p-3.5 text-stone-700 font-medium">
+                          {partner.storeName || 'بنکداری / همکار'}
+                        </td>
+                        <td className="p-3.5 text-stone-600">
+                          {partner.city || 'تهران'} {partner.province && partner.province !== partner.city ? `(${partner.province})` : ''}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <span className="bg-amber-50 text-amber-900 border border-amber-200 font-black px-2 py-0.5 rounded-md text-[11px]">
+                            {toPersianDigits(partner.vipDiscountPercent || 15)}٪
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePartnerStatus(partner)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+                              partner.isPartnerWholesale
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                            }`}
+                            title="کلیک جهت فعال یا غیرفعال کردن دسترسی"
+                          >
+                            <span className={`w-2 h-2 rounded-full ${partner.isPartnerWholesale ? 'bg-emerald-600' : 'bg-stone-400'}`}></span>
+                            <span>{partner.isPartnerWholesale ? 'مجاز (فعال)' : 'غیرفعال'}</span>
+                          </button>
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditPartner(partner)}
+                              className="p-1.5 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors"
+                              title="ویرایش مشخصات همکار"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePartner(partner)}
+                              className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                              title="حذف همکار"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+
+              {customerUsers.filter(u => u.isPartnerWholesale || u.wholesaleAccessGrantedAt).length === 0 && (
+                <div className="p-8 text-center text-stone-500 space-y-2">
+                  <Building2 className="w-8 h-8 mx-auto text-stone-400" />
+                  <p className="text-xs font-bold">هنوز هیچ همکار یا بنکدار اختصاصی ثبت نشده است.</p>
+                  <p className="text-[11px] text-stone-400">
+                    با کلیک روی دکمه «افزودن همکار مجاز جدید» اولین همکار مورد تایید را ثبت نمایید.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 4. Quick Promote Registered Customers */}
+          {customerUsers.filter(u => !u.isPartnerWholesale).length > 0 && (
+            <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#E6DEC8] space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-black text-[#18181B] flex items-center gap-1.5">
+                    <UserPlus className="w-4 h-4 text-[#8C6D37]" />
+                    <span>اعطای سریع دسترسی به سایر خریداران ثبت‌نام‌شده</span>
+                  </h4>
+                  <p className="text-[11px] text-stone-500 mt-0.5">
+                    کاربرانی که در سایت عضو شده‌اند ولی هنوز دسترسی همکار عمده برایشان فعال نشده است:
+                  </p>
+                </div>
+                <span className="text-[11px] bg-white text-stone-700 px-2.5 py-1 rounded-xl border border-stone-200 font-bold">
+                  {toPersianDigits(customerUsers.filter(u => !u.isPartnerWholesale).length)} خریدار عادی
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+                {customerUsers
+                  .filter(u => !u.isPartnerWholesale)
+                  .slice(0, 6)
+                  .map((user) => (
+                    <div key={user.id} className="bg-white p-3 rounded-xl border border-stone-200 flex items-center justify-between gap-2 shadow-2xs">
+                      <div>
+                        <div className="text-xs font-black text-stone-900">{user.fullName}</div>
+                        <div className="text-[10px] text-stone-500 font-mono" dir="ltr">{toPersianDigits(user.phone)}</div>
+                        <div className="text-[10px] text-stone-400">{user.storeName || user.city}</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handlePromoteToWholesale(user)}
+                        className="px-2.5 py-1.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-lg text-[10px] font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1"
+                      >
+                        <UserCheck className="w-3 h-3 text-[#D4AF37]" />
+                        <span>ارتقا به همکار VIP</span>
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Modal: Add / Edit Authorized Partner */}
+          {isAddPartnerModalOpen && (
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-4" dir="rtl">
+              <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden">
+                <div className="bg-[#18181B] text-white p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-[#D4AF37]" />
+                    <h3 className="font-black text-sm text-white">
+                      {editingPartner ? 'ویرایش مشخصات همکار VIP' : 'افزودن همکار مجاز جدید'}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddPartnerModalOpen(false);
+                      setEditingPartner(null);
+                    }}
+                    className="p-1 rounded-lg text-stone-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSavePartnerSubmit} className="p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 block mb-1">
+                        نام و نام خانوادگی همکار:
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={partnerForm.fullName}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, fullName: e.target.value })}
+                        placeholder="مثال: حاج داوود محمدی"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 block mb-1">
+                        شماره موبایل همکار (جهت ورود به سایت):
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={partnerForm.phone}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, phone: e.target.value })}
+                        placeholder="۰۹۱۲۱۱۱۴۵۸۹"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 block mb-1">
+                        نام فروشگاه یا بنکداری:
+                      </label>
+                      <input
+                        type="text"
+                        value={partnerForm.storeName}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, storeName: e.target.value })}
+                        placeholder="مثال: بنکداری اصفهان"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 block mb-1">
+                        شهر / بازار:
+                      </label>
+                      <input
+                        type="text"
+                        value={partnerForm.city}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, city: e.target.value })}
+                        placeholder="مثال: اصفهان"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 block mb-1">
+                        درصد تخفیف همکاری (VIP):
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={partnerForm.vipDiscountPercent}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, vipDiscountPercent: Number(e.target.value) })}
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 block mb-1">
+                        وضعیت دسترسی:
+                      </label>
+                      <select
+                        value={partnerForm.isPartnerWholesale ? 'active' : 'inactive'}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, isPartnerWholesale: e.target.value === 'active' })}
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900 bg-white"
+                      >
+                        <option value="active">مجاز و فعال (امکان ورود به پرتال)</option>
+                        <option value="inactive">معلق / غیرفعال</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      یادداشت‌های اختصاصی مدیریت:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={partnerForm.wholesaleAccessNotes}
+                      onChange={(e) => setPartnerForm({ ...partnerForm, wholesaleAccessNotes: e.target.value })}
+                      placeholder="توضیحات و شرایط همکاری، نوع تسویه، باربری..."
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 text-stone-900"
+                    />
+                  </div>
+
+                  <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddPartnerModalOpen(false);
+                        setEditingPartner(null);
+                      }}
+                      className="px-4 py-2 border border-stone-300 hover:bg-stone-100 text-stone-700 rounded-xl text-xs font-bold transition-all"
+                    >
+                      انصراف
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all shadow-sm"
+                    >
+                      {editingPartner ? 'ثبت تغییرات' : 'افزودن و فعال‌سازی دسترسی'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* TAB 2: Registered Customer Accounts */}

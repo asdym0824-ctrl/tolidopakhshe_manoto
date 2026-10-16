@@ -1606,7 +1606,30 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
         isOpen={isPartnerModalOpen}
         onClose={() => setIsPartnerModalOpen(false)}
         isLoggedIn={isPartnerLoggedIn}
-        onToggleLogin={setIsPartnerLoggedIn}
+        onToggleLogin={(status, partnerData) => {
+          setIsPartnerLoggedIn(status);
+          if (status && partnerData) {
+            setLoggedInCustomer(prev => ({
+              ...(prev || {
+                id: partnerData.id || `partner-${Date.now()}`,
+                phone: partnerData.phone || '',
+                fullName: partnerData.fullName || '',
+                province: partnerData.province || 'تهران',
+                city: partnerData.city || 'تهران',
+                address: partnerData.address || '',
+                registeredAt: 'امروز',
+              }),
+              ...partnerData,
+              isPartnerWholesale: true,
+            }));
+          } else if (!status) {
+            if (loggedInCustomer?.isPartnerWholesale) {
+              setLoggedInCustomer(null);
+            }
+          }
+        }}
+        customerUsers={customerUsers}
+        restrictWholesaleToAdminApproved={siteSettings?.restrictWholesaleToAdminApproved ?? true}
       />
 
       <AboutAndContactModal

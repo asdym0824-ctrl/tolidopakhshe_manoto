@@ -558,16 +558,16 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-          <div className="relative w-full max-w-sm">
+      <div className="bg-white p-3 sm:p-3.5 rounded-2xl sm:rounded-xl border border-stone-200 shadow-2xs flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 flex-1 w-full sm:w-auto">
+          <div className="relative col-span-2 sm:col-span-1 w-full sm:max-w-xs md:max-w-sm">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="جستجو در نام مدل، کد SKU (مثلاً SH-BGR) یا جنس پارچه..."
-              className="w-full bg-stone-50 text-xs pr-9 pl-3 py-2 rounded-lg border border-stone-200 focus:border-amber-500 focus:bg-white outline-none"
+              className="w-full bg-stone-50 text-xs pr-9 pl-3 py-2 rounded-xl sm:rounded-lg border border-stone-200 focus:border-amber-500 focus:bg-white outline-none h-9 transition-colors"
             />
           </div>
 
@@ -575,7 +575,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-stone-50 text-xs py-2 px-2.5 rounded-lg border border-stone-200 text-stone-700 outline-none focus:border-amber-500"
+            className="col-span-1 w-full bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-xs font-medium py-1.5 px-2.5 rounded-xl sm:rounded-lg border border-stone-300 sm:border-stone-200 text-stone-800 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 shadow-2xs transition-all h-9 cursor-pointer truncate"
           >
             <option value="all">همه دسته‌بندی‌ها</option>
             {categoriesList.map(cat => (
@@ -587,7 +587,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           <select
             value={selectedSource}
             onChange={(e) => setSelectedSource(e.target.value)}
-            className="bg-stone-50 text-xs py-2 px-2.5 rounded-lg border border-stone-200 text-stone-700 outline-none focus:border-amber-500"
+            className="col-span-1 w-full bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-xs font-medium py-1.5 px-2.5 rounded-xl sm:rounded-lg border border-stone-300 sm:border-stone-200 text-stone-800 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 shadow-2xs transition-all h-9 cursor-pointer truncate"
           >
             <option value="all">همه منابع تامین</option>
             <option value="self_produced">تولید کارگاه خودمان</option>
@@ -597,7 +597,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           {/* Stock Alert Filter */}
           <button
             onClick={() => setStockFilter(stockFilter === 'low' ? 'all' : 'low')}
-            className={`text-xs px-2.5 py-1.8 rounded-lg border flex items-center gap-1 transition-all ${
+            className={`col-span-2 sm:col-span-1 w-full sm:w-auto justify-center text-xs px-3 py-2 rounded-xl sm:rounded-lg border flex items-center gap-1.5 transition-all h-9 font-medium cursor-pointer ${
               stockFilter === 'low'
                 ? 'bg-rose-100 text-rose-900 border-rose-300 font-bold'
                 : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
@@ -609,10 +609,10 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg border border-stone-200">
+        <div className="flex items-center justify-between sm:justify-start gap-1 bg-stone-100 p-1 rounded-xl sm:rounded-lg border border-stone-200 w-full sm:w-auto">
           <button
             onClick={() => setViewMode('table')}
-            className={`p-1.5 rounded text-xs flex items-center gap-1 font-medium ${
+            className={`flex-1 sm:flex-initial p-1.5 rounded-lg sm:rounded text-xs flex items-center justify-center gap-1 font-medium transition-all ${
               viewMode === 'table' ? 'bg-white text-stone-900 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-800'
             }`}
             title="نمای جدول جامع با بهای تمام شده"
@@ -622,7 +622,7 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({
           </button>
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-1.5 rounded text-xs flex items-center gap-1 font-medium ${
+            className={`flex-1 sm:flex-initial p-1.5 rounded-lg sm:rounded text-xs flex items-center justify-center gap-1 font-medium transition-all ${
               viewMode === 'grid' ? 'bg-white text-stone-900 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-800'
             }`}
             title="نمای کارت ژورنالی"

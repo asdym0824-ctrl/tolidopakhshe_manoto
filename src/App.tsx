@@ -33,6 +33,24 @@ import {
 // Initial registered customer accounts for storefront & retail
 const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
   {
+    id: 'usr-partner-0',
+    phone: '09121114589',
+    password: 'password123',
+    fullName: 'حاج داوود محمدی',
+    storeName: 'بنکداری اصفهان',
+    province: 'اصفهان',
+    city: 'اصفهان',
+    address: 'بازار بزرگ اصفهان، راسته هارونیه، پلاک ۱۸',
+    postalCode: '8145612345',
+    isPartnerWholesale: true,
+    vipDiscountPercent: 15,
+    wholesaleAccessGrantedAt: '۱۴۰۳/۰۱/۱۰',
+    wholesaleAccessNotes: 'بنکدار و همکار معتمد راسته بازار اصفهان • تسویه چکی و نقدی',
+    registeredAt: '۱۴۰۳/۰۱/۱۰',
+    totalOrdersCount: 5,
+    totalSpentToman: 42000000,
+  },
+  {
     id: 'usr-1',
     phone: '09131234567',
     password: 'password123',
@@ -43,6 +61,9 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
     address: 'میدان نقش جهان، بازار قیصریه، سرای مخلص، پلاک ۱۲',
     postalCode: '8146599123',
     isPartnerWholesale: true,
+    vipDiscountPercent: 15,
+    wholesaleAccessGrantedAt: '۱۴۰۳/۰۴/۱۵',
+    wholesaleAccessNotes: 'خرید عمده تیراژ بالا و همکار قدیمی تهران و اصفهان',
     registeredAt: '۱۴۰۳/۰۴/۱۵',
     totalOrdersCount: 2,
     totalSpentToman: 2340000,
@@ -58,6 +79,9 @@ const INITIAL_CUSTOMER_USERS: CustomerUser[] = [
     address: 'بلوار احمدآباد، نبش خیابان پاستور، مجتمع تجاری آلتون',
     postalCode: '9183746501',
     isPartnerWholesale: true,
+    vipDiscountPercent: 12,
+    wholesaleAccessGrantedAt: '۱۴۰۳/۰۵/۰۱',
+    wholesaleAccessNotes: 'نماینده فروشگاهی مشهد با سابقه سفارشات سری دوزی',
     registeredAt: '۱۴۰۳/۰۵/۰۱',
     totalOrdersCount: 1,
     totalSpentToman: 1180000,
@@ -201,6 +225,7 @@ export const INITIAL_SITE_SETTINGS: SiteSettings = {
   announcementNotice: '🌟 ارسال فوری بار با باربری وطن و چاپار به تمام استان‌ها • مدل‌های جدید کالکشن تابستانه آماده ثبت سفارش',
   isRetailSaleActive: true,
   minFreeShippingToman: 5000000,
+  restrictWholesaleToAdminApproved: true,
   midGridBanners: DEFAULT_STOREFRONT_BANNERS,
   promoPopup: DEFAULT_PROMO_POPUP,
   lookbookBanners: DEFAULT_LOOKBOOK_BANNERS,
@@ -363,7 +388,27 @@ export default function App() {
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>(INITIAL_SOCIAL_POSTS);
   const [autoResponders, setAutoResponders] = useState<AutoResponderRule[]>(INITIAL_AUTO_RESPONDERS);
   const [storefrontOrders, setStorefrontOrders] = useState<StorefrontOrder[]>(INITIAL_STOREFRONT_ORDERS);
-  const [customerUsers, setCustomerUsers] = useState<CustomerUser[]>(INITIAL_CUSTOMER_USERS);
+  const [customerUsers, setCustomerUsers] = useState<CustomerUser[]>(() => {
+    try {
+      const stored = localStorage.getItem('manoto_customer_users');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Could not load customer users from local storage:', e);
+    }
+    return INITIAL_CUSTOMER_USERS;
+  });
+
+  // Keep customerUsers synced to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('manoto_customer_users', JSON.stringify(customerUsers));
+    } catch (e) {
+      console.warn('Could not save customer users to local storage:', e);
+    }
+  }, [customerUsers]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     try {
       const stored = localStorage.getItem('manoto_site_settings');
@@ -525,6 +570,10 @@ export default function App() {
 
   const handleUpdateCustomerUser = (updatedUser: CustomerUser) => {
     setCustomerUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+  };
+
+  const handleDeleteCustomerUser = (userId: string) => {
+    setCustomerUsers(prev => prev.filter(u => u.id !== userId));
   };
 
   // Computed alert badges
@@ -1059,6 +1108,9 @@ export default function App() {
                     customerUsers={customerUsers}
                     orders={storefrontOrders}
                     onOpenLiveStorefront={() => setAppZone('storefront')}
+                    onUpdateCustomerUser={handleUpdateCustomerUser}
+                    onAddCustomerUser={handleRegisterCustomerUser}
+                    onDeleteCustomerUser={handleDeleteCustomerUser}
                   />
                 )}
 

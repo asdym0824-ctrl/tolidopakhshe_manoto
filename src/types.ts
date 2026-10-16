@@ -348,6 +348,9 @@ export interface CustomerUser {
   notes?: string;
   password?: string;
   isPartnerWholesale?: boolean;
+  vipDiscountPercent?: number;
+  wholesaleAccessGrantedAt?: string;
+  wholesaleAccessNotes?: string;
   registeredAt: string;
   lastLoginAt?: string;
   totalOrdersCount?: number;
@@ -464,6 +467,7 @@ export interface SiteSettings {
   announcementNotice: string;
   isRetailSaleActive: boolean;
   minFreeShippingToman: number;
+  restrictWholesaleToAdminApproved?: boolean;
   midGridBanners?: StorefrontBanner[];
   promoPopup?: OccasionPromoPopupConfig;
   lookbookBanners?: LookbookBannerItem[];

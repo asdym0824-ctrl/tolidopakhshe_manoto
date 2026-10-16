@@ -93,7 +93,7 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
           <Home className={`transition-all duration-200 ${
             currentActive === 'home' 
               ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs' 
-              : 'w-5 h-5 text-stone-300'
+              : 'w-5 h-5 text-[#D4AF37]/80'
           }`} />
           <span className={`text-[10px] mt-0.5 transition-colors ${
             currentActive === 'home' ? 'font-black text-[#FAF7F2]' : 'font-medium text-stone-300'
@@ -219,7 +219,7 @@ export const MobileBottomNavBar: React.FC<MobileBottomNavBarProps> = ({
               ? 'w-5 h-5 text-[#D4AF37] scale-110 drop-shadow-xs'
               : loggedInCustomer 
               ? 'w-5 h-5 text-emerald-400' 
-              : 'w-5 h-5 text-stone-300'
+              : 'w-5 h-5 text-[#D4AF37]/80'
           }`} />
           <span className={`text-[10px] mt-0.5 truncate max-w-[55px] transition-colors ${
             currentActive === 'profile' ? 'font-black text-[#FAF7F2]' : 'font-medium text-stone-300'

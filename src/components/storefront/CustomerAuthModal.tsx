@@ -285,18 +285,18 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 pb-28 md:pb-4 bg-black/60 backdrop-blur-xs animate-fadeIn" 
+      className="fixed inset-0 z-[70] md:z-50 flex items-center justify-center p-0 md:p-4 md:pb-4 bg-white md:bg-black/60 md:backdrop-blur-xs animate-fadeIn" 
       dir="rtl"
     >
       <div 
         id="customer-auth-modal-container"
-        className="bg-white text-stone-900 w-full max-w-md rounded-3xl border border-[#DDD5C0] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="bg-white text-stone-900 w-full h-full md:h-auto md:max-w-md rounded-none md:rounded-3xl border-0 md:border md:border-[#DDD5C0] shadow-none md:shadow-2xl overflow-hidden flex flex-col max-h-none md:max-h-[92vh]"
       >
         
         {/* Header Bar */}
-        <div className="bg-[#18181B] text-[#FAF7F2] p-4.5 flex items-center justify-between border-b border-[#3F3F46]">
+        <div className="bg-[#18181B] text-[#FAF7F2] p-4 sm:p-4.5 pt-[calc(env(safe-area-inset-top,0px)+12px)] md:pt-4.5 flex items-center justify-between border-b border-[#3F3F46] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#27272A] text-[#D4AF37] flex items-center justify-center font-bold text-xs shadow-xs border border-[#D4AF37]/30">
+            <div className="w-10 h-10 rounded-2xl bg-[#27272A] text-[#D4AF37] flex items-center justify-center font-bold text-xs shadow-xs border border-[#D4AF37]/30 shrink-0">
               <KeyRound className="w-5 h-5 text-[#D4AF37]" />
             </div>
             <div>
@@ -312,10 +312,11 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-[#27272A] transition-colors cursor-pointer"
-            aria-label="بستن پنجره ورود"
+            className="py-1.5 px-3 rounded-xl text-stone-300 hover:text-white hover:bg-[#27272A] bg-white/5 border border-white/10 md:border-transparent transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            aria-label="بستن صفحه حساب من"
           >
-            <X className="w-5 h-5" />
+            <span className="md:hidden">بازگشت</span>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -402,7 +403,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
         )}
 
         {/* Modal Scrollable Content */}
-        <div className="p-5 pb-28 md:pb-5 overflow-y-auto space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 pb-[calc(env(safe-area-inset-bottom,0px)+32px)] md:pb-5 space-y-4">
           
           {/* TAB 1: LOGIN (نام کاربری = شماره موبایل | رمز عبور = تعیین شده توسط کاربر) */}
           {activeTab === 'login' && (

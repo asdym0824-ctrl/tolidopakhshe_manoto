@@ -452,7 +452,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <ManotoLogo size="sm" showPersianSub={false} />
               </div>
               {!isSuperAdmin && (
-                <div>
+                <div className="hidden sm:block">
                   <div className="flex items-center gap-2">
                     <h1 className="text-sm sm:text-base font-black text-[#18181B] leading-tight">
                       پوشاک من و تو

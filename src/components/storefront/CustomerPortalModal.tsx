@@ -353,13 +353,13 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 pb-28 md:pb-6 bg-black/75 backdrop-blur-md animate-fadeIn" dir="rtl">
+    <div className="fixed inset-0 z-[70] md:z-50 flex items-center justify-center p-0 md:p-4 md:p-6 bg-[#FAF7F2] md:bg-black/75 md:backdrop-blur-md animate-fadeIn" dir="rtl">
       
-      {/* Modal Dialog Card */}
-      <div className="bg-[#FAF7F2] text-stone-900 w-full max-w-4xl rounded-3xl border border-[#DDD5C0] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      {/* Modal Dialog Card: Full screen on mobile, elegant dialog on desktop */}
+      <div className="bg-[#FAF7F2] text-stone-900 w-full h-full md:h-auto md:max-w-4xl rounded-none md:rounded-3xl border-0 md:border md:border-[#DDD5C0] shadow-none md:shadow-2xl overflow-hidden flex flex-col max-h-none md:max-h-[92vh]">
         
         {/* ===================== DASHBOARD TOP HEADER ===================== */}
-        <div className="bg-gradient-to-r from-[#18181B] via-[#202024] to-[#18181B] text-[#FAF7F2] p-4 sm:p-6 border-b border-[#3F3F46] relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#18181B] via-[#202024] to-[#18181B] text-[#FAF7F2] p-4 sm:p-6 pt-[calc(env(safe-area-inset-top,0px)+12px)] md:pt-6 border-b border-[#3F3F46] relative overflow-hidden shrink-0">
           {/* Subtle background glow */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -367,8 +367,8 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
             
             {/* User Identity & Avatar Hub */}
             <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-[#27272A] to-[#18181B] border-2 border-[#D4AF37] text-[#D4AF37] flex items-center justify-center font-black text-xl shadow-lg ring-4 ring-[#D4AF37]/20 shrink-0">
-                {currentUser?.fullName ? currentUser.fullName.charAt(0) : <User className="w-7 h-7 text-[#D4AF37]" />}
+              <div className="w-12 h-12 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-[#27272A] to-[#18181B] border-2 border-[#D4AF37] text-[#D4AF37] flex items-center justify-center font-black text-xl shadow-lg ring-4 ring-[#D4AF37]/20 shrink-0">
+                {currentUser?.fullName ? currentUser.fullName.charAt(0) : <User className="w-6 h-6 sm:w-7 sm:h-7 text-[#D4AF37]" />}
               </div>
 
               <div>
@@ -443,10 +443,11 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-[#27272A] transition-colors border border-transparent hover:border-[#3F3F46] cursor-pointer"
+                className="py-1.5 px-3 rounded-xl text-stone-300 hover:text-white hover:bg-[#27272A] bg-white/5 border border-white/10 md:border-[#3F3F46] transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
                 title="بستن پیشخوان"
               >
-                <X className="w-5 h-5" />
+                <span className="md:hidden">بازگشت</span>
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
@@ -559,7 +560,7 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
             </div>
 
             {/* ===================== TAB CONTENT BODIES ===================== */}
-            <div className="p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto flex-1 space-y-5 bg-[#FAF7F2]">
+            <div className="p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom,0px)+32px)] md:pb-6 overflow-y-auto flex-1 space-y-5 bg-[#FAF7F2]">
               
               {/* ---------- 1. OVERVIEW TAB ---------- */}
               {activeTab === 'overview' && (
@@ -1216,7 +1217,7 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
           </>
         ) : (
           /* ===================== GUEST / WELCOME HUB (Not Logged In) ===================== */
-          <div className="p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto flex-1 space-y-6 bg-[#FAF7F2] animate-fadeIn">
+          <div className="p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom,0px)+32px)] md:pb-6 overflow-y-auto flex-1 space-y-6 bg-[#FAF7F2] animate-fadeIn">
             
             {/* Quick Demo Preview Spotlight */}
             <div className="bg-gradient-to-br from-[#18181B] to-[#27272A] text-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#D4AF37]/50 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
