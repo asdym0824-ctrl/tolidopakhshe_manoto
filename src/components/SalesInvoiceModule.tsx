@@ -309,14 +309,14 @@ export const SalesInvoiceModule: React.FC<SalesInvoiceModuleProps> = ({
         
         {/* Module Header Inside Card */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EFE9DC]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#18181B] to-stone-800 text-[#D4AF37] flex items-center justify-center shadow-xs shrink-0">
               <FileText className="w-5 h-5 text-[#D4AF37]" />
             </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2 flex-wrap">
                 <span>دفتر ثبت و کاردکس فاکتورهای فروش عمده و حضوری</span>
-                <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold bg-[#FAF7F2] text-[#8C6D37] border border-[#DDD5C0] px-2 py-0.5 rounded-full shrink-0">
                   {invoices.length.toLocaleString('fa-IR')} فاکتور کل
                 </span>
               </h3>
@@ -326,12 +326,12 @@ export const SalesInvoiceModule: React.FC<SalesInvoiceModuleProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
-            <span className="text-xs text-stone-500 font-medium">مرتب‌سازی:</span>
+          <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-[#EFE9DC]">
+            <span className="text-[11px] sm:text-xs text-stone-500 font-medium shrink-0">مرتب‌سازی:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#FAF7F2] text-xs font-bold text-stone-800 border border-[#DDD5C0] rounded-xl px-2.5 py-1.5 outline-none focus:border-[#D4AF37] cursor-pointer"
+              className="flex-1 sm:flex-none min-w-0 bg-[#FAF7F2] text-[11px] sm:text-xs font-bold text-stone-800 border border-[#DDD5C0] rounded-xl px-2 sm:px-2.5 py-1.5 outline-none focus:border-[#D4AF37] cursor-pointer truncate"
             >
               <option value="date_desc">جدیدترین تاریخ صدور</option>
               <option value="amount_desc">بیشترین مبلغ فاکتور</option>
@@ -343,7 +343,7 @@ export const SalesInvoiceModule: React.FC<SalesInvoiceModuleProps> = ({
             <button
               type="button"
               onClick={() => setIsTableFullscreen(!isTableFullscreen)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+              className={`shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition-all ${
                 isTableFullscreen
                   ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
                   : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'

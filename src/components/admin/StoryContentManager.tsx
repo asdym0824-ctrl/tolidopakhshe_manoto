@@ -317,16 +317,16 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
 
         {/* Speed & Motion Controls */}
         <div className="mt-5 pt-4 border-t border-[#E6DEC8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
             <span className="font-bold text-stone-700 flex items-center gap-1.5">
               <Sliders className="w-4 h-4 text-[#8C6D37]" />
               <span>سرعت حرکت قطاری:</span>
             </span>
-            <div className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-xl border border-[#DDD5C0]">
+            <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:items-center gap-1 bg-[#FAF7F2] p-1 rounded-xl border border-[#DDD5C0] shadow-2xs sm:shadow-none">
               <button
                 type="button"
                 onClick={() => handleSetSpeed('very_slow')}
-                className={`px-3 py-1.5 rounded-lg font-black transition-all cursor-pointer ${
+                className={`py-2 sm:py-1.5 px-2.5 sm:px-3 rounded-lg font-black transition-all cursor-pointer text-center flex items-center justify-center text-[11px] sm:text-xs ${
                   trainSpeed === 'very_slow'
                     ? 'bg-[#18181B] text-[#D4AF37] shadow-2xs'
                     : 'text-stone-600 hover:text-stone-900'
@@ -337,7 +337,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
               <button
                 type="button"
                 onClick={() => handleSetSpeed('slow')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                className={`py-2 sm:py-1.5 px-2.5 sm:px-3 rounded-lg font-bold transition-all cursor-pointer text-center flex items-center justify-center text-[11px] sm:text-xs ${
                   trainSpeed === 'slow'
                     ? 'bg-[#18181B] text-[#D4AF37] shadow-2xs'
                     : 'text-stone-600 hover:text-stone-900'
@@ -348,7 +348,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
               <button
                 type="button"
                 onClick={() => handleSetSpeed('medium')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                className={`py-2 sm:py-1.5 px-2.5 sm:px-3 rounded-lg font-bold transition-all cursor-pointer text-center flex items-center justify-center text-[11px] sm:text-xs ${
                   trainSpeed === 'medium'
                     ? 'bg-[#18181B] text-[#D4AF37] shadow-2xs'
                     : 'text-stone-600 hover:text-stone-900'
@@ -359,7 +359,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
               <button
                 type="button"
                 onClick={() => handleSetSpeed('paused')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                className={`py-2 sm:py-1.5 px-2.5 sm:px-3 rounded-lg font-bold transition-all cursor-pointer text-center flex items-center justify-center text-[11px] sm:text-xs ${
                   trainSpeed === 'paused'
                     ? 'bg-rose-900 text-rose-100 shadow-2xs'
                     : 'text-stone-600 hover:text-stone-900'
@@ -423,7 +423,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
 
       {/* Stories List & Management Cards */}
       <div className="bg-white rounded-2xl border border-[#E6DEC8] shadow-xs overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-[#E6DEC8] flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-[#E6DEC8] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-[#8C6D37]" />
             <h4 className="text-sm font-black text-stone-900">لیست و اولویت استوری‌های قطار</h4>
@@ -442,9 +442,9 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
               }`}
             >
               {/* Story info */}
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 {/* Order Index & controls */}
-                <div className="flex flex-col items-center gap-0.5">
+                <div className="flex flex-col items-center gap-0.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => handleMoveOrder(index, 'up')}
@@ -469,7 +469,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
                 </div>
 
                 {/* Circle Avatar */}
-                <div className={`relative p-0.5 rounded-full bg-gradient-to-tr ${getRingGradientClass(story.highlightRingColor)} flex-shrink-0 shadow-xs`}>
+                <div className={`relative p-0.5 rounded-full bg-gradient-to-tr ${getRingGradientClass(story.highlightRingColor)} shrink-0 shadow-xs`}>
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-100 border border-white">
                     <img src={story.image} alt={story.title} className="w-full h-full object-cover" />
                   </div>
@@ -481,10 +481,10 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
                 </div>
 
                 {/* Text & Meta */}
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-black text-stone-900">{story.title}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200">
+                    <span className="text-sm font-black text-stone-900 truncate">{story.title}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200 shrink-0">
                       {story.actionType === 'category' ? `دسته: ${story.actionValue || 'همه'}` :
                        story.actionType === 'video_reels' ? 'ویدیو تن‌خور ژورنالی' :
                        story.actionType === 'promo_popup' ? 'آفر جشنواره' :
@@ -492,7 +492,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
                        story.actionType === 'story_modal' ? 'پنجره جزییات استوری' : 'لینک اختصاصی'}
                     </span>
                     {!story.isActive && (
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
                         مخفی در ویترین
                       </span>
                     )}
@@ -507,7 +507,7 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 self-end sm:self-center">
+              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-stone-100">
                 <button
                   type="button"
                   onClick={() => handleToggleActive(story.id)}
@@ -520,23 +520,25 @@ export const StoryContentManager: React.FC<StoryContentManagerProps> = ({
                   {story.isActive ? 'فعال ✓' : 'غیرفعال'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleOpenEditModal(story)}
-                  className="p-2 rounded-xl border border-stone-200 hover:border-[#D4AF37] hover:bg-[#FAF7F2] text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
-                  title="ویرایش استوری"
-                >
-                  <Edit3 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(story)}
+                    className="p-2 rounded-xl border border-stone-200 hover:border-[#D4AF37] hover:bg-[#FAF7F2] text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
+                    title="ویرایش استوری"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleDeleteStory(story.id)}
-                  className="p-2 rounded-xl border border-stone-200 hover:border-rose-300 hover:bg-rose-50 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
-                  title="حذف استوری"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteStory(story.id)}
+                    className="p-2 rounded-xl border border-stone-200 hover:border-rose-300 hover:bg-rose-50 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    title="حذف استوری"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

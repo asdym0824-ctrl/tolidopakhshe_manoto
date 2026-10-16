@@ -312,12 +312,12 @@ export const LogisticsModule: React.FC<LogisticsModuleProps> = ({ invoices }) =>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
-            <span className="text-xs text-stone-500 font-medium">فیلتر باربری:</span>
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EFE9DC]">
+            <span className="text-xs text-stone-500 font-medium shrink-0">فیلتر باربری:</span>
             <select
               value={carrierFilter}
               onChange={(e) => setCarrierFilter(e.target.value)}
-              className="bg-[#FAF7F2] text-xs font-bold text-stone-800 border border-[#DDD5C0] rounded-xl px-2.5 py-1.5 outline-none focus:border-[#D4AF37] cursor-pointer"
+              className="w-full sm:w-auto bg-[#FAF7F2] text-xs font-bold text-stone-800 border border-[#DDD5C0] rounded-xl px-3 py-2 outline-none focus:border-[#D4AF37] cursor-pointer transition-colors"
             >
               <option value="all">همه باربری‌ها</option>
               <option value="باربری وطن (شوش)">باربری وطن (شوش)</option>
@@ -330,7 +330,7 @@ export const LogisticsModule: React.FC<LogisticsModuleProps> = ({ invoices }) =>
             <button
               type="button"
               onClick={() => setIsTableFullscreen(!isTableFullscreen)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+              className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 isTableFullscreen
                   ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 shadow-sm'
                   : 'bg-[#FAF7F2] text-stone-700 border-[#DDD5C0] hover:bg-[#F2ECE1] hover:text-stone-900'

@@ -464,15 +464,15 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({
           </div>
 
           {/* Filtering and Sort Controls for Real Profit Table */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-black text-[#18181B]">فیلتر و رتبه‌بندی:</span>
+          <div className="bg-white p-4 rounded-2xl border border-[#E6DEC8] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2.5">
+              <span className="font-black text-[#18181B] shrink-0 text-xs">فیلتر و رتبه‌بندی:</span>
 
               {/* Category Filter */}
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-[#FAF7F2] p-2 rounded-xl border border-[#DDD5C0] text-stone-800 font-medium outline-none"
+                className="w-full sm:w-auto bg-[#FAF7F2] py-2 px-3 rounded-xl border border-[#DDD5C0] text-stone-800 font-medium outline-none text-xs focus:border-[#8C6D37] transition-colors"
               >
                 <option value="all">همه دسته‌بندی‌ها</option>
                 {allCategories.filter(c => c !== 'all').map(cat => (
@@ -484,7 +484,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({
               <select
                 value={profitSortBy}
                 onChange={(e) => setProfitSortBy(e.target.value as any)}
-                className="bg-[#FAF7F2] p-2 rounded-xl border border-[#DDD5C0] text-stone-800 font-bold outline-none"
+                className="w-full sm:w-auto bg-[#FAF7F2] py-2 px-3 rounded-xl border border-[#DDD5C0] text-stone-800 font-bold outline-none text-xs max-w-full focus:border-[#8C6D37] transition-colors"
               >
                 <option value="net_profit">رتبه‌بندی بر اساس: بیشترین سود خالص (تومان)</option>
                 <option value="margin_pct">رتبه‌بندی بر اساس: بالاترین درصد حاشیه سود (٪)</option>
@@ -493,7 +493,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E6DEC8]/60 gap-3">
               <span className="text-[11px] text-[#8C6D37] font-bold">
                 نمایش {filteredProfitability.length} مدل کالا
               </span>

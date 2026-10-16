@@ -307,56 +307,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button
             type="button"
             onClick={() => setMobileDashboardTab('all_modules')}
-            className={`flex-1 min-w-[85px] py-2 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
+            className={`flex-1 min-w-0 py-2 px-1.5 rounded-xl text-[10.5px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
               mobileDashboardTab === 'all_modules'
                 ? 'bg-[#18181B] text-[#D4AF37] shadow-xs'
                 : 'text-stone-600 hover:text-stone-950 hover:bg-stone-50'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span>بخش‌های سامانه (۱۰)</span>
+            <Layers className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate whitespace-nowrap">بخش‌های سامانه</span>
           </button>
 
           <button
             type="button"
             onClick={() => setMobileDashboardTab('pulse')}
-            className={`flex-1 min-w-[76px] py-2 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
+            className={`flex-1 min-w-0 py-2 px-1.5 rounded-xl text-[10.5px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
               mobileDashboardTab === 'pulse'
                 ? 'bg-[#18181B] text-[#D4AF37] shadow-xs'
                 : 'text-stone-600 hover:text-stone-950 hover:bg-stone-50'
             }`}
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>نبض و عملیات</span>
+            <Zap className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate whitespace-nowrap">نبض و عملیات</span>
           </button>
 
           <button
             type="button"
             onClick={() => setMobileDashboardTab('priorities')}
-            className={`flex-1 min-w-[76px] py-2 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
+            className={`flex-1 min-w-0 py-2 px-1.5 rounded-xl text-[10.5px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
               mobileDashboardTab === 'priorities'
                 ? 'bg-[#18181B] text-[#D4AF37] shadow-xs'
                 : 'text-stone-600 hover:text-stone-950 hover:bg-stone-50'
             }`}
           >
-            <CheckSquare className="w-3.5 h-3.5" />
-            <span>کارهای امروز</span>
+            <CheckSquare className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate whitespace-nowrap">کارهای امروز</span>
             {pendingChecks.length > 0 && (
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setMobileDashboardTab('crm_logistics')}
-            className={`flex-1 min-w-[76px] py-2 px-2 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
+            className={`flex-1 min-w-0 py-2 px-1.5 rounded-xl text-[10.5px] font-black transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer ${
               mobileDashboardTab === 'crm_logistics'
                 ? 'bg-[#18181B] text-[#D4AF37] shadow-xs'
                 : 'text-stone-600 hover:text-stone-950 hover:bg-stone-50'
             }`}
           >
-            <Truck className="w-3.5 h-3.5" />
-            <span>همکاران و بار</span>
+            <Truck className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate whitespace-nowrap">همکاران و بار</span>
           </button>
 
           {/* Compact Privacy Shield Toggle */}

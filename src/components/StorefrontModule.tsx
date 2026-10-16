@@ -647,11 +647,11 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <button
                 type="button"
                 onClick={handleResetLookbookBanners}
-                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto justify-center px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer order-2 sm:order-1"
                 title="بازنشانی به بنرهای پیش‌فرض اولیه"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -661,7 +661,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
               <button
                 type="button"
                 onClick={() => handleSaveSettings()}
-                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+                className="w-full sm:w-auto justify-center px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer order-1 sm:order-2"
               >
                 <Save className="w-4 h-4 text-[#D4AF37]" />
                 <span>ذخیره کلیه بنرهای لوک‌بوک</span>
@@ -846,11 +846,11 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <button
                 type="button"
                 onClick={handleResetSiteTheme}
-                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto justify-center px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer order-2 sm:order-1"
                 title="بازنشانی پس‌زمینه و تم به حالت اولیه خیاطی کلاسیک"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -860,7 +860,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
               <button
                 type="button"
                 onClick={() => handleSaveSettings()}
-                className="px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
+                className="w-full sm:w-auto justify-center px-5 py-2.5 bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer order-1 sm:order-2"
               >
                 <Save className="w-4 h-4 text-[#D4AF37]" />
                 <span>ذخیره تم و پس‌زمینه</span>
@@ -916,7 +916,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                       setFormData(updated);
                       onUpdateSiteSettings(updated);
                     }}
-                    className={`p-4 rounded-2xl border-2 text-right transition-all flex flex-col justify-between gap-3 cursor-pointer ${
+                    className={`p-4 rounded-2xl border-2 text-right transition-all flex flex-col justify-between gap-3 cursor-pointer whitespace-normal w-full ${
                       themeOpt.bgPreview
                     } ${
                       isSelected
@@ -924,22 +924,22 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                         : 'border-[#E6DEC8] hover:border-stone-400'
                     }`}
                   >
-                    <div>
+                    <div className="w-full">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-stone-700">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-stone-700 whitespace-nowrap">
                           {themeOpt.badge}
                         </span>
                         {isSelected && (
-                          <span className="w-5 h-5 rounded-full bg-[#18181B] text-[#D4AF37] flex items-center justify-center text-xs font-black">
+                          <span className="w-5 h-5 rounded-full bg-[#18181B] text-[#D4AF37] flex items-center justify-center text-xs font-black shrink-0">
                             ✓
                           </span>
                         )}
                       </div>
-                      <h5 className="font-black text-xs text-[#18181B] mb-1">{themeOpt.title}</h5>
-                      <p className="text-[11px] text-stone-600 leading-relaxed">{themeOpt.desc}</p>
+                      <h5 className="font-black text-xs text-[#18181B] mb-1 whitespace-normal break-words">{themeOpt.title}</h5>
+                      <p className="text-[11px] text-stone-600 leading-relaxed whitespace-normal break-words">{themeOpt.desc}</p>
                     </div>
 
-                    <div className="pt-2 border-t border-black/10 flex items-center justify-between text-[11px]">
+                    <div className="pt-2 border-t border-black/10 flex items-center justify-between text-[11px] whitespace-normal">
                       <span className="text-stone-500 font-medium">وضعیت:</span>
                       <span className={`font-black ${isSelected ? 'text-[#18181B]' : 'text-stone-400'}`}>
                         {isSelected ? 'فعال در فروشگاه' : 'انتخاب این تم'}
@@ -1340,7 +1340,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
               </div>
 
               {/* Behavior Settings */}
-              <div className="pt-2 border-t border-stone-200 flex items-center justify-between">
+              <div className="pt-3 border-t border-stone-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1356,7 +1356,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSaveSettings()}
-                  className="px-5 py-2 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-800 rounded-xl text-xs font-black transition-all flex items-center gap-1.5"
+                  className="w-full sm:w-auto justify-center px-5 py-2.5 bg-[#18181B] text-[#FAF7F2] hover:bg-stone-800 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5 text-[#D4AF37]" />
                   <span>ذخیره کلیه تنظیمات پاپ‌آپ</span>
@@ -2027,11 +2027,11 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 w-full">
             <button
               type="button"
               onClick={handleResetSiteInfo}
-              className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-4 py-3 rounded-xl transition-all flex items-center gap-1.5 border border-stone-300 cursor-pointer"
+              className="w-full sm:w-auto bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 border border-stone-300 cursor-pointer order-2 sm:order-1"
               title="بازنشانی اطلاعات، تلفن‌ها و آدرس‌های سربرگ به مقادیر اولیه کارگاه"
             >
               <RotateCcw className="w-4 h-4 text-stone-600" />
@@ -2040,7 +2040,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
 
             <button
               type="submit"
-              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-6 py-3 rounded-xl transition-all shadow-xs flex items-center gap-2 border border-[#3F3F46] cursor-pointer"
+              className="w-full sm:w-auto bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-6 py-3 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 border border-[#3F3F46] cursor-pointer order-1 sm:order-2"
             >
               <Save className="w-4 h-4 text-[#D4AF37]" />
               <span>ذخیره کلیه تنظیمات وب‌سایت</span>
@@ -2186,7 +2186,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
           {/* 3. Authorized Partners Table */}
           <div className="bg-white rounded-2xl border border-[#E6DEC8] shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
+              <table className="w-full text-right text-xs min-w-[620px]">
                 <thead className="bg-[#FAF7F2] text-[#8C6D37] border-b border-[#E6DEC8] font-black">
                   <tr>
                     <th className="p-3.5">نام همکار</th>
@@ -2601,11 +2601,11 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 pt-4 border-t border-[#E6DEC8]">
+          <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-[#E6DEC8]">
             <button
               type="button"
               onClick={handleResetPricingPolicy}
-              className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 border border-stone-300 cursor-pointer"
+              className="w-full sm:w-auto justify-center bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 border border-stone-300 cursor-pointer order-2 sm:order-1"
               title="بازنشانی شرایط تک‌فروشی و حداقل ارسال رایگان به مقادیر پیش‌فرض"
             >
               <RotateCcw className="w-3.5 h-3.5 text-stone-600" />
@@ -2615,7 +2615,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
             <button
               type="button"
               onClick={() => handleSaveSettings()}
-              className="bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 border border-[#3F3F46] cursor-pointer"
+              className="w-full sm:w-auto justify-center bg-[#18181B] hover:bg-stone-800 text-[#FAF7F2] font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 border border-[#3F3F46] cursor-pointer order-1 sm:order-2"
             >
               <Save className="w-4 h-4 text-[#D4AF37]" />
               <span>ذخیره قوانین فروش</span>
