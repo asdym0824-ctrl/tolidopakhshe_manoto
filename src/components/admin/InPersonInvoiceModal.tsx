@@ -298,8 +298,6 @@ export const InPersonInvoiceModal: React.FC<InPersonInvoiceModalProps> = ({
     }
   }, [initialInvoiceToView, isOpen]);
 
-  if (!isOpen) return null;
-
   // Handler for quickly populating from predefined dropdown
   const handleSelectPredefinedCustomer = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const custId = e.target.value;
@@ -902,6 +900,8 @@ ${currentInvoice.items.map((it, idx) => `${idx + 1}. ${it.productName} - ${it.pa
     setCopiedNotification(true);
     setTimeout(() => setCopiedNotification(false), 2500);
   };
+
+  if (!isOpen) return null;
 
   return createPortal(
     <div 

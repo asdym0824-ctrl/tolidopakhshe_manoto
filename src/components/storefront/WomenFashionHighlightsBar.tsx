@@ -49,37 +49,153 @@ export const WomenFashionHighlightsBar: React.FC<WomenFashionHighlightsBarProps>
           </div>
         </div>
 
-        {/* Right Side: Interactive Quick Help Buttons (Size Guide, Fabric Care, Catalog) */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-end overflow-x-auto pb-0.5 no-scrollbar shrink-0">
-          {/* 1. Size Guide Trigger */}
-          <button
-            type="button"
-            onClick={onOpenSizeGuide}
-            className="py-1.5 px-3 rounded-xl bg-white hover:bg-rose-50 text-stone-800 hover:text-rose-900 border border-[#EAE4D9] hover:border-rose-300 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
-          >
-            <Ruler className="w-3.5 h-3.5 text-rose-600" />
-            <span>جدول سایزبندی بانوان</span>
-          </button>
+        {/* Right Side: Interactive Quick Help Buttons (Size Guide, Fabric Care, Catalog) & Mobile Auto-Moving Marquee */}
+        <div className="relative w-full md:w-auto overflow-hidden md:overflow-visible shrink-0 touch-pan-y">
+          
+          {/* Subtle lateral gradient edge masks for mobile marquee strip */}
+          <div className="md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#FAF8F5] via-[#FAF8F5]/80 to-transparent z-10" />
+          <div className="md:hidden pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/80 to-transparent z-10" />
 
-          {/* 2. Fabric Care Guide Trigger */}
-          <button
-            type="button"
-            onClick={onOpenFabricCare}
-            className="py-1.5 px-3 rounded-xl bg-white hover:bg-amber-50 text-stone-800 hover:text-amber-900 border border-[#EAE4D9] hover:border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
-          >
-            <Layers className="w-3.5 h-3.5 text-amber-600" />
-            <span>شناسنامهٔ پارچه و شست‌وشو</span>
-          </button>
+          {/* 📱 Mobile Continuous Auto-Moving Ticker Strip (نوار پیوسته و پشت‌سرهم با سرعت آرام و بدون وقفه) */}
+          <div className="md:hidden overflow-hidden py-1 w-full touch-pan-y" dir="ltr">
+            <div className="flex w-max shrink-0 items-center touch-pan-y">
+              {/* Set 1: First continuous ribbon */}
+              <div className="animate-marquee-continuous flex items-center gap-2 shrink-0 pr-2 touch-pan-y" dir="rtl">
+                {/* 1. Size Guide Trigger */}
+                <button
+                  type="button"
+                  onClick={onOpenSizeGuide}
+                  className="py-1.5 px-2.5 rounded-xl bg-white hover:bg-rose-50 text-stone-800 hover:text-rose-900 border border-[#EAE4D9] hover:border-rose-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Ruler className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                  <span>جدول سایزبندی بانوان</span>
+                </button>
 
-          {/* 3. Fast View Outfits */}
-          <button
-            type="button"
-            onClick={onScrollToCatalog}
-            className="py-1.5 px-3 rounded-xl bg-[#18181B] hover:bg-black text-[#D4AF37] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
-          >
-            <Shirt className="w-3.5 h-3.5" />
-            <span>ویترین تن‌خور</span>
-          </button>
+                {/* 2. Fabric Care Guide Trigger */}
+                <button
+                  type="button"
+                  onClick={onOpenFabricCare}
+                  className="py-1.5 px-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-800 hover:text-amber-900 border border-[#EAE4D9] hover:border-amber-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Layers className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>شناسنامهٔ پارچه و شست‌وشو</span>
+                </button>
+
+                {/* 3. Fast View Outfits */}
+                <button
+                  type="button"
+                  onClick={onScrollToCatalog}
+                  className="py-1.5 px-2.5 rounded-xl bg-[#18181B] hover:bg-black text-[#D4AF37] text-[11px] font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Shirt className="w-3.5 h-3.5 shrink-0" />
+                  <span>ویترین تن‌خور</span>
+                </button>
+
+                {/* 4. Atelier Sewing Guarantee Badge */}
+                <div className="py-1.5 px-2.5 rounded-xl bg-emerald-50/90 text-emerald-900 border border-emerald-200/80 text-[11px] font-bold flex items-center gap-1.5 shrink-0 shadow-2xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>ضمانت دوخت تمیز بازار</span>
+                </div>
+
+                {/* 5. Pattern & Cut Badge */}
+                <div className="py-1.5 px-2.5 rounded-xl bg-purple-50/90 text-purple-900 border border-purple-200/80 text-[11px] font-bold flex items-center gap-1.5 shrink-0 shadow-2xs">
+                  <Scissors className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <span>الگوسازی خوش‌پوش بانوان</span>
+                </div>
+
+                {/* 6. Shipping & Waybill Badge */}
+                <div className="py-1.5 px-2.5 rounded-xl bg-sky-50/90 text-sky-900 border border-sky-200/80 text-[11px] font-bold flex items-center gap-1.5 shrink-0 shadow-2xs">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <span>ارسال بیجک و باربری ۲۴ ساعته</span>
+                </div>
+              </div>
+
+              {/* Set 2: Exact duplicate running immediately back-to-back with zero gap (کاملاً پشت‌سرهم) */}
+              <div className="animate-marquee-continuous flex items-center gap-2 shrink-0 pr-2 touch-pan-y" dir="rtl" aria-hidden="true">
+                {/* 1. Size Guide Trigger */}
+                <button
+                  type="button"
+                  onClick={onOpenSizeGuide}
+                  className="py-1.5 px-2.5 rounded-xl bg-white hover:bg-rose-50 text-stone-800 hover:text-rose-900 border border-[#EAE4D9] hover:border-rose-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Ruler className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                  <span>جدول سایزبندی بانوان</span>
+                </button>
+
+                {/* 2. Fabric Care Guide Trigger */}
+                <button
+                  type="button"
+                  onClick={onOpenFabricCare}
+                  className="py-1.5 px-2.5 rounded-xl bg-white hover:bg-amber-50 text-stone-800 hover:text-amber-900 border border-[#EAE4D9] hover:border-amber-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Layers className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>شناسنامهٔ پارچه و شست‌وشو</span>
+                </button>
+
+                {/* 3. Fast View Outfits */}
+                <button
+                  type="button"
+                  onClick={onScrollToCatalog}
+                  className="py-1.5 px-2.5 rounded-xl bg-[#18181B] hover:bg-black text-[#D4AF37] text-[11px] font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Shirt className="w-3.5 h-3.5 shrink-0" />
+                  <span>ویترین تن‌خور</span>
+                </button>
+
+                {/* 4. Atelier Sewing Guarantee Badge */}
+                <div className="py-1.5 px-2.5 rounded-xl bg-emerald-50/90 text-emerald-900 border border-emerald-200/80 text-[11px] font-bold flex items-center gap-1.5 shrink-0 shadow-2xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>ضمانت دوخت تمیز بازار</span>
+                </div>
+
+                {/* 5. Pattern & Cut Badge */}
+                <div className="py-1.5 px-2.5 rounded-xl bg-purple-50/90 text-purple-900 border border-purple-200/80 text-[11px] font-bold flex items-center gap-1.5 shrink-0 shadow-2xs">
+                  <Scissors className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <span>الگوسازی خوش‌پوش بانوان</span>
+                </div>
+
+                {/* 6. Shipping & Waybill Badge */}
+                <div className="py-1.5 px-2.5 rounded-xl bg-sky-50/90 text-sky-900 border border-sky-200/80 text-[11px] font-bold flex items-center gap-1.5 shrink-0 shadow-2xs">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <span>ارسال بیجک و باربری ۲۴ ساعته</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 💻 Desktop View: Clean Static Non-Moving Buttons (بدون حرکت خودکار در دسکتاپ) */}
+          <div className="hidden md:flex items-center gap-2 justify-end shrink-0" dir="rtl">
+            {/* 1. Size Guide Trigger */}
+            <button
+              type="button"
+              onClick={onOpenSizeGuide}
+              className="py-1.5 px-3 rounded-xl bg-white hover:bg-rose-50 text-stone-800 hover:text-rose-900 border border-[#EAE4D9] hover:border-rose-300 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+            >
+              <Ruler className="w-3.5 h-3.5 text-rose-600" />
+              <span>جدول سایزبندی بانوان</span>
+            </button>
+
+            {/* 2. Fabric Care Guide Trigger */}
+            <button
+              type="button"
+              onClick={onOpenFabricCare}
+              className="py-1.5 px-3 rounded-xl bg-white hover:bg-amber-50 text-stone-800 hover:text-amber-900 border border-[#EAE4D9] hover:border-amber-300 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-600" />
+              <span>شناسنامهٔ پارچه و شست‌وشو</span>
+            </button>
+
+            {/* 3. Fast View Outfits */}
+            <button
+              type="button"
+              onClick={onScrollToCatalog}
+              className="py-1.5 px-3 rounded-xl bg-[#18181B] hover:bg-black text-[#D4AF37] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+            >
+              <Shirt className="w-3.5 h-3.5" />
+              <span>ویترین تن‌خور</span>
+            </button>
+          </div>
+
         </div>
 
       </div>

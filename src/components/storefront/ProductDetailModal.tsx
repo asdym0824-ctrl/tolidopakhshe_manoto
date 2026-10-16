@@ -91,7 +91,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn" dir="rtl">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 md:p-6 pb-28 md:pb-6 animate-fadeIn" dir="rtl">
       <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Modal Top Header */}
@@ -122,7 +122,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 flex-1">
+        <div className="overflow-y-auto p-4 sm:p-6 pb-28 md:pb-6 grid grid-cols-1 md:grid-cols-12 gap-6 flex-1">
           
           {/* Left Column: Media Gallery (Images & Video) */}
           <div className="md:col-span-5 space-y-3">

@@ -61,7 +61,7 @@ export const FabricCareModal: React.FC<FabricCareModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200" dir="rtl">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-28 md:pb-4 animate-in fade-in duration-200" dir="rtl">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[#EAE4D9] overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -95,7 +95,7 @@ export const FabricCareModal: React.FC<FabricCareModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-4 sm:p-5 space-y-4">
+        <div className="overflow-y-auto p-4 sm:p-5 pb-28 md:pb-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {fabrics.map((f, i) => (
               <div key={i} className="p-3.5 rounded-2xl border border-[#EAE4D9] bg-[#FAF8F5]/60 hover:bg-white transition-all space-y-2">

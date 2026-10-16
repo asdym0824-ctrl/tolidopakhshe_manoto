@@ -449,7 +449,7 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
       </header>
 
       {/* Main Products Scroll Area */}
-      <main className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6">
+      <main className="flex-1 overflow-y-auto px-3 sm:px-6 pt-4 pb-28 md:py-6">
         <div className="max-w-7xl mx-auto space-y-4">
           
           {/* Active Filter Summary Bar if filtered */}
@@ -681,7 +681,7 @@ export const FullCatalogModal: React.FC<FullCatalogModalProps> = ({
       </main>
 
       {/* Footer Status & Fast Hotline */}
-      <footer className="bg-white border-t border-[#E6DEC8] px-3 sm:px-6 py-2 text-[10px] sm:text-xs text-stone-500 flex items-center justify-between">
+      <footer className="bg-white border-t border-[#E6DEC8] px-3 sm:px-6 py-2.5 pb-[calc(84px+env(safe-area-inset-bottom,0px))] md:pb-2.5 text-[10px] sm:text-xs text-stone-500 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span>پخش عمده مستقیم بازار بزرگ تهران • ارسال روزانه به تمام شهرها با باربری و تیپاکس</span>

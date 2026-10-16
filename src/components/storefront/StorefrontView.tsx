@@ -402,6 +402,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
     }
     setIsCartOpen(false);
     setIsTrackingOpen(false);
+    setIsAboutModalOpen(false);
     setIsAiAssistantOpen(false);
     setIsCustomerAuthOpen(false);
     setIsCustomerPortalOpen(false);
@@ -521,7 +522,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       />
 
       {/* Main Content Area with Couture Apparel Shapes & Watermark Pattern */}
-      <main className="flex-1 pb-16 md:pb-0 relative bg-[#FAF8F5]">
+      <main className="flex-1 pb-28 md:pb-0 relative bg-[#FAF8F5]">
         <GarmentBackgroundPattern 
           theme={siteSettings?.siteBackgroundTheme || 'couture_craft'} 
           opacity={siteSettings?.customBackgroundPatternOpacity ?? 0.115} 
@@ -755,7 +756,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
 
                 {/* Active Filters Dismissible Chips on Mobile */}
                 {activeFiltersCount > 0 && (
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px]">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px] touch-pan-y overscroll-x-contain">
                     <span className="text-stone-500 font-medium shrink-0">فیلتر فعال:</span>
                     {selectedCategory !== 'همه' && (
                       <button
@@ -1651,7 +1652,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       {/* Mobile Cart Feedback Toast (Floats above mobile bottom bar) */}
       {mobileToast?.show && (
         <div 
-          className="fixed bottom-18 md:hidden inset-x-3 z-50 bg-[#18181B]/95 text-white p-3 rounded-2xl border border-[#D4AF37]/60 shadow-2xl flex items-center justify-between gap-2.5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-200"
+          className="fixed bottom-[calc(84px+env(safe-area-inset-bottom,0px))] md:hidden inset-x-3 z-50 bg-[#18181B]/95 text-white p-3 rounded-2xl border border-[#D4AF37]/60 shadow-2xl flex items-center justify-between gap-2.5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-200"
           dir="rtl"
         >
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1681,10 +1682,13 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
       {/* Sticky Bottom Navigation Bar for Mobile & Smartphone View */}
       {!isCardToCardGatewayOpen && (
         <MobileBottomNavBar
+          isVisible={!isPromoPopupOpen}
           cartItemsCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
           activeSection={
             isCartOpen || currentView === 'checkout'
               ? 'cart'
+              : isAboutModalOpen
+              ? 'contact'
               : isTrackingOpen
               ? 'tracking'
               : isAiAssistantOpen
@@ -1698,6 +1702,7 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
               setIsCartOpen(false);
             } else {
               setIsCartOpen(true);
+              setIsAboutModalOpen(false);
               setIsTrackingOpen(false);
               setIsAiAssistantOpen(false);
               setIsCustomerAuthOpen(false);
@@ -1706,25 +1711,62 @@ export const StorefrontView: React.FC<StorefrontViewProps> = ({
             }
           }}
           onScrollToCatalog={scrollToCatalog}
+          onOpenAboutModal={() => {
+            if (isAboutModalOpen) {
+              setIsAboutModalOpen(false);
+            } else {
+              handleOpenAboutModal('all');
+              setIsCartOpen(false);
+              setIsTrackingOpen(false);
+              setIsAiAssistantOpen(false);
+              setIsCustomerAuthOpen(false);
+              setIsCustomerPortalOpen(false);
+              setIsPartnerModalOpen(false);
+            }
+          }}
           onOpenTracking={() => {
-            setIsCartOpen(false);
-            setIsTrackingOpen(true);
+            if (isTrackingOpen) {
+              setIsTrackingOpen(false);
+            } else {
+              setIsCartOpen(false);
+              setIsAboutModalOpen(false);
+              setIsAiAssistantOpen(false);
+              setIsCustomerAuthOpen(false);
+              setIsCustomerPortalOpen(false);
+              setIsPartnerModalOpen(false);
+              setIsTrackingOpen(true);
+            }
           }}
           onOpenCustomerAuthOrPortal={() => {
             setIsCartOpen(false);
+            setIsAboutModalOpen(false);
+            setIsTrackingOpen(false);
+            setIsAiAssistantOpen(false);
             if (loggedInCustomer) {
-              setIsCustomerPortalOpen(true);
+              setIsCustomerPortalOpen(!isCustomerPortalOpen);
             } else {
-              setIsCustomerAuthOpen(true);
+              setIsCustomerAuthOpen(!isCustomerAuthOpen);
             }
           }}
           onOpenPartnerModal={() => {
             setIsCartOpen(false);
-            setIsPartnerModalOpen(true);
+            setIsAboutModalOpen(false);
+            setIsTrackingOpen(false);
+            setIsAiAssistantOpen(false);
+            setIsPartnerModalOpen(!isPartnerModalOpen);
           }}
           onOpenAiAssistant={() => {
-            setIsCartOpen(false);
-            setIsAiAssistantOpen(true);
+            if (isAiAssistantOpen) {
+              setIsAiAssistantOpen(false);
+            } else {
+              setIsAiAssistantOpen(true);
+              setIsCartOpen(false);
+              setIsAboutModalOpen(false);
+              setIsTrackingOpen(false);
+              setIsCustomerAuthOpen(false);
+              setIsCustomerPortalOpen(false);
+              setIsPartnerModalOpen(false);
+            }
           }}
           loggedInCustomer={loggedInCustomer}
           isPartnerLoggedIn={isPartnerLoggedIn}

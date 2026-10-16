@@ -233,11 +233,11 @@ export const StorefrontHeader: React.FC<StorefrontHeaderProps> = ({
                 type="button"
                 id="btn-mobile-hamburger-nav"
                 onClick={onOpenMobileMenu}
-                className="md:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white hover:bg-[#FAF8F5] active:bg-[#F3EFE6] text-stone-900 border border-[#EAE4D9] shadow-xs active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
+                className="md:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white hover:bg-[#FAF8F5] active:bg-[#F3EFE6] text-stone-900 border border-[#EAE4D9] shadow-xs active:scale-90 active:rotate-[-6deg] transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0 group focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/40"
                 aria-label="باز کردن منوی دسترسی سریع موبایل"
                 title="منوی دسترسی سریع و دسته‌بندی‌ها"
               >
-                <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-[#18181B] hover:text-[#967434] transition-colors" />
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-[#18181B] group-hover:text-[#967434] transition-colors" />
               </button>
             )}
 

@@ -146,8 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         },
         {
           id: 'marketing',
-          label: 'دستیار سئو و هوش مصنوعی',
-          description: 'تولید کپشن تلگرام، سئو گوگل و متن تبلیغاتی',
+          label: 'تولید محتوا، استوری‌ها و سئو',
+          description: 'استوری‌های قطاری ویترین، سئو گوگل و کپشن',
           icon: Sparkles,
         },
         {

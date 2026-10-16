@@ -285,7 +285,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn" 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pb-28 md:pb-4 bg-black/60 backdrop-blur-xs animate-fadeIn" 
       dir="rtl"
     >
       <div 
@@ -402,7 +402,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
         )}
 
         {/* Modal Scrollable Content */}
-        <div className="p-5 overflow-y-auto space-y-4">
+        <div className="p-5 pb-28 md:pb-5 overflow-y-auto space-y-4">
           
           {/* TAB 1: LOGIN (نام کاربری = شماره موبایل | رمز عبور = تعیین شده توسط کاربر) */}
           {activeTab === 'login' && (

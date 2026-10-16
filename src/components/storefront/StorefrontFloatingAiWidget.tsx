@@ -58,7 +58,7 @@ export const StorefrontFloatingAiWidget: React.FC<StorefrontFloatingSupportWidge
   return (
     <div 
       ref={menuRef}
-      className="fixed bottom-20 md:bottom-6 left-3 sm:left-6 z-40 flex flex-col items-start gap-2 select-none" 
+      className="fixed bottom-[calc(84px+env(safe-area-inset-bottom,0px))] md:bottom-6 left-3 sm:left-6 z-40 flex flex-col items-start gap-2 select-none" 
       dir="rtl"
     >
       

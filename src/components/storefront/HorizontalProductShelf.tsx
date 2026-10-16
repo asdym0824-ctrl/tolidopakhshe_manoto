@@ -224,7 +224,7 @@ export const HorizontalProductShelf: React.FC<HorizontalProductShelfProps> = ({
       <div className="relative -mx-3.5 sm:mx-0">
         <div
           ref={scrollContainerRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 px-3.5 sm:px-1 snap-x snap-mandatory scroll-smooth no-scrollbar touch-pan-x"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 px-3.5 sm:px-1 snap-x snap-mandatory scroll-smooth no-scrollbar touch-pan-y overscroll-x-contain"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {products.map((product, index) => {

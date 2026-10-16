@@ -353,7 +353,7 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-md animate-fadeIn" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 pb-28 md:pb-6 bg-black/75 backdrop-blur-md animate-fadeIn" dir="rtl">
       
       {/* Modal Dialog Card */}
       <div className="bg-[#FAF7F2] text-stone-900 w-full max-w-4xl rounded-3xl border border-[#DDD5C0] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
@@ -559,7 +559,7 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
             </div>
 
             {/* ===================== TAB CONTENT BODIES ===================== */}
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-5 bg-[#FAF7F2]">
+            <div className="p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto flex-1 space-y-5 bg-[#FAF7F2]">
               
               {/* ---------- 1. OVERVIEW TAB ---------- */}
               {activeTab === 'overview' && (
@@ -1216,7 +1216,7 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
           </>
         ) : (
           /* ===================== GUEST / WELCOME HUB (Not Logged In) ===================== */
-          <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6 bg-[#FAF7F2] animate-fadeIn">
+          <div className="p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto flex-1 space-y-6 bg-[#FAF7F2] animate-fadeIn">
             
             {/* Quick Demo Preview Spotlight */}
             <div className="bg-gradient-to-br from-[#18181B] to-[#27272A] text-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#D4AF37]/50 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -627,7 +627,7 @@ export const CardToCardGatewayModal: React.FC<CardToCardGatewayModalProps> = ({
         </div>
 
         {/* Footer Action Bar (Pinned Bottom of Modal Card) */}
-        <div className="bg-white border-t border-[#E6DEC8] p-3 sm:p-4.5 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg z-10">
+        <div className="bg-white border-t border-[#E6DEC8] p-3 sm:p-4.5 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-4.5 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg z-10">
           <div className="flex items-center gap-2 text-stone-600 text-xs order-2 sm:order-1 self-start sm:self-auto">
             <Phone className="w-4 h-4 text-[#8C6D37] shrink-0" />
             <span>پشتیبانی اضطراری واریز کارت به کارت: ۰۹۱۲۰۳۶۹۵۶۷ ({BRAND_INFO.managementName})</span>

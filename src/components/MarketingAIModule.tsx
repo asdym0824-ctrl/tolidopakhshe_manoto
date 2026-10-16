@@ -13,10 +13,12 @@ import {
   Image as ImageIcon,
   Check,
   TrendingUp,
-  Search
+  Search,
+  Film
 } from 'lucide-react';
 import { Product, SocialPost, AutoResponderRule, SiteSettings } from '../types';
 import { SeoAssistantModule } from './SeoAssistantModule';
+import { StoryContentManager } from './admin/StoryContentManager';
 
 interface MarketingAIModuleProps {
   products: Product[];
@@ -37,7 +39,7 @@ export const MarketingAIModule: React.FC<MarketingAIModuleProps> = ({
   onAddSocialPost,
   onAddAutoResponder,
 }) => {
-  const [activeTab, setActiveTab] = useState<'seo_assistant' | 'ai_generator' | 'channels_scheduler' | 'auto_responder'>('seo_assistant');
+  const [activeTab, setActiveTab] = useState<'storefront_stories' | 'seo_assistant' | 'ai_generator' | 'channels_scheduler' | 'auto_responder'>('storefront_stories');
   
   // AI Generator state
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || '');
@@ -192,6 +194,21 @@ export const MarketingAIModule: React.FC<MarketingAIModuleProps> = ({
         {/* Tab Switcher */}
         <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[#E6DEC8] text-xs overflow-x-auto pb-1">
           <button
+            onClick={() => setActiveTab('storefront_stories')}
+            className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'storefront_stories'
+                ? 'bg-[#18181B] text-[#D4AF37] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Film className="w-4 h-4 text-[#D4AF37]" />
+            <span>مدیریت و تولید استوری‌های قطاری</span>
+            <span className="bg-[#D4AF37] text-[#18181B] text-[9.5px] font-black px-1.5 py-0.2 rounded-full">
+              جدید
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('seo_assistant')}
             className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'seo_assistant'
@@ -240,6 +257,15 @@ export const MarketingAIModule: React.FC<MarketingAIModuleProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Tab 0: Storefront Train Stories Management (New) */}
+      {activeTab === 'storefront_stories' && (
+        <StoryContentManager
+          products={products}
+          siteSettings={siteSettings}
+          onUpdateSiteSettings={onUpdateSiteSettings}
+        />
+      )}
 
       {/* Tab 1: SEO Assistant (Rendered via SeoAssistantModule) */}
       {activeTab === 'seo_assistant' && (

@@ -29,8 +29,6 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
   onClose,
   orders
 }) => {
-  if (!isOpen) return null;
-
   const [query, setQuery] = useState('');
   const [searched, setSearched] = useState(false);
   const [matchedOrder, setMatchedOrder] = useState<StorefrontOrder | null>(null);
@@ -65,8 +63,10 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     return 'pending';
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn" dir="rtl">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 md:p-6 pb-28 md:pb-6 animate-fadeIn" dir="rtl">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -96,7 +96,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
+        <div className="p-5 sm:p-6 pb-28 md:pb-6 overflow-y-auto space-y-6 flex-1">
           
           {/* Search Input Box */}
           <form onSubmit={handleSearch} className="space-y-2">

@@ -184,6 +184,7 @@ export const DEFAULT_PROMO_POPUP: OccasionPromoPopupConfig = {
 };
 
 import { DEFAULT_LOOKBOOK_BANNERS } from './data/defaultLookbookBanners';
+import { DEFAULT_STOREFRONT_STORIES } from './data/defaultStories';
 
 export const INITIAL_SITE_SETTINGS: SiteSettings = {
   brandName: 'پوشاک من و تو',
@@ -205,6 +206,9 @@ export const INITIAL_SITE_SETTINGS: SiteSettings = {
   lookbookBanners: DEFAULT_LOOKBOOK_BANNERS,
   siteBackgroundTheme: 'couture_craft',
   customBackgroundPatternOpacity: 0.12,
+  storefrontStories: DEFAULT_STOREFRONT_STORIES,
+  storiesTrainAutoPlay: true,
+  storiesTrainSpeed: 'very_slow',
 };
 
 // Component Imports
@@ -360,7 +364,35 @@ export default function App() {
   const [autoResponders, setAutoResponders] = useState<AutoResponderRule[]>(INITIAL_AUTO_RESPONDERS);
   const [storefrontOrders, setStorefrontOrders] = useState<StorefrontOrder[]>(INITIAL_STOREFRONT_ORDERS);
   const [customerUsers, setCustomerUsers] = useState<CustomerUser[]>(INITIAL_CUSTOMER_USERS);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
+    try {
+      const stored = localStorage.getItem('manoto_site_settings');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...INITIAL_SITE_SETTINGS,
+            ...parsed,
+            storefrontStories: (parsed.storefrontStories && parsed.storefrontStories.length > 0)
+              ? parsed.storefrontStories
+              : DEFAULT_STOREFRONT_STORIES
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load site settings from local storage:', e);
+    }
+    return INITIAL_SITE_SETTINGS;
+  });
+
+  // Keep siteSettings synced to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('manoto_site_settings', JSON.stringify(siteSettings));
+    } catch (e) {
+      console.warn('Could not save site settings to local storage:', e);
+    }
+  }, [siteSettings]);
   
   // Production Management States (Super Admin)
   const [fabricSuppliers, setFabricSuppliers] = useState<FabricSupplier[]>(INITIAL_FABRIC_SUPPLIERS);

@@ -12,7 +12,9 @@ import {
   Globe,
   Copy,
   Check,
-  Train
+  Train,
+  ChevronLeft,
+  ArrowRight
 } from 'lucide-react';
 import { BRAND_INFO } from '../../data/brandInfo';
 import { SiteSettings } from '../../types';
@@ -42,6 +44,35 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
     }
   }, [isOpen, initialTab]);
 
+  // Lock background body & document scrolling completely while this modal/page is open
+  React.useEffect(() => {
+    if (isOpen) {
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevBodyOverscroll = document.body.style.overscrollBehavior;
+
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'none';
+
+      return () => {
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+        document.body.style.overscrollBehavior = prevBodyOverscroll;
+      };
+    }
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleCopyAddress = () => {
@@ -53,50 +84,70 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn" 
+      className="fixed inset-0 z-50 overflow-hidden md:overflow-y-auto overscroll-none touch-pan-y bg-[#FAF7F2] md:bg-stone-950/75 md:backdrop-blur-xs flex flex-col md:flex-row md:items-center md:justify-center p-0 md:p-6 animate-fadeIn" 
       dir="rtl"
       id="modal-about-contact"
+      onClick={onClose}
     >
-      <div className="bg-[#FAF7F2] w-full max-w-3xl rounded-3xl shadow-2xl border border-[#DDD5C0] overflow-hidden flex flex-col max-h-[92vh]">
+      <div 
+        className="bg-[#FAF7F2] w-full h-[100dvh] md:h-auto md:max-w-3xl rounded-none md:rounded-3xl shadow-none md:shadow-2xl border-none md:border md:border-[#DDD5C0] overflow-hidden flex flex-col min-h-0 max-h-[100dvh] md:max-h-[92vh] mb-0 touch-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-[#E2D8C0] flex items-center justify-between bg-white flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs flex-shrink-0">
-              <MapPin className="w-5 h-5 text-[#D4AF37]" />
+        {/* Header (Top App Bar on Mobile / Modal Header on Desktop) */}
+        <div className="px-3.5 sm:px-5 py-3 sm:py-4 border-b border-[#E2D8C0] flex items-center justify-between bg-white flex-shrink-0 sticky top-0 z-20 shadow-2xs">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#18181B] text-[#D4AF37] flex items-center justify-center shadow-xs flex-shrink-0">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-stone-900 text-sm sm:text-base">
-                  تماس، آدرس مغازه و شناسنامه کارگاه
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="font-black text-stone-900 text-xs sm:text-base truncate">
+                  آدرس، تماس و موقعیت در بازار
                 </h3>
-                <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full">
+                <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">
                   بازار بزرگ تهران
                 </span>
               </div>
-              <p className="text-[11px] text-stone-600 font-bold">
-                تولید و پخش پوشاک من و تو (مدیریت اسدی) • پاساژ المهدی ۴ پلاک ۲۴۲
+              <p className="text-[10px] sm:text-[11px] text-stone-600 font-bold truncate">
+                پوشاک من و تو (مدیریت اسدی) • پاساژ المهدی ۴، پلاک ۲۴۲
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            id="btn-close-about-modal"
-            onClick={onClose}
-            className="p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Mobile Dedicated Return Button */}
+            <button
+              type="button"
+              id="btn-close-about-modal-mobile"
+              onClick={onClose}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#F3EFE6] text-stone-800 border border-[#DDD5C0] text-[11px] font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+              title="بازگشت به ویترین"
+            >
+              <span>ویترین</span>
+              <ChevronLeft className="w-3.5 h-3.5 text-[#8C6D37]" />
+            </button>
+
+            {/* Desktop Modal Close Button */}
+            <button
+              type="button"
+              id="btn-close-about-modal"
+              onClick={onClose}
+              className="hidden md:flex p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+              title="بستن پنجره"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Quick Tab Selection */}
-        <div className="flex items-center bg-[#FAF7F2] border-b border-[#E6DEC8] px-4 sm:px-6 pt-2 overflow-x-auto gap-2 flex-shrink-0">
+        <div className="flex items-center bg-[#FAF7F2] border-b border-[#E6DEC8] px-3 sm:px-6 pt-2 overflow-x-auto gap-2 flex-shrink-0 no-scrollbar">
           <button
             type="button"
             id="tab-btn-workshop-info"
             onClick={() => setActiveViewTab('all')}
-            className={`py-2 px-3.5 rounded-t-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border-b-2 ${
+            className={`py-2 px-3 sm:px-3.5 rounded-t-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border-b-2 ${
               activeViewTab === 'all'
                 ? 'bg-white text-[#18181B] border-[#18181B] shadow-xs'
                 : 'text-stone-600 hover:text-stone-900 border-transparent'
@@ -110,7 +161,7 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
             type="button"
             id="tab-btn-routing-map"
             onClick={() => setActiveViewTab('map')}
-            className={`py-2 px-3.5 rounded-t-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border-b-2 ${
+            className={`py-2 px-3 sm:px-3.5 rounded-t-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border-b-2 ${
               activeViewTab === 'map'
                 ? 'bg-white text-[#18181B] border-[#18181B] shadow-xs'
                 : 'text-stone-600 hover:text-stone-900 border-transparent'
@@ -124,7 +175,7 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
             type="button"
             id="tab-btn-metro-guide"
             onClick={() => setActiveViewTab('metro')}
-            className={`py-2 px-3.5 rounded-t-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border-b-2 ${
+            className={`py-2 px-3 sm:px-3.5 rounded-t-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border-b-2 ${
               activeViewTab === 'metro'
                 ? 'bg-white text-[#18181B] border-[#18181B] shadow-xs'
                 : 'text-stone-600 hover:text-stone-900 border-transparent'
@@ -135,8 +186,13 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 text-xs sm:text-sm text-stone-700 leading-relaxed">
+        {/* Dedicated Page Scrollable Body with safe mobile padding ensuring zero clash with bottom nav */}
+        <div 
+          id="about-contact-scroll-container"
+          className="p-3.5 sm:p-6 overflow-y-auto overscroll-contain touch-pan-y flex-1 min-h-0 space-y-6 text-xs sm:text-sm text-stone-700 leading-relaxed pb-[calc(env(safe-area-inset-bottom,0px)+96px)] md:pb-6"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+          onTouchMove={(e) => e.stopPropagation()}
+        >
 
           {/* TAB 1: WORKSHOP IDENTITY, SHOP ADDRESS & CONTACT INFO */}
           {activeViewTab === 'all' && (
@@ -547,10 +603,30 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
             </span>
           </div>
 
+          {/* Mobile Bottom Quick Direct Call Card */}
+          <div className="md:hidden bg-white rounded-2xl p-3.5 border border-[#DDD5C0] shadow-xs flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                <Phone className="w-4 h-4 text-[#8C6D37]" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-black block text-stone-900 truncate">پاسخگویی و هماهنگی خرید</span>
+                <span className="text-[10px] text-stone-500 block truncate">مدیریت اسدی • بازار تهران</span>
+              </div>
+            </div>
+            <a
+              href={`tel:${BRAND_INFO.primaryPhone}`}
+              className="py-2 px-3 bg-[#18181B] text-[#D4AF37] hover:bg-stone-800 rounded-xl text-xs font-black flex items-center gap-1.5 shrink-0 active:scale-95 transition-all shadow-xs"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>تماس مستقیم</span>
+            </a>
+          </div>
+
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-3.5 sm:p-4 bg-white border-t border-[#E2D8C0] flex items-center justify-between gap-3 flex-shrink-0">
+        {/* Footer Actions (Desktop Only; mobile uses safe padding above the bottom nav) */}
+        <div className="hidden md:flex p-3.5 sm:p-4 bg-white border-t border-[#E2D8C0] items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <a
               href={`tel:${BRAND_INFO.primaryPhone}`}
@@ -565,7 +641,7 @@ export const AboutAndContactModal: React.FC<AboutAndContactModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="bg-[#FAF7F2] hover:bg-[#F4ECE1] text-stone-800 border border-[#DDD5C0] px-4 py-2 rounded-xl text-xs font-bold transition-all"
+            className="bg-[#FAF7F2] hover:bg-[#F4ECE1] text-stone-800 border border-[#DDD5C0] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             بستن پنجره
           </button>

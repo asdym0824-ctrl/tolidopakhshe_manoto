@@ -120,7 +120,8 @@ export const StorefrontVideoReels: React.FC<StorefrontVideoReelsProps> = ({
       {/* Reels Carousel Cards - Full Bleed, Lightweight, No Heavy Dark Footers */}
       <div 
         ref={scrollContainerRef}
-        className="flex items-stretch gap-2.5 sm:gap-3 overflow-x-auto pb-1 pt-0.5 no-scrollbar scroll-smooth snap-x snap-mandatory"
+        className="flex items-stretch gap-2.5 sm:gap-3 overflow-x-auto pb-1 pt-0.5 no-scrollbar scroll-smooth snap-x snap-mandatory touch-pan-y overscroll-x-contain"
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {videoProducts.map((product) => {
           const wholesalePackPrice = isPartnerLoggedIn 

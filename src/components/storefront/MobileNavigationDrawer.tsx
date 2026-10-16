@@ -102,6 +102,36 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   onOpenFabricCare
 }) => {
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
+  const [isMounted, setIsMounted] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Smooth two-phase enter/exit animation lifecycle
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let rafId1: number | null = null;
+    let rafId2: number | null = null;
+
+    if (isOpen) {
+      setIsMounted(true);
+      // Wait for next animation frame so the initial translate-x-full is rendered before transitioning
+      rafId1 = requestAnimationFrame(() => {
+        rafId2 = requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+    } else {
+      setIsVisible(false);
+      timeoutId = setTimeout(() => {
+        setIsMounted(false);
+      }, 380);
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (rafId1) cancelAnimationFrame(rafId1);
+      if (rafId2) cancelAnimationFrame(rafId2);
+    };
+  }, [isOpen]);
 
   // Disable background scrolling when drawer is open
   useEffect(() => {
@@ -126,7 +156,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isMounted) return null;
 
   const handleCategoryClick = (cat: string) => {
     onSelectCategory(cat);
@@ -154,14 +184,18 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   return (
     <div 
       id="mobile-navigation-drawer-backdrop" 
-      className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs transition-opacity duration-300 md:hidden"
+      className={`fixed inset-0 z-[70] overflow-hidden bg-black/60 backdrop-blur-xs drawer-backdrop-motion md:hidden ${
+        isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
       dir="rtl"
       onClick={onClose}
     >
-      {/* Drawer Container (Slides from Right) */}
+      {/* Drawer Container (Smooth Animated Slide from Right) */}
       <div 
         id="mobile-navigation-drawer-panel"
-        className="fixed inset-y-0 right-0 max-w-[85vw] w-full sm:max-w-sm bg-[#FAF7F2] text-stone-900 shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out border-l border-[#E6DEC8] animate-in slide-in-from-right"
+        className={`fixed inset-y-0 right-0 max-w-[85vw] w-full sm:max-w-sm bg-[#FAF7F2] text-stone-900 shadow-2xl flex flex-col h-full transform drawer-panel-motion border-l border-[#E6DEC8] ${
+          isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -679,7 +713,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
         </div>
 
         {/* 3. Sticky Footer in Drawer */}
-        <div className="p-3 bg-stone-100 border-t border-stone-200 text-center text-[10px] text-stone-500 shrink-0">
+        <div className="p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] bg-stone-100 border-t border-stone-200 text-center text-[10px] text-stone-500 shrink-0">
           <span>ساعات کاری بازار بزرگ: ۸:۳۰ الی ۱۹:۰۰ • جمعه‌ها تعطیل</span>
         </div>
 

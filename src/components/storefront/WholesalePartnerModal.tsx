@@ -25,8 +25,6 @@ export const WholesalePartnerModal: React.FC<WholesalePartnerModalProps> = ({
   isLoggedIn,
   onToggleLogin
 }) => {
-  if (!isOpen) return null;
-
   const [partnerPhone, setPartnerPhone] = useState('09121114589');
   const [partnerName, setPartnerName] = useState('حاج داوود محمدی (بنکداری اصفهان)');
   const [partnerError, setPartnerError] = useState<string | null>(null);
@@ -52,8 +50,10 @@ export const WholesalePartnerModal: React.FC<WholesalePartnerModalProps> = ({
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn" dir="rtl">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-4 pb-28 md:pb-4 animate-fadeIn" dir="rtl">
       <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col">
         
         {/* Header */}
@@ -79,7 +79,7 @@ export const WholesalePartnerModal: React.FC<WholesalePartnerModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 pb-28 md:pb-6 space-y-6">
           {isLoggedIn ? (
             <div className="space-y-4 text-center">
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">

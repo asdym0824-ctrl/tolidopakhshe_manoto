@@ -41,7 +41,7 @@ export const StorefrontFooter: React.FC<StorefrontFooterProps> = ({
 
   return (
     <footer 
-      className="relative bg-gradient-to-b from-[#111115] via-[#0B0B0E] to-[#060608] text-white pt-12 sm:pt-14 pb-28 md:pb-20 lg:pb-12 overflow-hidden border-t border-stone-800/80" 
+      className="relative bg-gradient-to-b from-[#111115] via-[#0B0B0E] to-[#060608] text-white pt-12 sm:pt-14 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] md:pb-20 lg:pb-12 overflow-hidden border-t border-stone-800/80" 
       dir="rtl"
     >
       {/* 1. Luminous Haute-Couture Top Border Hairline */}

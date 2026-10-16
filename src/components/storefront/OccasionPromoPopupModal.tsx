@@ -10,6 +10,9 @@ import {
   Clock,
   Flame,
   Award,
+  Scissors,
+  ShieldCheck,
+  Truck,
   Camera,
   Image as ImageIcon,
   Upload,
@@ -188,6 +191,25 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
     }
   }, [product, isPartnerLoggedIn]);
 
+  // Lock background body & document scrolling while promo popup is open on mobile/desktop
+  useEffect(() => {
+    if (isOpen && product) {
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevBodyOverscroll = document.body.style.overscrollBehavior;
+
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'none';
+
+      return () => {
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+        document.body.style.overscrollBehavior = prevBodyOverscroll;
+      };
+    }
+  }, [isOpen, product]);
+
   if (!isOpen || !product) return null;
 
   const discountPercent = config?.discountPercent || 30;
@@ -266,14 +288,15 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
   return (
     <div 
       id="occasion-promo-popup-backdrop"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 md:p-6 animate-in fade-in duration-200 touch-pan-y overscroll-none"
       dir="rtl"
       onClick={handleClose}
     >
       {/* LUXURY E-COMMERCE SPLIT MODAL (Harmonized with MANOTO DRESS Atelier Theme) */}
       <div 
         id="occasion-promo-popup-card"
-        className="relative w-full max-w-[94vw] sm:max-w-md md:max-w-2xl lg:max-w-3xl bg-[#FAF8F5] text-stone-900 rounded-2xl sm:rounded-3xl overflow-hidden border border-[#E6DEC8] shadow-[0_25px_60px_-15px_rgba(20,20,22,0.45)] animate-in zoom-in-95 duration-300 flex flex-col md:flex-row select-none max-h-[92vh] sm:max-h-[88vh] md:max-h-[85vh] overflow-y-auto md:overflow-hidden"
+        className="relative w-full max-w-[94vw] sm:max-w-md md:max-w-2xl lg:max-w-3xl bg-[#FAF8F5] text-stone-900 rounded-2xl sm:rounded-3xl overflow-hidden border border-[#E6DEC8] shadow-[0_25px_60px_-15px_rgba(20,20,22,0.45)] animate-in zoom-in-95 duration-300 flex flex-col md:flex-row select-none max-h-[92vh] sm:max-h-[88vh] md:max-h-[85vh] overflow-y-auto md:overflow-hidden touch-pan-y overscroll-contain"
+        style={{ WebkitOverflowScrolling: 'touch' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Close Button (Harmonized with Dark/Gold Brand Aesthetic) */}
@@ -289,7 +312,7 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
         </button>
 
         {/* RIGHT COLUMN (RTL): Offer & Conversion Form (Harmonized with MANOTO Atelier Palette) */}
-        <div className="w-full md:w-[56%] p-3.5 sm:p-5 md:p-7 flex flex-col justify-between space-y-2.5 sm:space-y-3.5 md:space-y-4 order-2 md:order-1 bg-[#FAF8F5]">
+        <div className="w-full md:w-[56%] p-3.5 sm:p-5 md:p-7 flex flex-col justify-between space-y-3 sm:space-y-4 md:space-y-5 order-2 md:order-1 bg-[#FAF8F5]">
           
           {/* Eyebrow / Headline */}
           <div className="space-y-1.5 sm:space-y-2">
@@ -297,10 +320,6 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
               <div className="flex items-center gap-1.5 text-[#8C7A58] text-[10px] sm:text-xs font-bold uppercase tracking-wider">
                 <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#C5A059] shrink-0" />
                 <span className="truncate">{occasionTitle}</span>
-              </div>
-              <div className="inline-flex items-center gap-1 bg-[#F4EFE6] border border-[#DDD5C0] text-[#78350F] px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black">
-                <Clock className="w-3 h-3 text-[#C5A059]" />
-                <span>مهلت: تا ساعت ۲۴ امشب</span>
               </div>
             </div>
 
@@ -318,8 +337,64 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
             </div>
           </div>
 
+          {/* Middle Trust & Atelier Advantages Area (EXCLUSIVE TO TABLET & DESKTOP - کاملاً مخفی در موبایل) */}
+          <div className="hidden md:flex flex-col gap-2.5 py-1">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+              <span className="text-[11px] font-black text-stone-800 tracking-wide">
+                امتیازات ویژه سفارش مستقیم از خط تولید «من و تو»:
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-stone-800">
+              {/* Feature 1 */}
+              <div className="bg-white p-2.5 rounded-xl border border-[#E6DEC8] shadow-2xs flex items-start gap-2">
+                <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0 border border-rose-200">
+                  <Scissors className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[11px] font-black text-stone-900 leading-tight">الگوسازی ژورنالی بانوان</span>
+                  <span className="block text-[10px] text-stone-500 font-medium leading-snug mt-0.5">تن‌خور آزاد، بدون کشیدگی فاق و قواره خوش‌پوش</span>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-white p-2.5 rounded-xl border border-[#E6DEC8] shadow-2xs flex items-start gap-2">
+                <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[11px] font-black text-stone-900 leading-tight">ضمانت دوخت تمیز بازار</span>
+                  <span className="block text-[10px] text-stone-500 font-medium leading-snug mt-0.5">کیفیت تضمینی کارگاه بازار بزرگ تهران</span>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-white p-2.5 rounded-xl border border-[#E6DEC8] shadow-2xs flex items-start gap-2">
+                <div className="w-6 h-6 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0 border border-sky-200">
+                  <Truck className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[11px] font-black text-stone-900 leading-tight">ارسال ۲۴ ساعته باربری</span>
+                  <span className="block text-[10px] text-stone-500 font-medium leading-snug mt-0.5">تحویل سریع به وطن، پیشتاز و تیپاکس شوش</span>
+                </div>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="bg-white p-2.5 rounded-xl border border-[#E6DEC8] shadow-2xs flex items-start gap-2">
+                <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                  <Award className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[11px] font-black text-stone-900 leading-tight">قیمت دست اول تولیدی</span>
+                  <span className="block text-[10px] text-stone-500 font-medium leading-snug mt-0.5">خرید عمده و تک بدون واسطه پاساژ المهدی</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Coupon Action Area */}
-          <div className="space-y-2 sm:space-y-2.5">
+          <div className="space-y-2.5 sm:space-y-3">
             {/* Instant Coupon Pill */}
             <div className="flex items-center justify-between bg-[#F5EFE6] border border-[#DDD5C0] rounded-xl px-3 py-2 text-xs shadow-2xs">
               <div className="flex items-center gap-2 text-stone-900 font-bold truncate">
@@ -339,58 +414,6 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
                 <span>{copiedCoupon ? 'کپی شد!' : 'کپی کد'}</span>
               </button>
             </div>
-
-            {/* Mode Switcher & Price Bar */}
-            {product.allowRetailSale && !isPartnerLoggedIn ? (
-              <div className="flex items-center justify-between bg-white border border-[#E6DEC8] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs">
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMode('retail_single')}
-                    className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer text-[10px] sm:text-xs ${
-                      selectedMode === 'retail_single'
-                        ? 'bg-[#18181B] text-white shadow-xs'
-                        : 'text-stone-500 hover:text-stone-900'
-                    }`}
-                  >
-                    تک‌فروشی
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMode('wholesale_pack')}
-                    className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer text-[10px] sm:text-xs ${
-                      selectedMode === 'wholesale_pack'
-                        ? 'bg-[#18181B] text-white shadow-xs'
-                        : 'text-stone-500 hover:text-stone-900'
-                    }`}
-                  >
-                    عمده ({toPersianDigits(product.packSize)} تایی)
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="line-through text-stone-400 text-[10px] sm:text-[11px]">
-                    {formatPersianPrice(displayOriginalPrice, 'تومان', false)}
-                  </span>
-                  <span className="font-black text-[#9F1239] text-xs sm:text-sm">
-                    {formatPersianPrice(displayCurrentPrice)}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between bg-white border border-[#E6DEC8] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs">
-                <span className="text-stone-700 font-bold text-[11px] sm:text-xs">
-                  {isWholesale ? `پک عمده (${toPersianDigits(product.packSize)} تایی):` : 'تک‌فروشی:'}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="line-through text-stone-400 text-[10px] sm:text-[11px]">
-                    {formatPersianPrice(displayOriginalPrice, 'تومان', false)}
-                  </span>
-                  <span className="font-black text-[#9F1239] text-xs sm:text-sm">
-                    {formatPersianPrice(displayCurrentPrice)}
-                  </span>
-                </div>
-              </div>
-            )}
 
             {/* Quick Add CTA */}
             <button
@@ -412,33 +435,6 @@ export const OccasionPromoPopupModal: React.FC<OccasionPromoPopupModalProps> = (
                 </>
               )}
             </button>
-          </div>
-
-          {/* Bottom Checkbox & Details Link */}
-          <div className="pt-1.5 sm:pt-2 border-t border-[#E6DEC8] flex items-center justify-between text-[10px] sm:text-[11px] text-stone-500">
-            <label className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={dontShowAgain}
-                onChange={(e) => setDontShowAgain(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-stone-300 text-[#C5A059] focus:ring-[#C5A059] cursor-pointer"
-              />
-              <span className="font-medium text-stone-600">دیگر این پنجره را نشان نده</span>
-            </label>
-
-            {onSelectProduct && (
-              <button
-                type="button"
-                onClick={() => {
-                  handleClose();
-                  onSelectProduct(product);
-                }}
-                className="text-stone-600 hover:text-stone-950 transition-colors font-bold flex items-center gap-1 cursor-pointer touch-manipulation"
-              >
-                <span>مشاهده مشخصات</span>
-                <ArrowLeft className="w-3 h-3" />
-              </button>
-            )}
           </div>
 
         </div>

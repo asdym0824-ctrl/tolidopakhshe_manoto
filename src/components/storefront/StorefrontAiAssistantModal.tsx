@@ -140,6 +140,16 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -163,8 +173,8 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
     if (!textToSend) setInputQuery('');
     setIsLoading(true);
 
-    // Build context summary from products
-    const productContext = products.slice(0, 8).map(p => 
+    // Build context summary from products safely
+    const productContext = (products || []).slice(0, 8).map(p => 
       `- ${p.name} (کد: ${p.sku}) | جنس: ${p.fabricType} | عمده: ${(p.baseWholesalePricePerPack || 0).toLocaleString('fa-IR')} ت (${p.packSize || 6} تایی) | تک: ${p.allowRetailSale && p.retailPricePerUnit ? (p.retailPricePerUnit || 0).toLocaleString('fa-IR') + ' ت' : 'فقط عمده'}`
     ).join('\n');
 
@@ -298,14 +308,19 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200" dir="rtl">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200" 
+      dir="rtl"
+      onClick={onClose}
+    >
       
       {/* Container Modal */}
       <div 
-        className={`bg-white w-full flex flex-col shadow-2xl transition-all duration-300 rounded-t-3xl sm:rounded-3xl border border-[#E6DEC8] overflow-hidden ${
+        onClick={(e) => e.stopPropagation()}
+        className={`bg-white w-full flex flex-col shadow-2xl transition-all duration-300 rounded-t-3xl sm:rounded-3xl border border-[#E6DEC8] overflow-hidden mb-[calc(82px+env(safe-area-inset-bottom,0px))] sm:mb-0 ${
           isExpanded 
-            ? 'h-[96vh] sm:max-w-5xl' 
-            : 'h-[88vh] sm:h-[680px] sm:max-w-2xl'
+            ? 'h-[calc(100dvh-96px-env(safe-area-inset-bottom,0px))] sm:h-[94vh] sm:max-w-5xl' 
+            : 'h-[calc(100dvh-96px-env(safe-area-inset-bottom,0px))] sm:h-[680px] sm:max-w-2xl'
         }`}
       >
         {/* Header */}
@@ -414,7 +429,7 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
         </div>
 
         {/* Chat Messages Body */}
-        <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 bg-stone-50/50">
+        <div className="flex-1 min-h-0 p-4 sm:p-5 overflow-y-auto space-y-4 bg-stone-50/50">
           {messages.map((msg) => {
             const isUser = msg.sender === 'user';
 
@@ -542,7 +557,7 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-100 text-[10px] text-stone-500">
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1 text-[#8C6D37] font-bold">
-                <Sparkles className="w-3 h-3" /> پشتیبانی هوشمند Gemini
+                <Sparkles className="w-3 h-3" /> پشتیبانی هوشمند پوشاک من و تو (اسدی)
               </span>
               <span>•</span>
               <span>پاسخگویی آنی</span>

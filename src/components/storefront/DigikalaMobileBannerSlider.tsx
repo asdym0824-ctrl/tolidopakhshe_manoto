@@ -147,6 +147,8 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchCurrentX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchCurrentY = useRef<number | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   // Next slide
@@ -168,30 +170,45 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
-  // Touch gesture support (Swipe like native app)
+  // Touch gesture support (Swipe like native app, with vertical scroll awareness)
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsPaused(true);
     touchStartX.current = e.touches[0].clientX;
     touchCurrentX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchCurrentY.current = e.touches[0].clientY;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchCurrentX.current = e.touches[0].clientX;
+    touchCurrentY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = () => {
     setIsPaused(false);
-    if (touchStartX.current !== null && touchCurrentX.current !== null) {
+    if (
+      touchStartX.current !== null && 
+      touchCurrentX.current !== null &&
+      touchStartY.current !== null &&
+      touchCurrentY.current !== null
+    ) {
       const diffX = touchStartX.current - touchCurrentX.current;
-      // In RTL, dragging left (diffX > 45) means advance to next slide
-      if (diffX > 45) {
-        nextSlide();
-      } else if (diffX < -45) {
-        prevSlide();
+      const diffY = touchStartY.current - touchCurrentY.current;
+
+      // Only treat as slide change if horizontal displacement is dominant over vertical scrolling
+      if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
+        // In RTL, dragging left (diffX > 45) means advance to next slide
+        if (diffX > 0) {
+          nextSlide();
+        } else {
+          prevSlide();
+        }
       }
     }
     touchStartX.current = null;
     touchCurrentX.current = null;
+    touchStartY.current = null;
+    touchCurrentY.current = null;
   };
 
   const handleSlideAction = (actionType: BannerSlide['actionType']) => {
@@ -241,7 +258,7 @@ export const DigikalaMobileBannerSlider: React.FC<DigikalaMobileBannerSliderProp
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-[#EAE4D9]/80 aspect-[2.15/1] min-h-[145px]"
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-[#EAE4D9]/80 aspect-[2.15/1] min-h-[145px] touch-pan-y"
       >
         {/* Slides Track with Digikala-Smooth Easing & Transition */}
         <div 

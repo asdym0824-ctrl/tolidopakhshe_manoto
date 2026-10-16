@@ -36,7 +36,8 @@ import {
   RotateCcw,
   Sliders,
   Image as ImageIcon,
-  RefreshCw
+  RefreshCw,
+  Film
 } from 'lucide-react';
 import { 
   Product, 
@@ -56,6 +57,7 @@ import { StorefrontMidGridBanner } from './storefront/StorefrontMidGridBanner';
 import { DEFAULT_STOREFRONT_BANNERS, DEFAULT_PROMO_POPUP, INITIAL_SITE_SETTINGS } from '../App';
 import { DEFAULT_LOOKBOOK_BANNERS } from '../data/defaultLookbookBanners';
 import { OccasionPromoPopupModal } from './storefront/OccasionPromoPopupModal';
+import { StoryContentManager } from './admin/StoryContentManager';
 
 interface StorefrontModuleProps {
   products: Product[];
@@ -74,7 +76,7 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
   orders,
   onOpenLiveStorefront,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'site_theme' | 'lookbook_banners' | 'mid_grid_banners' | 'promo_popup' | 'registered_customers' | 'pricing_policy'>('site_info');
+  const [activeSubTab, setActiveSubTab] = useState<'site_info' | 'storefront_stories' | 'site_theme' | 'lookbook_banners' | 'mid_grid_banners' | 'promo_popup' | 'registered_customers' | 'pricing_policy'>('site_info');
   
   // Local form for site settings
   const [formData, setFormData] = useState<SiteSettings>(() => ({
@@ -347,6 +349,18 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveSubTab('storefront_stories')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === 'storefront_stories'
+                ? 'bg-[#18181B] text-[#D4AF37] shadow-xs'
+                : 'text-stone-700 hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <Film className="w-4 h-4 text-[#D4AF37]" />
+            <span>استوری‌های قطاری ویترین ({formData.storefrontStories?.length || 9})</span>
+          </button>
+
+          <button
             onClick={() => setActiveSubTab('lookbook_banners')}
             className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeSubTab === 'lookbook_banners'
@@ -436,6 +450,15 @@ export const StorefrontModule: React.FC<StorefrontModuleProps> = ({
           <RotateCcw className="w-5 h-5 text-amber-700 shrink-0" />
           <span>{resetSuccessMessage}</span>
         </div>
+      )}
+
+      {/* TAB: Storefront Train Stories Management */}
+      {activeSubTab === 'storefront_stories' && (
+        <StoryContentManager
+          products={products}
+          siteSettings={siteSettings}
+          onUpdateSiteSettings={onUpdateSiteSettings}
+        />
       )}
 
       {/* TAB: Lookbook Style Banners Management */}

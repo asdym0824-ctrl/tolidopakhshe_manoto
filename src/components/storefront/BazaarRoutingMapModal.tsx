@@ -45,7 +45,7 @@ export const BazaarRoutingMapModal: React.FC<BazaarRoutingMapModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/75 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 md:p-6 animate-fadeIn" 
+      className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/75 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 md:p-6 pb-28 md:pb-6 animate-fadeIn" 
       dir="rtl"
       id="modal-bazaar-routing"
     >
@@ -151,7 +151,7 @@ export const BazaarRoutingMapModal: React.FC<BazaarRoutingMapModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-stone-700 leading-relaxed">
+        <div className="p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto space-y-5 flex-1 text-stone-700 leading-relaxed">
           
           {/* TAB 1: INTERACTIVE MAP & APP NAVIGATION */}
           {activeTab === 'map' && (

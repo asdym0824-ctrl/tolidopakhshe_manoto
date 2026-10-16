@@ -55,7 +55,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center md:hidden animate-in fade-in duration-200"
+      className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs flex items-end justify-center md:hidden animate-in fade-in duration-200"
       dir="rtl"
       onClick={onClose}
     >
@@ -297,7 +297,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
         </div>
 
         {/* Bottom Apply Action Bar */}
-        <div className="p-3.5 bg-white border-t border-[#E6DEC8] flex items-center gap-2">
+        <div className="p-3.5 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-white border-t border-[#E6DEC8] flex items-center gap-2">
           <button
             type="button"
             onClick={onClose}

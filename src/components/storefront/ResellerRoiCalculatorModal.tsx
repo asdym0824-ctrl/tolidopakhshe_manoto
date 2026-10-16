@@ -31,8 +31,6 @@ export const ResellerRoiCalculatorModal: React.FC<ResellerRoiCalculatorModalProp
   onAddToCart,
   isPartnerLoggedIn = false,
 }) => {
-  if (!isOpen) return null;
-
   // Selected sample product or custom
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || '');
   const [customPackCount, setCustomPackCount] = useState<number>(1);
@@ -79,8 +77,10 @@ export const ResellerRoiCalculatorModal: React.FC<ResellerRoiCalculatorModalProp
     }, 1200);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fadeIn" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-28 md:pb-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fadeIn" dir="rtl">
       <div className="bg-[#FAF7F2] rounded-3xl border border-[#E6DEC8] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]">
         
         {/* Header */}
@@ -112,7 +112,7 @@ export const ResellerRoiCalculatorModal: React.FC<ResellerRoiCalculatorModalProp
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-stone-800">
+        <div className="p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto space-y-5 flex-1 text-stone-800">
           
           {/* Step 1: Select Product */}
           <div className="bg-white p-4 rounded-2xl border border-[#E6DEC8] shadow-xs space-y-3">

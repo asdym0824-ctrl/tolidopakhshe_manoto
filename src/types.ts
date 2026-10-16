@@ -426,6 +426,29 @@ export interface LookbookBannerItem {
 
 export type SiteBackgroundTheme = 'couture_craft' | 'minimal_silk' | 'dark_luxury' | 'gold_atelier';
 
+export type StoryActionType = 'category' | 'video_reels' | 'promo_popup' | 'retail_mode' | 'custom_url' | 'story_modal';
+
+export type StoryHighlightColor = 'gold' | 'rose' | 'purple' | 'emerald' | 'amber' | 'blue';
+
+export interface StorefrontStoryItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  videoUrl?: string;
+  actionType: StoryActionType;
+  actionValue?: string; // e.g. category name like 'شلوار بگ', or external link
+  badgeText?: string;
+  badgeType?: 'hot' | 'gold' | 'video' | 'discount' | 'new' | 'custom';
+  highlightRingColor?: StoryHighlightColor;
+  isActive: boolean;
+  order: number;
+  storyDescription?: string;
+  createdAt?: string;
+}
+
+export type TrainMotionSpeed = 'very_slow' | 'slow' | 'medium' | 'paused';
+
 export interface SiteSettings {
   brandName: string;
   brandSubtitle: string;
@@ -446,6 +469,9 @@ export interface SiteSettings {
   lookbookBanners?: LookbookBannerItem[];
   siteBackgroundTheme?: SiteBackgroundTheme;
   customBackgroundPatternOpacity?: number; // e.g. 0.12
+  storefrontStories?: StorefrontStoryItem[];
+  storiesTrainAutoPlay?: boolean;
+  storiesTrainSpeed?: TrainMotionSpeed;
 }
 
 export interface FabricSupplier {

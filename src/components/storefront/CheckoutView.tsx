@@ -426,7 +426,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   // ----------------------------------------------------
   if (placedOrder) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8 animate-fadeIn" dir="rtl" id="order-success-screen">
+      <div className="max-w-3xl mx-auto px-4 pt-8 pb-32 md:pb-8 animate-fadeIn" dir="rtl" id="order-success-screen">
         <div className="bg-white rounded-3xl border border-[#DDD5C0] shadow-xl overflow-hidden p-6 sm:p-8 space-y-6">
           
           {/* Header */}
@@ -554,7 +554,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   // VIEW: CHECKOUT FORM (3 STEPS)
   // ----------------------------------------------------
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 animate-fadeIn" dir="rtl" id="checkout-view">
+    <div className="max-w-5xl mx-auto px-4 pt-8 pb-32 md:pb-8 animate-fadeIn" dir="rtl" id="checkout-view">
       
       {/* Header Bar */}
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#DDD5C0]">

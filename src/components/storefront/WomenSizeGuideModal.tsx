@@ -24,8 +24,6 @@ export const WomenSizeGuideModal: React.FC<WomenSizeGuideModalProps> = ({
   productName = 'پوشاک زنانه من و تو',
   category = 'شلوار زنانه',
 }) => {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<'pants' | 'blouse' | 'measureGuide'>('pants');
 
   const pantsSizes = [
@@ -42,8 +40,10 @@ export const WomenSizeGuideModal: React.FC<WomenSizeGuideModalProps> = ({
     { size: 'XL (شومیز ۴۴-۴۶)', bust: '۹۹ تا ۱۰۸', shoulder: '۴۱ تا ۴۳', sleeve: '۵۸', length: '۷۲' },
   ];
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200" dir="rtl">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-28 md:pb-4 animate-in fade-in duration-200" dir="rtl">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[#EAE4D9] overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Modal Header */}
@@ -119,7 +119,7 @@ export const WomenSizeGuideModal: React.FC<WomenSizeGuideModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="overflow-y-auto p-4 sm:p-5 space-y-4">
+        <div className="overflow-y-auto p-4 sm:p-5 pb-28 md:pb-5 space-y-4">
           
           {activeTab === 'pants' && (
             <div className="space-y-3">
