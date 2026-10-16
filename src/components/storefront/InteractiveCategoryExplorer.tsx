@@ -5,24 +5,33 @@ import {
   ShoppingBag, 
   Layers, 
   ChevronLeft,
-  Package,
-  TrendingUp,
-  Tag
+  Package, 
+  TrendingUp, 
+  Tag,
+  Check,
+  Plus,
+  X
 } from 'lucide-react';
 import { Product } from '../../types';
 import { toPersianDigits } from '../../utils/persianWriting';
 
 interface InteractiveCategoryExplorerProps {
   categories: string[];
-  selectedCategory: string;
-  onSelectCategory: (category: string) => void;
+  selectedCategory?: string;
+  selectedCategories?: string[];
+  onSelectCategory?: (category: string) => void;
+  onToggleCategory?: (category: string) => void;
+  onClearCategories?: () => void;
   products: Product[];
 }
 
 export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerProps> = ({
   categories,
-  selectedCategory,
+  selectedCategory = 'همه',
+  selectedCategories = [],
   onSelectCategory,
+  onToggleCategory,
+  onClearCategories,
   products,
 }) => {
   // Category visual metadata mapping
@@ -77,6 +86,36 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
     },
   };
 
+  const isCategorySelected = (cat: string) => {
+    if (selectedCategories.length > 0) {
+      if (cat === 'همه') {
+        return selectedCategories.length === 0 || selectedCategories.includes('همه');
+      }
+      return selectedCategories.includes(cat);
+    }
+    return selectedCategory === cat;
+  };
+
+  const handleCategoryClick = (cat: string) => {
+    if (onToggleCategory) {
+      if (cat === 'همه') {
+        if (onClearCategories) {
+          onClearCategories();
+        } else {
+          onToggleCategory('همه');
+        }
+      } else {
+        onToggleCategory(cat);
+      }
+      return;
+    }
+    if (onSelectCategory) {
+      onSelectCategory(cat);
+    }
+  };
+
+  const selectedCount = selectedCategories.filter(c => c !== 'همه').length;
+
   return (
     <div 
       id="interactive-category-explorer"
@@ -99,26 +138,47 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
                 دسته‌بندی و تن‌خور مدل‌های زنانه
               </h3>
               <span className="hidden sm:inline-block text-[10px] font-bold bg-[#FAF8F5] border border-[#D4AF37]/30 text-[#8C6D37] px-2 py-0.5 rounded-full">
-                تفکیک تخصصی
+                امکان انتخاب همزمان چند دسته
               </span>
             </div>
             <p className="text-[10px] sm:text-xs text-stone-500 truncate">
-              انتخاب سریع انواع شلوار بگ، نیم‌بگ، کارگو، کرپ مازراتی و ست‌های تولیدی
+              انتخاب سریع انواع شلوار بگ، نیم‌بگ، کارگو، کرپ مازراتی و ست‌های تولیدی (چند انتخابی)
             </p>
           </div>
         </div>
 
         {/* Selected Category Pill info */}
-        <div className="text-[11px] font-bold text-stone-700 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#EAE4D9] shrink-0 flex items-center gap-1.5 shadow-2xs">
-          <span className="text-stone-400 hidden xs:inline text-[10.5px]">دسته فعال:</span>
-          <span className="text-[#18181B] font-black">{selectedCategory}</span>
+        <div className="flex items-center gap-2 shrink-0">
+          {selectedCount > 1 && onClearCategories && (
+            <button
+              type="button"
+              onClick={onClearCategories}
+              className="text-[10px] text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 bg-rose-50 px-2 py-1 rounded-xl border border-rose-200 transition-colors cursor-pointer"
+            >
+              <X className="w-3 h-3" />
+              <span>پاک کردن</span>
+            </button>
+          )}
+
+          <div className="text-[11px] font-bold text-stone-700 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#EAE4D9] shrink-0 flex items-center gap-1.5 shadow-2xs">
+            <span className="text-stone-400 hidden xs:inline text-[10.5px]">
+              {selectedCount > 1 ? 'دسته‌های فعال:' : 'دسته فعال:'}
+            </span>
+            <span className="text-[#18181B] font-black">
+              {selectedCount === 0 
+                ? 'همه مدل‌ها' 
+                : selectedCount === 1 
+                ? (selectedCategories[0] || selectedCategory)
+                : `${toPersianDigits(selectedCount)} دسته همزمان`}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Interactive Category Grid / Cards - Compact & Snappy */}
       <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-2.5 relative z-10">
         {categories.map((cat) => {
-          const isSelected = selectedCategory === cat;
+          const isSelected = isCategorySelected(cat);
           const config = categoryConfig[cat] || {
             description: 'کالکشن مدل‌های جور کارگاه',
             iconBg: 'bg-stone-100 text-stone-800',
@@ -141,10 +201,10 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
               id={`cat-card-${cat.replace(/\s+/g, '-').replace(/\//g, '-')}`}
               role="button"
               aria-pressed={isSelected}
-              onClick={() => onSelectCategory(cat)}
+              onClick={() => handleCategoryClick(cat)}
               className={`group relative text-right p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2 overflow-hidden active:scale-[0.98] cursor-pointer ${
                 isSelected
-                  ? 'bg-gradient-to-r from-[#18181B] to-[#27272A] text-[#FAF7F2] border-[#18181B] shadow-md ring-2 ring-[#D4AF37]/60'
+                  ? 'bg-gradient-to-r from-[#18181B] to-[#27272A] text-[#FAF7F2] border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/60'
                   : 'bg-[#FAF8F5]/90 hover:bg-white text-stone-800 border-[#EAE4D9] hover:border-[#8C6D37]/50 hover:shadow-2xs'
               }`}
             >
@@ -180,9 +240,18 @@ export const InteractiveCategoryExplorer: React.FC<InteractiveCategoryExplorerPr
                 </div>
               </div>
 
-              <ChevronLeft className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                isSelected ? 'text-[#D4AF37]' : 'text-stone-400 group-hover:-translate-x-0.5'
-              }`} />
+              {/* Multi-Select Status Indicator */}
+              <div className="shrink-0">
+                {isSelected ? (
+                  <div className="w-5 h-5 rounded-md bg-[#D4AF37] text-[#18181B] flex items-center justify-center shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 rounded-md border border-stone-300 bg-white/70 flex items-center justify-center text-stone-400 group-hover:border-[#8C6D37]/60 group-hover:text-stone-700 transition-colors">
+                    <Plus className="w-3 h-3" />
+                  </div>
+                )}
+              </div>
             </button>
           );
         })}

@@ -13,23 +13,33 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import { Product } from '../../types';
+import { toPersianDigits } from '../../utils/persianWriting';
 
 interface MobileFilterBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   categories: string[];
-  selectedCategory: string;
-  onSelectCategory: (cat: string) => void;
+  selectedCategory?: string;
+  selectedCategories?: string[];
+  onSelectCategory?: (cat: string) => void;
+  onToggleCategory?: (cat: string) => void;
+  onClearCategories?: () => void;
   salesModeFilter: 'all' | 'retail_only' | 'wholesale_only';
   onSetSalesModeFilter: (filter: 'all' | 'retail_only' | 'wholesale_only') => void;
   sortBy: 'newest' | 'bestseller' | 'price_asc' | 'price_desc';
   onSetSortBy: (sort: 'newest' | 'bestseller' | 'price_asc' | 'price_desc') => void;
   videoFilterOnly: boolean;
-  onSetVideoFilterOnly: (val: boolean) => void;
-  selectedFabric: string;
-  onSelectFabric: (fabric: string) => void;
+  onSetVideoFilterOnly?: (val: boolean) => void;
+  onToggleVideoFilter?: () => void;
+  selectedFabric?: string;
+  selectedFabrics?: string[];
+  onSelectFabric?: (fabric: string) => void;
+  onToggleFabric?: (fabric: string) => void;
+  onClearFabrics?: () => void;
   availableFabrics: string[];
-  totalFilteredCount: number;
+  totalFilteredCount?: number;
+  totalProductsCount?: number;
+  filteredCount?: number;
   onResetFilters: () => void;
 }
 
@@ -37,21 +47,88 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
   isOpen,
   onClose,
   categories,
-  selectedCategory,
+  selectedCategory = 'همه',
+  selectedCategories = [],
   onSelectCategory,
+  onToggleCategory,
+  onClearCategories,
   salesModeFilter,
   onSetSalesModeFilter,
   sortBy,
   onSetSortBy,
   videoFilterOnly,
   onSetVideoFilterOnly,
-  selectedFabric,
+  onToggleVideoFilter,
+  selectedFabric = '',
+  selectedFabrics = [],
   onSelectFabric,
+  onToggleFabric,
+  onClearFabrics,
   availableFabrics,
   totalFilteredCount,
+  filteredCount,
   onResetFilters
 }) => {
   if (!isOpen) return null;
+
+  const displayCount = totalFilteredCount !== undefined ? totalFilteredCount : (filteredCount || 0);
+  const isCategorySelected = (cat: string) => {
+    if (selectedCategories.length > 0) {
+      if (cat === 'همه') return false;
+      return selectedCategories.includes(cat);
+    }
+    return selectedCategory === cat;
+  };
+
+  const isAllCategoriesActive = selectedCategories.length === 0 || selectedCategory === 'همه';
+
+  const handleCategoryClick = (cat: string) => {
+    if (cat === 'همه') {
+      if (onClearCategories) {
+        onClearCategories();
+      } else if (onToggleCategory) {
+        onToggleCategory('همه');
+      } else if (onSelectCategory) {
+        onSelectCategory('همه');
+      }
+      return;
+    }
+    if (onToggleCategory) {
+      onToggleCategory(cat);
+    } else if (onSelectCategory) {
+      onSelectCategory(cat);
+    }
+  };
+
+  const isFabricSelected = (fabric: string) => {
+    if (selectedFabrics.length > 0) {
+      return selectedFabrics.includes(fabric);
+    }
+    return selectedFabric === fabric;
+  };
+
+  const isAllFabricsActive = selectedFabrics.length === 0 && !selectedFabric;
+
+  const handleFabricClick = (fabric: string) => {
+    if (fabric === '') {
+      if (onClearFabrics) {
+        onClearFabrics();
+      } else if (onToggleFabric) {
+        onToggleFabric('');
+      } else if (onSelectFabric) {
+        onSelectFabric('');
+      }
+      return;
+    }
+    if (onToggleFabric) {
+      onToggleFabric(fabric);
+    } else if (onSelectFabric) {
+      onSelectFabric(fabric);
+    }
+  };
+
+  const activeCategoriesCount = selectedCategories.filter(c => c !== 'همه').length;
+  const activeFabricsCount = selectedFabrics.length;
 
   return (
     <div 
@@ -73,9 +150,9 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-black text-stone-900 text-sm">فیلتر و مرتب‌سازی مدل‌ها</h3>
+                <h3 className="font-black text-stone-900 text-sm">فیلتر و دسته‌بندی مدل‌ها</h3>
                 <span className="text-[10px] text-stone-500 font-medium">
-                  {totalFilteredCount} مدل منطبق در کاتالوگ
+                  {toPersianDigits(displayCount)} مدل منطبق در کاتالوگ
                 </span>
               </div>
             </div>
@@ -84,7 +161,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
               <button
                 type="button"
                 onClick={onResetFilters}
-                className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                 title="پاک کردن همه فیلترها"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -94,7 +171,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
               <button
                 type="button"
                 onClick={onClose}
-                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -189,77 +266,110 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
             </div>
           </div>
 
-          {/* 3. Categories Pills */}
+          {/* 3. Categories Multi-Select Pills */}
           <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-black text-stone-800">
-              <Layers className="w-3.5 h-3.5 text-[#8C6D37]" />
-              <span>دسته‌بندی پوشاک:</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-black text-stone-800">
+                <Layers className="w-3.5 h-3.5 text-[#8C6D37]" />
+                <span>دسته‌بندی پوشاک (امکان انتخاب همزمان چند دسته):</span>
+              </div>
+              {activeCategoriesCount > 0 && (
+                <span className="text-[10px] font-bold bg-[#D4AF37]/15 text-[#8C6D37] border border-[#D4AF37]/30 px-2 py-0.5 rounded-full">
+                  {toPersianDigits(activeCategoriesCount)} دسته انتخاب شده
+                </span>
+              )}
             </div>
+
             <div className="flex flex-wrap gap-1.5">
-              {categories.map((cat) => {
-                const isSelected = selectedCategory === cat;
+              {/* Option to clear and view all */}
+              <button
+                type="button"
+                onClick={() => handleCategoryClick('همه')}
+                className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  isAllCategoriesActive
+                    ? 'bg-[#18181B] text-[#D4AF37] border-[#18181B] shadow-xs ring-1 ring-[#D4AF37]/30'
+                    : 'bg-white text-stone-700 border-[#DDD5C0] hover:bg-[#F5EFEB]'
+                }`}
+              >
+                {isAllCategoriesActive && <Check className="w-3.5 h-3.5 text-[#D4AF37]" />}
+                <span>همه مدل‌ها</span>
+              </button>
+
+              {categories.filter(c => c !== 'همه').map((cat) => {
+                const isSelected = isCategorySelected(cat);
                 return (
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => onSelectCategory(cat)}
-                    className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                    onClick={() => handleCategoryClick(cat)}
+                    className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
                       isSelected
-                        ? 'bg-[#18181B] text-[#D4AF37] border-[#18181B] shadow-xs'
+                        ? 'bg-[#18181B] text-[#FAF7F2] border-[#D4AF37] shadow-xs ring-1 ring-[#D4AF37]/50'
                         : 'bg-white text-stone-700 border-[#DDD5C0] hover:bg-[#F5EFEB]'
                     }`}
                   >
-                    {cat}
+                    <div className={`w-3.5 h-3.5 rounded-sm flex items-center justify-center transition-colors ${
+                      isSelected ? 'bg-[#D4AF37] text-[#18181B]' : 'border border-stone-300 bg-stone-50'
+                    }`}>
+                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                    </div>
+                    <span>{cat}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* 4. Fabric Type Filter */}
+          {/* 4. Fabric Type Multi-Select Filter */}
           {availableFabrics.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-black text-stone-800">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#8C6D37]" />
-                  <span>جنس و نوع پارچه:</span>
+                  <span>جنس و نوع پارچه (انتخاب چندتایی):</span>
                 </span>
-                {selectedFabric && (
+                {activeFabricsCount > 0 ? (
                   <button
                     type="button"
-                    onClick={() => onSelectFabric('')}
-                    className="text-[10px] text-rose-600 font-bold"
+                    onClick={() => handleFabricClick('')}
+                    className="text-[10px] text-rose-600 font-bold hover:underline cursor-pointer"
                   >
-                    حذف فیلتر پارچه
+                    حذف فیلتر پارچه ({toPersianDigits(activeFabricsCount)})
                   </button>
-                )}
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
-                  onClick={() => onSelectFabric('')}
-                  className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                    !selectedFabric
+                  onClick={() => handleFabricClick('')}
+                  className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                    isAllFabricsActive
                       ? 'bg-[#18181B] text-white border-[#18181B]'
                       : 'bg-white text-stone-700 border-[#DDD5C0]'
                   }`}
                 >
-                  همه جنس‌ها
+                  {isAllFabricsActive && <Check className="w-3 h-3 text-[#D4AF37]" />}
+                  <span>همه جنس‌ها</span>
                 </button>
                 {availableFabrics.map((fabric) => {
-                  const isSelected = selectedFabric === fabric;
+                  const isSelected = isFabricSelected(fabric);
                   return (
                     <button
                       key={fabric}
                       type="button"
-                      onClick={() => onSelectFabric(isSelected ? '' : fabric)}
-                      className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                      onClick={() => handleFabricClick(fabric)}
+                      className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-[#8C6D37] text-white border-[#8C6D37] shadow-xs'
+                          ? 'bg-[#8C6D37] text-white border-[#8C6D37] shadow-xs ring-1 ring-amber-300/40'
                           : 'bg-white text-stone-700 border-[#DDD5C0]'
                       }`}
                     >
-                      {fabric}
+                      <div className={`w-3.5 h-3.5 rounded-sm flex items-center justify-center transition-colors ${
+                        isSelected ? 'bg-white text-[#8C6D37]' : 'border border-stone-300 bg-stone-50'
+                      }`}>
+                        {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+                      <span>{fabric}</span>
                     </button>
                   );
                 })}
@@ -281,7 +391,13 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
 
             <button
               type="button"
-              onClick={() => onSetVideoFilterOnly(!videoFilterOnly)}
+              onClick={() => {
+                if (onToggleVideoFilter) {
+                  onToggleVideoFilter();
+                } else if (onSetVideoFilterOnly) {
+                  onSetVideoFilterOnly(!videoFilterOnly);
+                }
+              }}
               className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
                 videoFilterOnly ? 'bg-[#18181B]' : 'bg-stone-300'
               }`}
@@ -301,9 +417,9 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 px-4 bg-gradient-to-r from-[#18181B] to-stone-900 text-[#FAF7F2] rounded-2xl font-black text-xs transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 border border-stone-800"
+            className="flex-1 py-3 px-4 bg-gradient-to-r from-[#18181B] to-stone-900 text-[#FAF7F2] rounded-2xl font-black text-xs transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 border border-stone-800 cursor-pointer"
           >
-            <span>نمایش {totalFilteredCount} مدل منطبق</span>
+            <span>نمایش {toPersianDigits(displayCount)} مدل منطبق</span>
             <Check className="w-4 h-4 text-[#D4AF37]" />
           </button>
         </div>

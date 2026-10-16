@@ -49,7 +49,6 @@ interface StorefrontAiAssistantModalProps {
   onOpenTracking: () => void;
   onOpenPartnerModal: () => void;
   onOpenAboutModal: () => void;
-  onOpenRoutingModal?: () => void;
   onFilterRetailOnly: () => void;
   onSelectCategory: (category: string) => void;
 }
@@ -111,7 +110,6 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
   onOpenTracking,
   onOpenPartnerModal,
   onOpenAboutModal,
-  onOpenRoutingModal,
   onFilterRetailOnly,
   onSelectCategory,
 }) => {
@@ -255,15 +253,6 @@ export const StorefrontAiAssistantModal: React.FC<StorefrontAiAssistantModalProp
       case 'open_about':
         onClose();
         onOpenAboutModal();
-        break;
-      case 'open_routing':
-      case 'open_location':
-        onClose();
-        if (onOpenRoutingModal) {
-          onOpenRoutingModal();
-        } else {
-          onOpenAboutModal();
-        }
         break;
       case 'filter_retail_only':
         onClose();

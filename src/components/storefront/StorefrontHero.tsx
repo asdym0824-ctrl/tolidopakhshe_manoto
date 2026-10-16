@@ -103,6 +103,7 @@ interface StorefrontHeroProps {
   onOpenSizeGuide?: () => void;
   onOpenFabricCare?: () => void;
   siteSettings?: SiteSettings;
+  salesModeFilter?: 'all' | 'retail_only' | 'wholesale_only';
 }
 
 export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
@@ -116,7 +117,12 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
   onOpenSizeGuide,
   onOpenFabricCare,
   siteSettings,
+  salesModeFilter = 'all',
 }) => {
+  // Mobile active sales mode: default/priority is Wholesale ('خرید عمده') unless Retail is explicitly selected
+  const isRetailActive = salesModeFilter === 'retail_only';
+  const isWholesaleActive = !isRetailActive;
+
   // 🔄 Automatic multi-banner rotation state (cycles smoothly every 5.5 seconds like Digikala)
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -331,13 +337,19 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
           <button
             type="button"
             onClick={onFilterWholesalePacks}
-            className="flex-1 py-2 px-2 rounded-xl bg-[#141416] text-[#FAF8F5] shadow-xs flex flex-col items-center justify-center leading-tight transition-transform active:scale-98"
+            className={`flex-1 py-2 px-2 rounded-xl flex flex-col items-center justify-center leading-tight transition-all duration-200 active:scale-98 cursor-pointer ${
+              isWholesaleActive
+                ? 'bg-[#141416] text-[#FAF8F5] shadow-xs border border-[#141416]'
+                : 'bg-[#FAF8F5] hover:bg-[#F3EFE6] text-stone-700 border border-[#EAE4D9]'
+            }`}
           >
             <div className="flex items-center gap-1">
-              <Package className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>خرید عمده (پک بازار)</span>
+              <Package className={`w-3.5 h-3.5 ${isWholesaleActive ? 'text-[#D4AF37]' : 'text-[#967434]'}`} />
+              <span className={isWholesaleActive ? 'text-[#FAF8F5] font-black' : 'text-stone-800 font-bold'}>
+                خرید عمده (پک بازار)
+              </span>
             </div>
-            <span className="text-[9px] text-[#D4AF37] font-medium mt-0.5">
+            <span className={`text-[9px] font-medium mt-0.5 ${isWholesaleActive ? 'text-[#D4AF37]' : 'text-stone-500'}`}>
               پک ۴، ۶ و ۱۲ تایی جور
             </span>
           </button>
@@ -345,13 +357,19 @@ export const StorefrontHero: React.FC<StorefrontHeroProps> = ({
           <button
             type="button"
             onClick={onFilterRetailOnly}
-            className="flex-1 py-2 px-2 rounded-xl bg-[#FAF8F5] hover:bg-[#F3EFE6] text-[#967434] border border-[#EAE4D9] flex flex-col items-center justify-center leading-tight transition-transform active:scale-98"
+            className={`flex-1 py-2 px-2 rounded-xl flex flex-col items-center justify-center leading-tight transition-all duration-200 active:scale-98 cursor-pointer ${
+              isRetailActive
+                ? 'bg-[#141416] text-[#FAF8F5] shadow-xs border border-[#141416]'
+                : 'bg-[#FAF8F5] hover:bg-[#F3EFE6] text-stone-700 border border-[#EAE4D9]'
+            }`}
           >
             <div className="flex items-center gap-1">
-              <ShoppingBag className="w-3.5 h-3.5 text-[#967434]" />
-              <span>تک‌فروشی آنلاین</span>
+              <ShoppingBag className={`w-3.5 h-3.5 ${isRetailActive ? 'text-[#D4AF37]' : 'text-[#967434]'}`} />
+              <span className={isRetailActive ? 'text-[#FAF8F5] font-black' : 'text-stone-800 font-bold'}>
+                تک‌فروشی آنلاین
+              </span>
             </div>
-            <span className="text-[9px] text-stone-500 font-medium mt-0.5">
+            <span className={`text-[9px] font-medium mt-0.5 ${isRetailActive ? 'text-[#D4AF37]' : 'text-stone-500'}`}>
               انتخاب رنگ و سایز دلخواه
             </span>
           </button>
